@@ -1,266 +1,553 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
-import { cantons } from '@/lib/swiss-data'
-import { Check, ArrowRight, Star, ChevronDown } from 'lucide-react'
+import {
+  Check,
+  ArrowRight,
+  ArrowLeft,
+  Briefcase,
+  Building2,
+  Globe,
+  FolderOpen,
+  BookOpen,
+  BarChart3,
+  Shield,
+  RotateCcw,
+} from 'lucide-react'
 
-type Tier = 'basic' | 'standard' | 'premium'
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+type Employment = 'unselbstaendig' | 'selbstaendig' | 'gmbh_ag'
+type Asset = 'wertschriften' | 'liegenschaft' | 'krypto' | 'keine'
+type Docs = 'ja' | 'teilweise' | 'nein'
+type Tier = 'basis' | 'erweitert' | 'komplex'
+type StepId = 'employment' | 'assets' | 'ausland' | 'unterlagen' | 'buchhaltung' | 'result'
+
+interface WizardState {
+  employment: Employment | null
+  assets: Asset[]
+  ausland: boolean | null
+  unterlagen: Docs | null
+  buchhaltung: boolean | null
+}
+
+// Icons for employment options
+const employmentIcons: Record<Employment, typeof Briefcase> = {
+  unselbstaendig: Briefcase,
+  selbstaendig: BarChart3,
+  gmbh_ag: Building2,
+}
+
+// Icons for asset options
+const assetIcons: Record<Asset, typeof BarChart3> = {
+  wertschriften: BarChart3,
+  liegenschaft: Building2,
+  krypto: Globe,
+  keine: Shield,
+}
+
+const INITIAL_STATE: WizardState = {
+  employment: null,
+  assets: [],
+  ausland: null,
+  unterlagen: null,
+  buchhaltung: null,
+}
+
+// ---------------------------------------------------------------------------
+// Rule Engine – derives tier from wizard state (no visible price math)
+// ---------------------------------------------------------------------------
+
+function calculateTier(state: WizardState): Tier {
+  // Selbständig or GmbH/AG → Komplex
+  if (state.employment === 'selbstaendig' || state.employment === 'gmbh_ag') {
+    return 'komplex'
+  }
+
+  // Foreign income/assets → Komplex
+  if (state.ausland === true) {
+    return 'komplex'
+  }
+
+  const hasAssets = state.assets.length > 0 && !state.assets.includes('keine')
+
+  // Unselbständig + assets (Wertschriften / Liegenschaft / Krypto) + no Ausland → Erweitert
+  if (state.employment === 'unselbstaendig' && hasAssets) {
+    return 'erweitert'
+  }
+
+  // Unselbständig + no assets + no Ausland → Basis
+  return 'basis'
+}
+
+// ---------------------------------------------------------------------------
+// Step Sequence – dynamically compute applicable steps
+// ---------------------------------------------------------------------------
+
+function getSteps(employment: Employment | null): StepId[] {
+  const steps: StepId[] = ['employment']
+
+  if (employment === 'unselbstaendig') {
+    steps.push('assets')
+  }
+
+  steps.push('ausland', 'unterlagen')
+
+  if (employment === 'selbstaendig') {
+    steps.push('buchhaltung')
+  }
+
+  steps.push('result')
+  return steps
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function canAdvance(step: StepId, state: WizardState): boolean {
+  switch (step) {
+    case 'employment':
+      return state.employment !== null
+    case 'assets':
+      return state.assets.length > 0
+    case 'ausland':
+      return state.ausland !== null
+    case 'unterlagen':
+      return state.unterlagen !== null
+    case 'buchhaltung':
+      return state.buchhaltung !== null
+    default:
+      return true
+  }
+}
+
+// Declare dataLayer for TypeScript
+declare global {
+  interface Window {
+    dataLayer?: Array<Record<string, unknown>>
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 export default function PricingPage() {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
 
-  const [employmentType, setEmploymentType] = useState<string>('')
-  const [propertyOwner, setPropertyOwner] = useState<boolean | null>(null)
-  const [hasSecurities, setHasSecurities] = useState<boolean | null>(null)
-  const [canton, setCanton] = useState<string>('')
-  const [incomeSources, setIncomeSources] = useState<number>(1)
+  const [state, setState] = useState<WizardState>(INITIAL_STATE)
+  const [stepIndex, setStepIndex] = useState(0)
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
+  const [animKey, setAnimKey] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  const recommendedTier = useMemo((): Tier | null => {
-    if (!employmentType) return null
+  const steps = useMemo(() => getSteps(state.employment), [state.employment])
+  const currentStep = steps[stepIndex]
+  const totalSteps = steps.length
+  const tier = useMemo(() => calculateTier(state), [state])
 
-    if (employmentType === 'selfEmployed' || propertyOwner) {
-      return 'premium'
+  // Analytics: track step views
+  useEffect(() => {
+    if (currentStep === 'result') {
+      window.dataLayer?.push({ event: 'pricing_completed', tier: tier })
+    } else {
+      window.dataLayer?.push({ event: 'pricing_step', step: stepIndex + 1 })
     }
-    if (incomeSources > 1 || hasSecurities) {
-      return 'standard'
-    }
-    return 'basic'
-  }, [employmentType, propertyOwner, hasSecurities, incomeSources])
+  }, [stepIndex, currentStep, tier])
 
-  const tiers = [
-    { key: 'basic' as Tier, ...t.pricing.tiers.basic, popular: false },
-    { key: 'standard' as Tier, ...t.pricing.tiers.standard },
-    { key: 'premium' as Tier, ...t.pricing.tiers.premium, popular: false },
-  ]
+  // Navigation helpers
+  const goNext = useCallback(() => {
+    setDirection('forward')
+    setAnimKey((k) => k + 1)
+    setStepIndex((prev) => Math.min(prev + 1, steps.length - 1))
+  }, [steps.length])
+
+  const goBack = useCallback(() => {
+    if (stepIndex === 0) return
+    setDirection('backward')
+    setAnimKey((k) => k + 1)
+    setStepIndex((prev) => Math.max(prev - 1, 0))
+  }, [stepIndex])
+
+  const restart = useCallback(() => {
+    setState(INITIAL_STATE)
+    setStepIndex(0)
+    setDirection('forward')
+    setAnimKey((k) => k + 1)
+  }, [])
+
+  // State updaters
+  const selectEmployment = useCallback(
+    (emp: Employment) => {
+      setState({
+        employment: emp,
+        assets: [],
+        ausland: null,
+        unterlagen: null,
+        buchhaltung: null,
+      })
+      // Auto-advance after selection
+      setTimeout(() => {
+        setDirection('forward')
+        setAnimKey((k) => k + 1)
+        setStepIndex(1) // always index 1 after employment
+      }, 150)
+    },
+    [],
+  )
+
+  const toggleAsset = useCallback((asset: Asset) => {
+    setState((prev) => {
+      if (asset === 'keine') {
+        return { ...prev, assets: ['keine'] }
+      }
+      const without = prev.assets.filter((a) => a !== 'keine' && a !== asset)
+      const has = prev.assets.includes(asset)
+      return { ...prev, assets: has ? without : [...without, asset] }
+    })
+  }, [])
+
+  const selectAusland = useCallback(
+    (val: boolean) => {
+      setState((prev) => ({ ...prev, ausland: val }))
+      setTimeout(() => goNext(), 150)
+    },
+    [goNext],
+  )
+
+  const selectUnterlagen = useCallback(
+    (val: Docs) => {
+      setState((prev) => ({ ...prev, unterlagen: val }))
+      setTimeout(() => goNext(), 150)
+    },
+    [goNext],
+  )
+
+  const selectBuchhaltung = useCallback(
+    (val: boolean) => {
+      setState((prev) => ({ ...prev, buchhaltung: val }))
+      setTimeout(() => goNext(), 150)
+    },
+    [goNext],
+  )
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+        if (stepIndex > 0 && currentStep !== 'result') {
+          goBack()
+        }
+      }
+      if (e.key === 'Enter' && currentStep !== 'result' && currentStep !== 'employment') {
+        if (canAdvance(currentStep, state)) {
+          goNext()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [stepIndex, currentStep, state, goBack, goNext])
+
+  // Scroll to top on step change
+  useEffect(() => {
+    containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [stepIndex])
+
+  // Show docs messy note?
+  const showMessyDocsNote =
+    currentStep === 'result' && (state.unterlagen === 'teilweise' || state.unterlagen === 'nein')
+
+  // Animation class
+  const animClass = direction === 'forward' ? 'wizard-forward' : 'wizard-backward'
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
 
   return (
     <>
-      {/* Hero */}
-      <section className="gradient-hero pt-32 pb-20 lg:pt-40 lg:pb-28 relative overflow-hidden">
+      {/* Hero – compact */}
+      <section className="gradient-hero pt-32 pb-16 lg:pt-40 lg:pb-20 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="font-heading text-4xl sm:text-5xl font-bold text-white">
+        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
             {t.pricing.title}
           </h1>
-          <p className="mt-4 text-xl text-navy-200 max-w-2xl mx-auto">
+          <p className="mt-4 text-lg text-navy-200 max-w-xl mx-auto">
             {t.pricing.subtitle}
           </p>
         </div>
       </section>
 
-      {/* Pricing cards */}
-      <section className="section-padding -mt-12">
-        <div className="container-wide">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-            {tiers.map((tier) => {
-              const { key, name, description, price, features, popular } = tier
-              const isRecommended = recommendedTier === key
-              const isPopular = popular
-
-              return (
+      {/* Wizard container */}
+      <section ref={containerRef} className="section-padding -mt-8">
+        <div className="max-w-2xl mx-auto">
+          {/* Progress bar (hidden on result) */}
+          {currentStep !== 'result' && (
+            <div className="mb-8" role="progressbar" aria-valuenow={stepIndex + 1} aria-valuemin={1} aria-valuemax={totalSteps - 1}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-navy-600">
+                  {t.pricing.progress} {stepIndex + 1} {t.pricing.progressOf} {totalSteps - 1}
+                </span>
+                {stepIndex > 0 && (
+                  <button
+                    onClick={goBack}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-500 hover:text-navy-700 transition-colors"
+                    aria-label={t.common.back}
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    {t.common.back}
+                  </button>
+                )}
+              </div>
+              <div className="h-2 bg-navy-100 rounded-full overflow-hidden">
                 <div
-                  key={key}
-                  className={`card p-8 relative ${
-                    isRecommended
-                      ? 'ring-2 ring-gold-500 shadow-lg scale-[1.02]'
-                      : isPopular && !recommendedTier
-                      ? 'ring-2 ring-navy-300 shadow-lg scale-[1.02]'
-                      : ''
-                  } transition-all duration-300`}
+                  className="h-full bg-gold-500 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${((stepIndex + 1) / (totalSteps - 1)) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Step content */}
+          <div key={animKey} className={animClass}>
+            {/* ---- Step: Employment ---- */}
+            {currentStep === 'employment' && (
+              <StepCard>
+                <StepQuestion>{t.pricing.steps.employment.question}</StepQuestion>
+                <div className="grid gap-4 mt-8">
+                  {(Object.entries(t.pricing.steps.employment.options) as [Employment, string][]).map(
+                    ([key, label]) => {
+                      const Icon = employmentIcons[key]
+                      return (
+                        <OptionButton
+                          key={key}
+                          selected={state.employment === key}
+                          onClick={() => selectEmployment(key)}
+                          aria-label={label}
+                        >
+                          <Icon className="w-6 h-6 shrink-0" />
+                          <span className="text-lg font-medium">{label}</span>
+                        </OptionButton>
+                      )
+                    },
+                  )}
+                </div>
+              </StepCard>
+            )}
+
+            {/* ---- Step: Assets ---- */}
+            {currentStep === 'assets' && (
+              <StepCard>
+                <StepQuestion>{t.pricing.steps.assets.question}</StepQuestion>
+                <p className="text-navy-500 text-sm mt-2 mb-8">Mehrfachauswahl möglich</p>
+                <div className="grid gap-4">
+                  {(Object.entries(t.pricing.steps.assets.options) as [Asset, string][]).map(
+                    ([key, label]) => {
+                      const Icon = assetIcons[key]
+                      return (
+                        <OptionButton
+                          key={key}
+                          selected={state.assets.includes(key)}
+                          onClick={() => toggleAsset(key)}
+                          aria-label={label}
+                          aria-pressed={state.assets.includes(key)}
+                        >
+                          <Icon className="w-6 h-6 shrink-0" />
+                          <span className="text-lg font-medium">{label}</span>
+                        </OptionButton>
+                      )
+                    },
+                  )}
+                </div>
+                {/* Continue button for multi-select */}
+                <button
+                  onClick={goNext}
+                  disabled={!canAdvance('assets', state)}
+                  className="btn-gold w-full mt-8 group disabled:opacity-40 disabled:cursor-not-allowed"
+                  aria-label={t.common.next}
                 >
-                  {(isRecommended || (isPopular && !recommendedTier)) && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className={`inline-flex items-center gap-1 px-4 py-1 rounded-full text-xs font-semibold text-white ${isRecommended ? 'bg-gold-500' : 'bg-navy-700'}`}>
-                        <Star className="w-3 h-3" />
-                        {isRecommended
-                          ? (locale === 'de' ? 'Empfohlen für Sie' : 'Recommended for You')
-                          : (locale === 'de' ? 'Am beliebtesten' : 'Most Popular')}
-                      </span>
+                  {t.common.next}
+                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </StepCard>
+            )}
+
+            {/* ---- Step: Ausland ---- */}
+            {currentStep === 'ausland' && (
+              <StepCard>
+                <StepQuestion>{t.pricing.steps.ausland.question}</StepQuestion>
+                <div className="grid grid-cols-2 gap-4 mt-8">
+                  <OptionButton
+                    selected={state.ausland === true}
+                    onClick={() => selectAusland(true)}
+                    aria-label={t.pricing.steps.ausland.options.ja}
+                  >
+                    <Globe className="w-6 h-6 shrink-0" />
+                    <span className="text-lg font-medium">{t.pricing.steps.ausland.options.ja}</span>
+                  </OptionButton>
+                  <OptionButton
+                    selected={state.ausland === false}
+                    onClick={() => selectAusland(false)}
+                    aria-label={t.pricing.steps.ausland.options.nein}
+                  >
+                    <Shield className="w-6 h-6 shrink-0" />
+                    <span className="text-lg font-medium">{t.pricing.steps.ausland.options.nein}</span>
+                  </OptionButton>
+                </div>
+              </StepCard>
+            )}
+
+            {/* ---- Step: Unterlagen ---- */}
+            {currentStep === 'unterlagen' && (
+              <StepCard>
+                <StepQuestion>{t.pricing.steps.unterlagen.question}</StepQuestion>
+                <div className="grid gap-4 mt-8">
+                  {(Object.entries(t.pricing.steps.unterlagen.options) as [Docs, string][]).map(
+                    ([key, label]) => (
+                      <OptionButton
+                        key={key}
+                        selected={state.unterlagen === key}
+                        onClick={() => selectUnterlagen(key)}
+                        aria-label={label}
+                      >
+                        <FolderOpen className="w-6 h-6 shrink-0" />
+                        <span className="text-lg font-medium">{label}</span>
+                      </OptionButton>
+                    ),
+                  )}
+                </div>
+              </StepCard>
+            )}
+
+            {/* ---- Step: Buchhaltung ---- */}
+            {currentStep === 'buchhaltung' && (
+              <StepCard>
+                <StepQuestion>{t.pricing.steps.buchhaltung.question}</StepQuestion>
+                <div className="grid grid-cols-2 gap-4 mt-8">
+                  <OptionButton
+                    selected={state.buchhaltung === true}
+                    onClick={() => selectBuchhaltung(true)}
+                    aria-label={t.pricing.steps.buchhaltung.options.ja}
+                  >
+                    <BookOpen className="w-6 h-6 shrink-0" />
+                    <span className="text-lg font-medium">{t.pricing.steps.buchhaltung.options.ja}</span>
+                  </OptionButton>
+                  <OptionButton
+                    selected={state.buchhaltung === false}
+                    onClick={() => selectBuchhaltung(false)}
+                    aria-label={t.pricing.steps.buchhaltung.options.nein}
+                  >
+                    <BookOpen className="w-6 h-6 shrink-0" />
+                    <span className="text-lg font-medium">{t.pricing.steps.buchhaltung.options.nein}</span>
+                  </OptionButton>
+                </div>
+              </StepCard>
+            )}
+
+            {/* ---- Result Screen ---- */}
+            {currentStep === 'result' && (
+              <div className="wizard-fade-up">
+                <div className="card p-8 sm:p-10 lg:p-12 text-center">
+                  {/* Heading */}
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-navy-900">
+                    {t.pricing.result.heading}
+                  </h2>
+
+                  {/* Tier badge */}
+                  <div className="mt-6 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gold-50 border border-gold-200">
+                    <Check className="w-5 h-5 text-gold-600" />
+                    <span className="font-heading font-bold text-gold-700 text-lg">
+                      {t.pricing.tiers[tier].name}
+                    </span>
+                  </div>
+
+                  {/* Price */}
+                  <div className="mt-6">
+                    <span className="text-4xl sm:text-5xl font-bold text-navy-900">
+                      {t.pricing.tiers[tier].price}
+                    </span>
+                    <p className="text-navy-500 text-sm mt-1">
+                      {t.pricing.tiers[tier].priceLabel}
+                    </p>
+                  </div>
+
+                  {/* Fixed price badge for Basis & Erweitert */}
+                  {(tier === 'basis' || tier === 'erweitert') && (
+                    <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-trust-50 border border-trust-200 text-trust-700 text-sm font-medium">
+                      <Shield className="w-4 h-4" />
+                      {t.pricing.result.fixedBadge}
                     </div>
                   )}
 
-                  <div className="text-center mb-6">
-                    <h3 className="font-heading text-xl font-bold text-navy-900">{name}</h3>
-                    <p className="text-navy-600 text-sm mt-1">{description}</p>
-                    <div className="mt-4">
-                      <span className="text-4xl font-bold text-navy-900">{price}</span>
-                    </div>
+                  {/* Komplex note */}
+                  {tier === 'komplex' && (
+                    <p className="mt-4 text-navy-600 text-sm max-w-md mx-auto bg-navy-50 rounded-lg p-4 border border-navy-100">
+                      {t.pricing.result.komplexNote}
+                    </p>
+                  )}
+
+                  {/* Description */}
+                  <p className="mt-6 text-navy-600 text-base max-w-md mx-auto">
+                    {t.pricing.tiers[tier].description}
+                  </p>
+
+                  {/* Features list */}
+                  <div className="mt-8 text-left max-w-sm mx-auto">
+                    <p className="text-sm font-semibold text-navy-900 mb-4">
+                      {t.pricing.result.included}
+                    </p>
+                    <ul className="space-y-3">
+                      {t.pricing.tiers[tier].features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <Check className="w-5 h-5 text-trust-500 shrink-0 mt-0.5" />
+                          <span className="text-navy-700 text-sm">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  <ul className="space-y-3 mb-8">
-                    {features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <Check className="w-5 h-5 text-trust-500 shrink-0 mt-0.5" />
-                        <span className="text-navy-700 text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {/* Messy docs note */}
+                  {showMessyDocsNote && (
+                    <p className="mt-6 text-xs text-navy-500 italic max-w-sm mx-auto">
+                      {t.pricing.result.messyDocsNote}
+                    </p>
+                  )}
 
-                  <Link
-                    href="/auth/register"
-                    className={`w-full text-center ${
-                      isRecommended || (isPopular && !recommendedTier)
-                        ? 'btn-gold'
-                        : 'btn-secondary'
-                    } group`}
+                  {/* CTA buttons */}
+                  <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link
+                      href="/auth/register"
+                      className="btn-gold group text-base !px-8 !py-4"
+                    >
+                      {t.pricing.result.ctaStart}
+                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                    <Link
+                      href="/auth/register"
+                      className="btn-secondary group text-base !px-8 !py-4"
+                    >
+                      {t.pricing.result.ctaConsult}
+                    </Link>
+                  </div>
+
+                  {/* Restart */}
+                  <button
+                    onClick={restart}
+                    className="mt-6 inline-flex items-center gap-2 text-sm text-navy-400 hover:text-navy-600 transition-colors"
+                    aria-label={t.pricing.result.restart}
                   >
-                    {t.pricing.cta}
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Price Calculator */}
-      <section className="section-padding bg-navy-50/50">
-        <div className="container-narrow">
-          <div className="text-center mb-12">
-            <h2 className="font-heading text-3xl font-bold text-navy-900">
-              {t.pricing.calculatorTitle}
-            </h2>
-            <p className="mt-4 text-navy-600 text-lg">
-              {t.pricing.calculatorSubtitle}
-            </p>
-          </div>
-
-          <div className="card p-8 sm:p-10">
-            <div className="space-y-8">
-              {/* Employment type */}
-              <div>
-                <label className="block text-sm font-semibold text-navy-900 mb-3">
-                  {t.pricing.questions.employmentType}
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {Object.entries(t.pricing.questions.employmentOptions).map(([key, label]) => (
-                    <button
-                      key={key}
-                      onClick={() => setEmploymentType(key)}
-                      className={`px-4 py-3 rounded-xl text-sm font-medium border-2 transition-all ${
-                        employmentType === key
-                          ? 'border-navy-800 bg-navy-800 text-white'
-                          : 'border-navy-200 text-navy-700 hover:border-navy-400'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Property owner */}
-              <div>
-                <label className="block text-sm font-semibold text-navy-900 mb-3">
-                  {t.pricing.questions.propertyOwner}
-                </label>
-                <div className="flex gap-3">
-                  {[true, false].map((val) => (
-                    <button
-                      key={String(val)}
-                      onClick={() => setPropertyOwner(val)}
-                      className={`px-6 py-3 rounded-xl text-sm font-medium border-2 transition-all ${
-                        propertyOwner === val
-                          ? 'border-navy-800 bg-navy-800 text-white'
-                          : 'border-navy-200 text-navy-700 hover:border-navy-400'
-                      }`}
-                    >
-                      {val ? t.pricing.questions.yes : t.pricing.questions.no}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Securities */}
-              <div>
-                <label className="block text-sm font-semibold text-navy-900 mb-3">
-                  {t.pricing.questions.securities}
-                </label>
-                <div className="flex gap-3">
-                  {[true, false].map((val) => (
-                    <button
-                      key={String(val)}
-                      onClick={() => setHasSecurities(val)}
-                      className={`px-6 py-3 rounded-xl text-sm font-medium border-2 transition-all ${
-                        hasSecurities === val
-                          ? 'border-navy-800 bg-navy-800 text-white'
-                          : 'border-navy-200 text-navy-700 hover:border-navy-400'
-                      }`}
-                    >
-                      {val ? t.pricing.questions.yes : t.pricing.questions.no}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Canton */}
-              <div>
-                <label className="block text-sm font-semibold text-navy-900 mb-3">
-                  {t.pricing.questions.canton}
-                </label>
-                <div className="relative">
-                  <select
-                    value={canton}
-                    onChange={(e) => setCanton(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-700 bg-white focus:border-navy-500 focus:ring-0 outline-none appearance-none cursor-pointer"
-                  >
-                    <option value="">{locale === 'de' ? 'Kanton wählen...' : 'Select canton...'}</option>
-                    {cantons.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.name[locale]}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-navy-400 pointer-events-none" />
-                </div>
-              </div>
-
-              {/* Income sources */}
-              <div>
-                <label className="block text-sm font-semibold text-navy-900 mb-3">
-                  {t.pricing.questions.incomeSources}
-                </label>
-                <div className="flex gap-3">
-                  {[1, 2, 3].map((num) => (
-                    <button
-                      key={num}
-                      onClick={() => setIncomeSources(num)}
-                      className={`px-6 py-3 rounded-xl text-sm font-medium border-2 transition-all ${
-                        incomeSources === num
-                          ? 'border-navy-800 bg-navy-800 text-white'
-                          : 'border-navy-200 text-navy-700 hover:border-navy-400'
-                      }`}
-                    >
-                      {num}{num === 3 ? '+' : ''}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Result */}
-            {recommendedTier && (
-              <div className="mt-10 p-6 rounded-2xl bg-navy-50 border border-navy-100">
-                <div className="text-center">
-                  <p className="text-sm font-medium text-navy-600 mb-2">
-                    {locale === 'de' ? 'Empfohlenes Paket:' : 'Recommended Package:'}
-                  </p>
-                  <h3 className="text-2xl font-bold text-navy-900">
-                    {t.pricing.tiers[recommendedTier].name} – {t.pricing.tiers[recommendedTier].price}
-                  </h3>
-                  <p className="text-navy-600 mt-2">{t.pricing.tiers[recommendedTier].description}</p>
-                  <Link
-                    href="/auth/register"
-                    className="btn-gold !px-8 !py-3 mt-6 group inline-flex"
-                  >
-                    {t.pricing.cta}
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                    <RotateCcw className="w-4 h-4" />
+                    {t.pricing.result.restart}
+                  </button>
                 </div>
               </div>
             )}
@@ -268,5 +555,51 @@ export default function PricingPage() {
         </div>
       </section>
     </>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Reusable sub-components
+// ---------------------------------------------------------------------------
+
+function StepCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="card p-8 sm:p-10" role="group">
+      {children}
+    </div>
+  )
+}
+
+function StepQuestion({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="font-heading text-xl sm:text-2xl font-bold text-navy-900 text-center">
+      {children}
+    </h2>
+  )
+}
+
+function OptionButton({
+  selected,
+  onClick,
+  children,
+  ...rest
+}: {
+  selected: boolean
+  onClick: () => void
+  children: React.ReactNode
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-4 w-full px-6 py-5 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 ${
+        selected
+          ? 'border-navy-800 bg-navy-800 text-white shadow-md'
+          : 'border-navy-200 text-navy-700 hover:border-navy-400 hover:bg-navy-50'
+      }`}
+      {...rest}
+    >
+      {children}
+    </button>
   )
 }
