@@ -40,7 +40,7 @@ export default function CookieConsent() {
           <div className="flex-1">
             <p className="text-navy-700 text-sm leading-relaxed">
               {t.cookie.message}{' '}
-              <Link href="/privacy" className="text-navy-900 underline underline-offset-2 hover:text-gold-600">
+              <Link href="/privacy" className="text-navy-900 underline underline-offset-2 hover:text-navy-600">
                 {t.cookie.learnMore}
               </Link>
             </p>

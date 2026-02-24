@@ -217,7 +217,7 @@ export default function TaxCalculatorPage() {
                 </div>
                 <div className="flex justify-between items-center py-3">
                   <span className="text-navy-600">{t.taxCalc.results.effective}</span>
-                  <span className="font-semibold text-gold-600">{result.effectiveRate}%</span>
+                  <span className="font-semibold text-navy-700">{result.effectiveRate}%</span>
                 </div>
               </div>
 

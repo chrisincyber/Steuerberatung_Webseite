@@ -43,7 +43,7 @@ export default function AboutPage() {
                 </div>
               </div>
               <div className="absolute -bottom-6 -right-6 w-32 h-32 rounded-2xl gradient-navy -z-10" />
-              <div className="absolute -top-6 -left-6 w-24 h-24 rounded-2xl bg-gold-100 -z-10" />
+              <div className="absolute -top-6 -left-6 w-24 h-24 rounded-2xl bg-navy-100 -z-10" />
             </div>
 
             {/* Text */}

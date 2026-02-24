@@ -239,7 +239,7 @@ export default function RegisterPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-navy-600">
               {t.auth.hasAccount}{' '}
-              <Link href="/auth/login" className="font-semibold text-navy-900 hover:text-gold-600 transition-colors">
+              <Link href="/auth/login" className="font-semibold text-navy-900 hover:text-navy-600 transition-colors">
                 {t.auth.login}
               </Link>
             </p>

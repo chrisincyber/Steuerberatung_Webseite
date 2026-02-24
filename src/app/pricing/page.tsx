@@ -287,9 +287,9 @@ export default function PricingPage() {
           </p>
 
           {/* Urgency banner */}
-          <div className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-full bg-gold-500/20 border border-gold-400/30">
-            <Clock className="w-4 h-4 text-gold-400" />
-            <span className="text-sm font-medium text-gold-300">{t.pricing.urgency}</span>
+          <div className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-full bg-white/10 border border-white/20">
+            <Clock className="w-4 h-4 text-white/80" />
+            <span className="text-sm font-medium text-white/80">{t.pricing.urgency}</span>
           </div>
         </div>
       </section>
@@ -317,7 +317,7 @@ export default function PricingPage() {
               </div>
               <div className="h-2 bg-navy-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gold-500 rounded-full transition-all duration-500 ease-out"
+                  className="h-full bg-navy-800 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${((stepIndex + 1) / (totalSteps - 1)) * 100}%` }}
                 />
               </div>
@@ -470,9 +470,9 @@ export default function PricingPage() {
                   </h2>
 
                   {/* Tier badge */}
-                  <div className="mt-6 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gold-50 border border-gold-200">
-                    <Check className="w-5 h-5 text-gold-600" />
-                    <span className="font-heading font-bold text-gold-700 text-lg">
+                  <div className="mt-6 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-navy-50 border border-navy-200">
+                    <Check className="w-5 h-5 text-navy-700" />
+                    <span className="font-heading font-bold text-navy-900 text-lg">
                       {t.pricing.tiers[tier].name}
                     </span>
                   </div>
@@ -599,7 +599,7 @@ function OptionButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-4 w-full px-6 py-5 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 ${
+      className={`flex items-center gap-4 w-full px-6 py-5 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2 ${
         selected
           ? 'border-navy-800 bg-navy-800 text-white shadow-md'
           : 'border-navy-200 text-navy-700 hover:border-navy-400 hover:bg-navy-50'

@@ -34,7 +34,7 @@ export default function HomePage() {
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-navy-700/20 blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-gold-500/5 blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-white/5 blur-3xl" />
           <div
             className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -48,7 +48,7 @@ export default function HomePage() {
           <div className="max-w-3xl">
             {/* Trust badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 mb-8">
-              <Shield className="w-4 h-4 text-gold-400" />
+              <Shield className="w-4 h-4 text-white/80" />
               <span className="text-sm font-medium dark-text-secondary">
                 {t.hero.trustBadge}
               </span>
@@ -247,7 +247,7 @@ export default function HomePage() {
               <div key={i} className="card p-8">
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-5 h-5 fill-gold-400 text-gold-400" />
+                    <Star key={j} className="w-5 h-5 fill-navy-800 text-navy-800" />
                   ))}
                 </div>
                 <p className="text-navy-700 text-sm leading-relaxed mb-6">{review.text}</p>
@@ -344,7 +344,7 @@ export default function HomePage() {
       <section className="px-4 sm:px-6 lg:px-8 py-20">
         <div className="container-wide">
           <div className="relative overflow-hidden rounded-3xl gradient-navy p-8 sm:p-12 lg:p-16">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-gold-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
             <div className="relative text-center max-w-2xl mx-auto">
               <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold dark-text-primary mb-4">
