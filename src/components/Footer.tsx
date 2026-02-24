@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useI18n } from '@/lib/i18n/context'
 import { Mail, Phone, MapPin } from 'lucide-react'
 
@@ -15,13 +16,20 @@ export default function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gold-500 flex items-center justify-center text-white font-bold text-lg">
-                PT
-              </div>
-              <div>
-                <span className="font-heading font-bold text-lg text-white">Petertil</span>
-                <span className="font-heading font-bold text-lg text-gold-400 ml-1">Tax</span>
-              </div>
+              <Image
+                src="/monogram-dark.svg"
+                alt="PT"
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-xl"
+              />
+              <Image
+                src="/logo-white.svg"
+                alt="Petertil Tax"
+                width={150}
+                height={30}
+                className="h-7 w-auto"
+              />
             </div>
             <p className="dark-text-tertiary text-sm leading-relaxed">
               {t.footer.tagline}

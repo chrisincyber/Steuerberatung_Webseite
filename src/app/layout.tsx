@@ -33,6 +33,13 @@ export const metadata: Metadata = {
     title: 'Petertil Tax – Ihre digitale Steuererklärung',
     description: 'Qualifizierte Steuerberatung aus der Schweiz – schnell, digital und bezahlbar.',
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/favicon.png',
+  },
   robots: {
     index: true,
     follow: true,
