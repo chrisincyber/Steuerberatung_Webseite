@@ -87,9 +87,13 @@ export default function Header() {
                 key={link.href}
                 href={link.href}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive(link.href)
-                    ? 'text-navy-900 bg-navy-100'
-                    : 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
+                  scrolled
+                    ? isActive(link.href)
+                      ? 'text-navy-900 bg-navy-100'
+                      : 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
+                    : isActive(link.href)
+                      ? 'text-white bg-white/15'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
                 }`}
               >
                 {link.label}
@@ -102,7 +106,11 @@ export default function Header() {
             {/* Language toggle */}
             <button
               onClick={toggleLocale}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-navy-600 hover:text-navy-900 hover:bg-navy-50 transition-colors"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                scrolled
+                  ? 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
+              }`}
               aria-label="Toggle language"
             >
               <Globe className="w-4 h-4" />
@@ -114,7 +122,11 @@ export default function Header() {
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-navy-600 hover:text-navy-900 hover:bg-navy-50 transition-colors"
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    scrolled
+                      ? 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
                 >
                   <User className="w-4 h-4" />
                   <ChevronDown className="w-3 h-3" />
@@ -146,7 +158,11 @@ export default function Header() {
               <div className="hidden lg:flex items-center gap-2">
                 <Link
                   href="/auth/login"
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-navy-600 hover:text-navy-900 hover:bg-navy-50 transition-colors"
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    scrolled
+                      ? 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
                 >
                   {t.nav.login}
                 </Link>
@@ -162,7 +178,11 @@ export default function Header() {
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-navy-600 hover:bg-navy-50 transition-colors"
+              className={`lg:hidden p-2 rounded-lg transition-colors ${
+                scrolled
+                  ? 'text-navy-600 hover:bg-navy-50'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
+              }`}
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

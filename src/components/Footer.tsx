@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useI18n } from '@/lib/i18n/context'
-import { Mail, Phone, MapPin } from 'lucide-react'
+import { Mail, ArrowRight } from 'lucide-react'
 
 export default function Footer() {
   const { t } = useI18n()
@@ -92,7 +92,7 @@ export default function Footer() {
           {/* Contact */}
           <div>
             <h3 className="font-heading font-semibold text-sm uppercase tracking-wider dark-text-muted mb-4">
-              {t.footer.contact}
+              {t.footer.questionsHeading}
             </h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-2 dark-text-tertiary text-sm">
@@ -101,17 +101,16 @@ export default function Footer() {
                   info@petertiltax.ch
                 </a>
               </li>
-              <li className="flex items-center gap-2 dark-text-tertiary text-sm">
-                <Phone className="w-4 h-4 dark-text-muted" />
-                <a href="tel:+41000000000" className="hover:text-white transition-colors">
-                  +41 00 000 00 00
-                </a>
-              </li>
-              <li className="flex items-start gap-2 dark-text-tertiary text-sm">
-                <MapPin className="w-4 h-4 dark-text-muted mt-0.5" />
-                <span>Schweiz</span>
-              </li>
             </ul>
+            <div className="mt-6">
+              <Link
+                href="/auth/register"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-navy-900 bg-white hover:bg-navy-50 transition-colors"
+              >
+                {t.footer.startCta}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </div>
 

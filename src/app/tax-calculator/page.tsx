@@ -46,7 +46,7 @@ export default function TaxCalculatorPage() {
   return (
     <>
       {/* Hero */}
-      <section className="gradient-hero pt-32 pb-20 lg:pt-40 lg:pb-28 relative overflow-hidden">
+      <section className="gradient-hero pt-24 pb-20 lg:pt-40 lg:pb-28 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
         </div>
@@ -239,7 +239,7 @@ export default function TaxCalculatorPage() {
                 </p>
                 <Link
                   href="/auth/register"
-                  className="btn-gold !px-8 !py-4 group inline-flex"
+                  className="btn-white !px-8 !py-4 group inline-flex"
                 >
                   {t.taxCalc.ctaButton}
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />

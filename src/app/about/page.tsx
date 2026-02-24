@@ -1,16 +1,17 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useI18n } from '@/lib/i18n/context'
 import { Award, Users, FileText, CheckCircle, ArrowRight } from 'lucide-react'
 
 export default function AboutPage() {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
 
   return (
     <>
       {/* Hero */}
-      <section className="gradient-hero pt-32 pb-20 lg:pt-40 lg:pb-28 relative overflow-hidden">
+      <section className="gradient-hero pt-24 pb-20 lg:pt-40 lg:pb-28 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
         </div>
@@ -28,19 +29,16 @@ export default function AboutPage() {
       <section className="section-padding">
         <div className="container-wide">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            {/* Photo placeholder */}
+            {/* Photo */}
             <div className="relative">
               <div className="aspect-[4/5] rounded-3xl bg-navy-100 overflow-hidden relative">
-                <div className="absolute inset-0 flex items-center justify-center bg-navy-50">
-                  <div className="text-center">
-                    <div className="w-32 h-32 rounded-full bg-navy-200 mx-auto mb-4 flex items-center justify-center">
-                      <Users className="w-16 h-16 text-navy-400" />
-                    </div>
-                    <p className="text-navy-400 text-sm font-medium">
-                      {locale === 'de' ? 'Ihr Foto hier' : 'Your Photo Here'}
-                    </p>
-                  </div>
-                </div>
+                <Image
+                  src="/christian-petertil.png"
+                  alt={t.about.founderName}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
               </div>
               <div className="absolute -bottom-6 -right-6 w-32 h-32 rounded-2xl gradient-navy -z-10" />
               <div className="absolute -top-6 -left-6 w-24 h-24 rounded-2xl bg-navy-100 -z-10" />

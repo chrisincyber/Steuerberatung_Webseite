@@ -21,10 +21,11 @@ import {
   User,
   ChevronDown,
   AlertCircle,
+  FileText,
 } from 'lucide-react'
 
 export default function HomePage() {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
 
   return (
@@ -44,7 +45,7 @@ export default function HomePage() {
           />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20 lg:pt-44 lg:pb-32">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 lg:pt-44 lg:pb-32">
           <div className="max-w-3xl">
             {/* Trust badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 mb-8">
@@ -67,7 +68,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 mt-10">
               <Link
                 href="/auth/register"
-                className="btn-gold !px-8 !py-4 !text-base group"
+                className="btn-white !px-8 !py-4 !text-base group"
               >
                 {t.hero.cta}
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -79,22 +80,6 @@ export default function HomePage() {
                 {t.hero.ctaSecondary}
               </Link>
             </div>
-
-            {/* Stats */}
-            <div className="flex flex-wrap gap-8 mt-14 pt-8 border-t border-white/10">
-              <div>
-                <div className="text-2xl font-bold dark-text-primary">500+</div>
-                <div className="text-sm dark-text-tertiary">{locale === 'de' ? 'Zufriedene Kunden' : 'Satisfied Clients'}</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold dark-text-primary">1&apos;000+</div>
-                <div className="text-sm dark-text-tertiary">{locale === 'de' ? 'Steuererklärungen' : 'Tax Declarations'}</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold dark-text-primary">26</div>
-                <div className="text-sm dark-text-tertiary">{locale === 'de' ? 'Kantone abgedeckt' : 'Cantons Covered'}</div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -103,6 +88,22 @@ export default function HomePage() {
           <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
             <path d="M0 80H1440V40C1440 40 1320 0 1080 20C840 40 720 60 480 40C240 20 120 0 0 20V80Z" fill="white" />
           </svg>
+        </div>
+      </section>
+
+      {/* Social Proof Bar */}
+      <section className="py-6 border-b border-navy-100">
+        <div className="container-wide">
+          <div className="flex flex-wrap justify-center gap-8 text-center">
+            <div className="flex items-center gap-2 text-navy-600">
+              <FileText className="w-5 h-5 text-navy-400" />
+              <span className="text-sm font-medium">{t.socialProof.declarations}</span>
+            </div>
+            <div className="flex items-center gap-2 text-navy-600">
+              <MapPin className="w-5 h-5 text-navy-400" />
+              <span className="text-sm font-medium">{t.socialProof.cantons}</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -221,29 +222,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-            {[
-              {
-                name: 'Sarah M.',
-                location: 'Zürich',
-                text: locale === 'de'
-                  ? '\"Unkompliziert und professionell. Meine Steuererklärung war schneller fertig als erwartet. Sehr empfehlenswert!\"'
-                  : '\"Uncomplicated and professional. My tax declaration was completed faster than expected. Highly recommended!\"',
-              },
-              {
-                name: 'Thomas K.',
-                location: 'Bern',
-                text: locale === 'de'
-                  ? '\"Endlich ein Service, der wirklich digital funktioniert. Alles online, keine unnötigen Termine. Top!\"'
-                  : '\"Finally a service that truly works digitally. Everything online, no unnecessary appointments. Top!\"',
-              },
-              {
-                name: 'Laura B.',
-                location: 'Basel',
-                text: locale === 'de'
-                  ? '\"Faire Preise und kompetente Beratung. Ich habe sogar mehr Abzüge erhalten als in den Vorjahren. Danke!\"'
-                  : '\"Fair prices and competent advice. I even received more deductions than in previous years. Thank you!\"',
-              },
-            ].map((review, i) => (
+            {t.testimonials.items.map((review, i) => (
               <div key={i} className="card p-8">
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, j) => (
@@ -259,7 +238,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-navy-900">{review.name}</div>
-                    <div className="text-xs text-navy-500">{review.location}</div>
+                    <div className="text-xs text-navy-500">{review.location} &middot; {review.context}</div>
                   </div>
                 </div>
               </div>
@@ -313,7 +292,7 @@ export default function HomePage() {
               <div key={i} className="card overflow-hidden">
                 <button
                   onClick={() => setOpenFaqIndex(openFaqIndex === i ? null : i)}
-                  className="w-full flex items-center justify-between p-6 text-left hover:bg-navy-50/50 transition-colors"
+                  className="w-full flex items-center justify-between p-4 sm:p-6 text-left hover:bg-navy-50/50 transition-colors"
                 >
                   <span className="font-semibold text-navy-900">{item.question}</span>
                   <ChevronDown
@@ -323,7 +302,7 @@ export default function HomePage() {
                   />
                 </button>
                 {openFaqIndex === i && (
-                  <div className="px-6 pb-6 pt-0">
+                  <div className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0">
                     <p className="text-navy-600 leading-relaxed">{item.answer}</p>
                   </div>
                 )}
@@ -355,7 +334,7 @@ export default function HomePage() {
               </p>
               <Link
                 href="/auth/register"
-                className="btn-gold !px-10 !py-4 !text-base group"
+                className="btn-white !px-10 !py-4 !text-base group"
               >
                 {t.finalCta.cta}
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />

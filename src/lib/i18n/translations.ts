@@ -19,44 +19,50 @@ export const translations = {
 
     // Homepage
     hero: {
-      title: 'Steuererklärung erledigt.',
-      titleAccent: 'Sie lehnen sich zurück.',
-      subtitle: 'Dokumente hochladen, wir kümmern uns um alles – ab CHF 99. Persönliche Steuerberatung aus der Schweiz.',
-      cta: 'Steuererklärung starten',
-      ctaSecondary: 'Was kostet es?',
-      trustBadge: '500+ Kunden vertrauen uns in allen 26 Kantonen',
+      title: 'Steuererklärung abgeben.',
+      titleAccent: 'Zurücklehnen.',
+      subtitle: 'Dokumente hochladen, Steuerexperte kümmert sich um alles. Fixpreis ab CHF 149.',
+      cta: 'Steuererklärung abgeben',
+      ctaSecondary: 'Preis berechnen',
+      trustBadge: '175+ Kunden vertrauen uns in allen 26 Kantonen',
+    },
+
+    // Social Proof Bar
+    socialProof: {
+      declarations: 'Über 1\'000 Steuererklärungen eingereicht',
+      cantons: 'Alle 26 Kantone',
     },
 
     // Problem/Pain Section
     problem: {
       title: 'Kommt Ihnen das bekannt vor?',
       items: [
-        'Jedes Jahr derselbe Stress und dieselbe Unsicherheit',
-        'Komplizierte Formulare, unklare Abzüge, Angst vor Fehlern',
-        'Stunden verschwendet, die Sie besser nutzen könnten',
-        'Und das nagende Gefühl, zu viel Steuern zu zahlen',
+        'Formulare, die selbst Treuhänder verwirren',
+        'Das Gefühl, Abzüge zu verpassen — jedes Jahr',
+        'Stunden am Schreibtisch statt mit Familie oder Freizeit',
+        'Unsicherheit, ob am Ende eine Nachforderung kommt',
       ],
       transition: 'Das muss nicht sein.',
     },
 
-    // Benefits (formerly Value Propositions)
+    // Benefits
     benefits: {
       title: 'Was sich für Sie ändert',
       noPaperwork: {
-        title: 'Kein Papierkram, keine Termine',
-        description: 'Laden Sie Ihre Dokumente bequem von zu Hause hoch – alles online, alles sicher.',
+        title: 'Alles online, null Papierkram',
+        description: 'Lohnausweis abfotografieren, hochladen, fertig. Kein Drucker, kein Termin, kein Weg.',
       },
       fast: {
-        title: 'Erledigt in Tagen, nicht Wochen',
-        description: 'Ihre Steuererklärung wird innert weniger Tage professionell erstellt und eingereicht.',
+        title: 'Fertig in 5–10 Tagen',
+        description: 'Ab Dokumenteneingang arbeitet Ihr Steuerexperte sofort los. Keine Warteschlange.',
       },
       experts: {
-        title: 'Echte Steuerexperten, keine Software',
-        description: 'Ein persönlicher Berater kümmert sich um Ihre Steuererklärung – nicht ein Algorithmus.',
+        title: 'Echte Steuerexperten',
+        description: 'Kein Chatbot, kein Algorithmus. Eine reale Person mit eidg. Fachausweis prüft jede Zeile.',
       },
       transparent: {
-        title: 'Sie wissen vorher, was es kostet',
-        description: 'Transparente Preise ab CHF 99 – ohne versteckte Kosten, ohne Überraschungen.',
+        title: 'Fixpreis, keine Überraschungen',
+        description: 'Sie sehen den Preis vor der Beauftragung. Keine Stundensätze, keine Nachforderungen.',
       },
     },
 
@@ -66,23 +72,43 @@ export const translations = {
       subtitle: 'In nur drei Schritten zur fertigen Steuererklärung',
       step1: {
         title: 'Dokumente hochladen',
-        description: 'Dauert 10 Minuten. Wir akzeptieren auch Fotos Ihrer Dokumente.',
+        description: 'Dauert 10 Minuten. Fotos genügen.',
       },
       step2: {
         title: 'Wir erledigen den Rest',
-        description: 'Ihr persönlicher Steuerberater kümmert sich um alles.',
+        description: 'Ihr persönlicher Berater optimiert jeden Abzug.',
       },
       step3: {
-        title: 'Fertig!',
-        description: 'Laden Sie Ihre fertige Steuererklärung herunter. Durchschnittliche Rückerstattung: CHF 1\'200.',
+        title: 'Fertig',
+        description: 'Sie erhalten Ihre Steuererklärung zum Prüfen und Unterschreiben.',
       },
-      cta: 'Dokumente hochladen',
+      cta: 'Jetzt Dokumente hochladen',
     },
 
     // Testimonials
     testimonials: {
       title: 'Das sagen unsere Kunden',
       subtitle: 'Vertrauen Sie auf die Erfahrung zufriedener Kunden',
+      items: [
+        {
+          name: 'Felix B.',
+          location: 'Schweiz',
+          text: 'Seit mehreren Jahren zufriedener Kunde! Merci Christian.',
+          context: 'Langjähriger Kunde',
+        },
+        {
+          name: 'Emin B.',
+          location: 'Schweiz',
+          text: 'Einfach und professionell, vielen Dank für die Unterstützung!',
+          context: 'Steuererklärung 2025',
+        },
+        {
+          name: 'Yannick M.',
+          location: 'Schweiz',
+          text: 'Wenig Aufwand für mich und immer eine richtig ausgefüllte Steuererklärung.',
+          context: 'Steuererklärung 2025',
+        },
+      ],
     },
 
     // Guarantee Section
@@ -91,8 +117,8 @@ export const translations = {
       subtitle: 'Wir stehen hinter unserer Arbeit.',
       items: [
         { title: 'Zufriedenheitsgarantie', description: 'Nicht zufrieden? Sie erhalten Ihr Geld zurück.' },
-        { title: 'AES-256 Verschlüsselung', description: 'Ihre Daten sind sicher – nach Schweizer Standard.' },
-        { title: 'Alle 26 Kantone', description: 'Wir kennen die Besonderheiten jedes Kantons.' },
+        { title: 'Schweizer Datenschutzstandard', description: 'Ihre Daten sind sicher – nach Schweizer Recht geschützt.' },
+        { title: 'Jeder Kanton, jede Gemeinde', description: 'Wir kennen die Besonderheiten jedes Kantons und jeder Gemeinde.' },
         { title: 'Persönlicher Berater', description: 'Ein echter Mensch, der für Sie da ist.' },
       ],
     },
@@ -103,15 +129,15 @@ export const translations = {
       items: [
         {
           question: 'Welche Dokumente brauche ich?',
-          answer: 'Lohnausweis, Kontoauszüge, Säule 3a Bescheinigung und ggf. weitere Belege. Wir sagen Ihnen genau, was fehlt.',
+          answer: 'Lohnausweis, Kontoauszüge, Säule 3a Bescheinigung und ggf. weitere Belege. Die meisten Kunden brauchen 3–5 Dokumente. Wir sagen Ihnen genau, was fehlt.',
         },
         {
           question: 'Wie lange dauert es?',
-          answer: 'In der Regel 5–10 Arbeitstage nach Erhalt aller Unterlagen. Premium-Kunden erhalten Express-Bearbeitung.',
+          answer: 'In der Regel 5–10 Arbeitstage nach Erhalt aller Unterlagen. Eilaufträge auf Anfrage möglich.',
         },
         {
           question: 'Sind meine Daten sicher?',
-          answer: 'Absolut. AES-256 Verschlüsselung, Schweizer Datenschutzgesetz und DSGVO-konform.',
+          answer: 'Absolut. Alle Daten werden verschlüsselt gespeichert und nach Schweizer Datenschutzgesetz geschützt.',
         },
       ],
       linkText: 'Alle Fragen ansehen',
@@ -119,12 +145,12 @@ export const translations = {
 
     // Final CTA
     finalCta: {
-      title: 'Steuererklärung heute noch starten',
-      subtitle: 'Kein Stress, keine Unsicherheit. Wir kümmern uns darum.',
-      cta: 'Jetzt starten',
+      title: 'Steuererklärung abgeben — in 10 Minuten erledigt',
+      subtitle: 'Kein Stress, keine Unsicherheit. Wir kümmern uns darum. Kein Abo, keine Verpflichtung.',
+      cta: 'Steuererklärung abgeben',
     },
 
-    // Referral (moved from homepage, kept for reference)
+    // Referral
     referral: {
       title: 'Empfehlen Sie uns weiter',
       subtitle: 'CHF 20 Rabatt für Sie und die empfohlene Person',
@@ -136,14 +162,15 @@ export const translations = {
     about: {
       title: 'Über mich',
       subtitle: 'Warum ich Petertil Tax gegründet habe',
-      heading: 'Persönlich für Sie da',
-      bio: 'Ich habe zu oft gesehen, wie Menschen unnötig viel Steuern zahlen – einfach weil sie nicht wussten, welche Abzüge ihnen zustehen. Das wollte ich ändern.',
-      bioExtended: 'Mit meiner fundierten Ausbildung im Schweizer Bankwesen und über fünf Jahren Erfahrung in der Treuhandbranche helfe ich Ihnen, das Maximum aus Ihrer Steuererklärung herauszuholen. Ob einfache Steuererklärung oder komplexe Steuersituation – ich bin persönlich für Sie da.',
+      founderName: 'Christian Petertil',
+      heading: 'Christian Petertil – Persönlich für Sie da',
+      bio: 'Ich habe in meiner Zeit im Bankwesen gesehen, wie viel Geld Privatpersonen dem Steueramt schenken — weil ihnen niemand die richtigen Abzüge zeigt. Das wollte ich ändern.',
+      bioExtended: 'Mit meinem eidg. Fachausweis als Finanzplaner und über fünf Jahren Erfahrung in der Treuhandbranche weiss ich, worauf es ankommt. Ich prüfe jede Zeile Ihrer Steuererklärung persönlich und sorge dafür, dass Sie keinen Franken zu viel bezahlen.',
       credentials: {
         title: 'Qualifikationen & Erfahrung',
         items: [
-          'Eidg. Fachausweis Finanzplaner – damit Ihre Steuererklärung korrekt erstellt wird',
-          'Finanzberater IAF – fundiertes Wissen in Steuerfragen',
+          'Eidg. Fachausweis Finanzplaner',
+          'Finanzberater IAF',
           'KV E-Profil – kaufmännische Grundausbildung',
           '5+ Jahre Erfahrung in der Treuhandbranche',
           'Hintergrund im Schweizer Bankwesen',
@@ -152,18 +179,18 @@ export const translations = {
       trust: {
         experience: '5+ Jahre',
         experienceLabel: 'Erfahrung',
-        clients: '500+',
+        clients: '175+',
         clientsLabel: 'Zufriedene Kunden',
         declarations: '1\'000+',
         declarationsLabel: 'Steuererklärungen',
       },
-      cta: 'Was kostet es?',
+      cta: 'Preis berechnen',
     },
 
     // Pricing Wizard
     pricing: {
-      title: 'Ihr persönlicher Steuerpreis',
-      subtitle: 'Beantworten Sie ein paar kurze Fragen – wir finden das passende Paket für Sie.',
+      title: 'Was kostet Ihre Steuererklärung?',
+      subtitle: 'Beantworten Sie 4 kurze Fragen. Sie sehen sofort Ihren Preis.',
       urgency: 'Steuerfrist rückt näher – heute noch starten',
       cta: 'Jetzt beauftragen',
       steps: {
@@ -204,17 +231,17 @@ export const translations = {
         fixedBadge: 'Fixpreis. Keine versteckten Kosten.',
         komplexNote: 'Aufgrund der Komplexität erstellen wir Ihnen eine individuelle Offerte innerhalb von 24 Stunden.',
         messyDocsNote: 'Bei stark unvollständigen Unterlagen behalten wir uns eine individuelle Offerte vor.',
-        ctaStart: 'Jetzt starten',
-        ctaConsult: 'Kostenlose Erstberatung buchen',
+        ctaStart: 'Jetzt beauftragen',
+        ctaConsult: 'Kostenlose Erstberatung',
         included: 'Das ist enthalten:',
         restart: 'Neu berechnen',
       },
       tiers: {
         basis: {
           name: 'Basis',
-          price: 'CHF 129',
+          price: 'CHF 149',
           priceLabel: 'Fixpreis',
-          description: 'Die einfache Steuererklärung für Privatpersonen mit unkomplizierter Situation.',
+          description: 'Angestellt, ohne Vermögenswerte.',
           features: [
             'Unselbständiges Einkommen',
             'Standard-Abzüge & Optimierung',
@@ -227,7 +254,7 @@ export const translations = {
           name: 'Erweitert',
           price: 'CHF 199',
           priceLabel: 'Fixpreis',
-          description: 'Für Privatpersonen mit Wertschriften, Liegenschaft oder Krypto-Vermögen.',
+          description: 'Angestellt, mit Wertschriften, Liegenschaft oder Krypto.',
           features: [
             'Alles aus Basis, plus:',
             'Wertschriften-Deklaration',
@@ -239,16 +266,16 @@ export const translations = {
         },
         komplex: {
           name: 'Komplex',
-          price: 'CHF 290 – 1\'000',
+          price: 'CHF 250 – 1\'000',
           priceLabel: 'Individuelle Offerte',
-          description: 'Für Selbständige, Unternehmen oder internationale Steuersituationen.',
+          description: 'Selbständig, international oder GmbH/AG.',
           features: [
+            'Erstgespräch innert 24h',
             'Selbständigkeit / GmbH / AG',
             'Auslandseinkommen & -vermögen',
             'Buchhaltungsprüfung',
             'Persönliche Beratung',
             'Maximale Steueroptimierung',
-            'Individuelle Betreuung',
           ],
         },
       },
@@ -283,7 +310,7 @@ export const translations = {
       },
       ctaTitle: 'Lassen Sie uns das für Sie erledigen',
       ctaDescription: 'Ein persönlicher Steuerberater erstellt Ihre Steuererklärung und holt das Maximum heraus.',
-      ctaButton: 'Steuererklärung abgeben',
+      ctaButton: 'Jetzt beauftragen',
     },
 
     // FAQ
@@ -293,15 +320,15 @@ export const translations = {
       items: [
         {
           question: 'Welche Dokumente brauche ich?',
-          answer: 'Für eine vollständige Steuererklärung benötigen wir in der Regel: Lohnausweis, Kontoauszüge (per 31.12.), Wertschriftenverzeichnis, Säule 3a Bescheinigung, Krankenkassen-Prämienabrechnung, Belege für Berufsauslagen, und ggf. Hypothekarauszug bei Wohneigentum.',
+          answer: 'Die meisten Kunden brauchen 3–5 Dokumente: Lohnausweis, Kontoauszüge (per 31.12.), Säule 3a Bescheinigung, Krankenkassen-Prämienabrechnung und ggf. Belege für Berufsauslagen oder Hypothekarauszug.',
         },
         {
           question: 'Wie lange dauert es?',
-          answer: 'In der Regel erhalten Sie Ihre fertige Steuererklärung innerhalb von 5–10 Arbeitstagen nach Erhalt aller Unterlagen. Bei Premium-Kunden bieten wir Express-Bearbeitung an.',
+          answer: 'In der Regel erhalten Sie Ihre fertige Steuererklärung innerhalb von 5–10 Arbeitstagen nach Erhalt aller Unterlagen. Eilaufträge auf Anfrage möglich.',
         },
         {
           question: 'Sind meine Daten sicher?',
-          answer: 'Absolut. Alle hochgeladenen Dokumente werden mit AES-256 verschlüsselt gespeichert. Wir halten uns strikt an das Schweizer Datenschutzgesetz (DSG) und die DSGVO. Ihre Daten werden nach Abschluss des Auftrags gemäss unserer Datenschutzrichtlinie aufbewahrt und nach einer definierten Frist gelöscht.',
+          answer: 'Absolut. Alle Dokumente werden verschlüsselt gespeichert. Wir halten uns strikt an das Schweizer Datenschutzgesetz (DSG). Ihre Daten werden nach Abschluss des Auftrags gemäss unserer Datenschutzrichtlinie aufbewahrt und nach einer definierten Frist gelöscht.',
         },
         {
           question: 'Kann ich eine Fristverlängerung beantragen?',
@@ -321,7 +348,7 @@ export const translations = {
         },
       ],
       ctaText: 'Noch Fragen? Legen Sie einfach los.',
-      ctaButton: 'Jetzt starten',
+      ctaButton: 'Steuererklärung abgeben',
     },
 
     // Deadlines
@@ -333,7 +360,7 @@ export const translations = {
       extension: 'Verlängerung möglich bis',
       note: 'Die Fristen können sich ändern. Kontaktieren Sie uns für aktuelle Informationen.',
       urgency: 'Frist bald vorbei? Wir helfen Ihnen, rechtzeitig einzureichen.',
-      cta: 'Jetzt starten',
+      cta: 'Steuererklärung abgeben',
     },
 
     // Auth
@@ -434,6 +461,8 @@ export const translations = {
       impressum: 'Impressum',
       privacy: 'Datenschutz',
       contact: 'Kontakt',
+      questionsHeading: 'Haben Sie Fragen?',
+      startCta: 'Steuererklärung starten',
       rights: 'Alle Rechte vorbehalten.',
     },
 
@@ -483,21 +512,26 @@ export const translations = {
     },
 
     hero: {
-      title: 'Your tax declaration, handled.',
-      titleAccent: 'You sit back.',
-      subtitle: 'Upload your documents, we handle everything — from CHF 99. Personal tax advisory from Switzerland.',
-      cta: 'Start my tax declaration',
-      ctaSecondary: 'What does it cost?',
-      trustBadge: '500+ clients trust us across all 26 cantons',
+      title: 'Tax declaration submitted.',
+      titleAccent: 'You relax.',
+      subtitle: 'Upload your documents, your tax expert handles everything. Fixed price from CHF 149.',
+      cta: 'Submit tax declaration',
+      ctaSecondary: 'Calculate price',
+      trustBadge: '175+ clients trust us across all 26 cantons',
+    },
+
+    socialProof: {
+      declarations: 'Over 1,000 tax declarations filed',
+      cantons: 'All 26 cantons',
     },
 
     problem: {
       title: 'Sound familiar?',
       items: [
-        'Every year the same stress and confusion',
-        'Complicated forms, unclear deductions, fear of mistakes',
-        'Hours wasted that could be spent on what matters',
-        'And the nagging feeling you\'re paying too much tax',
+        'Forms that confuse even accountants',
+        'The feeling of missing deductions — every year',
+        'Hours at your desk instead of with family or leisure',
+        'Uncertainty whether a surprise tax bill is coming',
       ],
       transition: 'It doesn\'t have to be this way.',
     },
@@ -505,20 +539,20 @@ export const translations = {
     benefits: {
       title: 'What changes for you',
       noPaperwork: {
-        title: 'No paperwork, no appointments',
-        description: 'Upload your documents from the comfort of your home — everything online, everything secure.',
+        title: 'Fully online, zero paperwork',
+        description: 'Snap a photo of your salary statement, upload, done. No printer, no appointment, no commute.',
       },
       fast: {
-        title: 'Done in days, not weeks',
-        description: 'Your tax declaration is professionally prepared and submitted within days.',
+        title: 'Done in 5–10 days',
+        description: 'From the moment we receive your documents, your tax expert gets to work. No waiting list.',
       },
       experts: {
-        title: 'Real tax experts, not software',
-        description: 'A personal advisor handles your tax declaration — not an algorithm.',
+        title: 'Real tax experts',
+        description: 'No chatbot, no algorithm. A real person with a federal diploma reviews every line.',
       },
       transparent: {
-        title: 'You know the price upfront',
-        description: 'Transparent pricing from CHF 99 — no hidden costs, no surprises.',
+        title: 'Fixed price, no surprises',
+        description: 'You see the price before you commit. No hourly rates, no surprise charges.',
       },
     },
 
@@ -527,22 +561,42 @@ export const translations = {
       subtitle: 'Three simple steps to your completed tax declaration',
       step1: {
         title: 'Upload Documents',
-        description: 'Takes 10 minutes. We accept photos of your documents.',
+        description: 'Takes 10 minutes. Photos are fine.',
       },
       step2: {
         title: 'We Do the Rest',
-        description: 'Your dedicated tax advisor handles everything.',
+        description: 'Your personal advisor optimizes every deduction.',
       },
       step3: {
-        title: 'Done!',
-        description: 'Download your completed declaration. Average refund: CHF 1,200.',
+        title: 'Done',
+        description: 'You receive your tax declaration for review and signature.',
       },
-      cta: 'Upload your documents',
+      cta: 'Upload documents now',
     },
 
     testimonials: {
       title: 'What Our Clients Say',
       subtitle: 'Trust the experience of satisfied clients',
+      items: [
+        {
+          name: 'Felix B.',
+          location: 'Switzerland',
+          text: 'Happy client for several years! Merci Christian.',
+          context: 'Long-term client',
+        },
+        {
+          name: 'Emin B.',
+          location: 'Switzerland',
+          text: 'Simple and professional, thank you for the support!',
+          context: 'Tax declaration 2025',
+        },
+        {
+          name: 'Yannick M.',
+          location: 'Switzerland',
+          text: 'Minimal effort for me and always a correctly completed tax declaration.',
+          context: 'Tax declaration 2025',
+        },
+      ],
     },
 
     guarantee: {
@@ -550,8 +604,8 @@ export const translations = {
       subtitle: 'We stand behind our work.',
       items: [
         { title: 'Satisfaction guarantee', description: 'Not happy? You get your money back.' },
-        { title: 'AES-256 encryption', description: 'Your data is safe — Swiss-grade security.' },
-        { title: 'All 26 cantons', description: 'We know the specifics of every canton.' },
+        { title: 'Swiss data protection standard', description: 'Your data is protected — under Swiss law.' },
+        { title: 'Every canton, every municipality', description: 'We know the specifics of every canton and municipality.' },
         { title: 'Personal advisor', description: 'A real person who\'s there for you.' },
       ],
     },
@@ -561,24 +615,24 @@ export const translations = {
       items: [
         {
           question: 'What documents do I need?',
-          answer: 'Salary statement, bank statements, pillar 3a certificate, and any other relevant receipts. We\'ll tell you exactly what\'s missing.',
+          answer: 'Salary statement, bank statements, pillar 3a certificate, and any other relevant receipts. Most clients need 3–5 documents. We\'ll tell you exactly what\'s missing.',
         },
         {
           question: 'How long does it take?',
-          answer: 'Typically 5–10 business days after we receive all documents. Premium clients get express processing.',
+          answer: 'Typically 5–10 business days after we receive all documents. Rush orders available on request.',
         },
         {
           question: 'Is my data safe?',
-          answer: 'Absolutely. AES-256 encryption, Swiss Data Protection Act and GDPR compliant.',
+          answer: 'Absolutely. All data is stored encrypted and protected under the Swiss Data Protection Act.',
         },
       ],
       linkText: 'See all questions',
     },
 
     finalCta: {
-      title: 'Start your tax declaration today',
-      subtitle: 'No stress, no uncertainty. We take care of it.',
-      cta: 'Get started',
+      title: 'Submit your tax declaration — done in 10 minutes',
+      subtitle: 'No stress, no uncertainty. We take care of it. No subscription, no commitment.',
+      cta: 'Submit tax declaration',
     },
 
     referral: {
@@ -591,35 +645,36 @@ export const translations = {
     about: {
       title: 'About Me',
       subtitle: 'Why I started Petertil Tax',
-      heading: 'Personally Here for You',
-      bio: 'I saw too many people overpay on their taxes — simply because they didn\'t know which deductions they were entitled to. I wanted to change that.',
-      bioExtended: 'With a solid education in Swiss banking and over five years of experience in the fiduciary industry, I help you get the maximum out of your tax declaration. Whether it\'s a simple tax return or a complex situation — I\'m personally here for you.',
+      founderName: 'Christian Petertil',
+      heading: 'Christian Petertil – Personally Here for You',
+      bio: 'During my time in banking, I saw how much money individuals give away to the tax office — simply because nobody showed them the right deductions. I wanted to change that.',
+      bioExtended: 'With my federal diploma in financial planning and over five years of experience in the fiduciary industry, I know what matters. I personally review every line of your tax declaration and make sure you don\'t pay a single franc more than you have to.',
       credentials: {
         title: 'Qualifications & Experience',
         items: [
-          'Federal Diploma in Financial Planning — so your declaration is done right',
-          'Financial Advisor IAF — deep expertise in tax matters',
+          'Federal Diploma in Financial Planning',
+          'Financial Advisor IAF',
           'KV E-Profile — commercial education',
-          '5+ Years in the Fiduciary Industry',
-          'Swiss Banking Background',
+          '5+ years in the fiduciary industry',
+          'Swiss banking background',
         ],
       },
       trust: {
         experience: '5+ Years',
         experienceLabel: 'Experience',
-        clients: '500+',
+        clients: '175+',
         clientsLabel: 'Satisfied Clients',
         declarations: '1\'000+',
         declarationsLabel: 'Tax Declarations',
       },
-      cta: 'See what it costs',
+      cta: 'Calculate price',
     },
 
     pricing: {
-      title: 'Your Personal Tax Price',
-      subtitle: 'Answer a few quick questions – we\'ll find the right package for you.',
+      title: 'What does your tax declaration cost?',
+      subtitle: 'Answer 4 quick questions. See your price instantly.',
       urgency: 'Tax deadline approaching — start today',
-      cta: 'Get Started',
+      cta: 'Order now',
       steps: {
         employment: {
           question: 'What is your tax status?',
@@ -658,17 +713,17 @@ export const translations = {
         fixedBadge: 'Fixed price. No hidden costs.',
         komplexNote: 'Due to the complexity, we\'ll prepare a custom quote for you within 24 hours.',
         messyDocsNote: 'For significantly incomplete documents, we reserve the right to provide an individual quote.',
-        ctaStart: 'Get Started',
-        ctaConsult: 'Book Free Consultation',
+        ctaStart: 'Order now',
+        ctaConsult: 'Free initial consultation',
         included: 'What\'s included:',
         restart: 'Start Over',
       },
       tiers: {
         basis: {
           name: 'Basis',
-          price: 'CHF 129',
+          price: 'CHF 149',
           priceLabel: 'Fixed Price',
-          description: 'Simple tax declaration for employed individuals with a straightforward situation.',
+          description: 'Employed, no additional assets.',
           features: [
             'Employment income',
             'Standard deductions & optimization',
@@ -681,7 +736,7 @@ export const translations = {
           name: 'Extended',
           price: 'CHF 199',
           priceLabel: 'Fixed Price',
-          description: 'For individuals with securities, property, or crypto assets.',
+          description: 'Employed, with securities, property, or crypto.',
           features: [
             'Everything from Basis, plus:',
             'Securities declaration',
@@ -693,16 +748,16 @@ export const translations = {
         },
         komplex: {
           name: 'Complex',
-          price: 'CHF 290 – 1\'000',
+          price: 'CHF 250 – 1\'000',
           priceLabel: 'Custom Quote',
-          description: 'For self-employed, companies, or international tax situations.',
+          description: 'Self-employed, international, or GmbH/AG.',
           features: [
+            'Initial consultation within 24h',
             'Self-employment / GmbH / AG',
             'Foreign income & assets',
             'Bookkeeping review',
             'Personal consultation',
             'Maximum tax optimization',
-            'Individual support',
           ],
         },
       },
@@ -736,7 +791,7 @@ export const translations = {
       },
       ctaTitle: 'Let us handle it for you',
       ctaDescription: 'A personal tax advisor prepares your declaration and maximizes your returns.',
-      ctaButton: 'Let us handle it',
+      ctaButton: 'Order now',
     },
 
     faq: {
@@ -745,15 +800,15 @@ export const translations = {
       items: [
         {
           question: 'What documents do I need?',
-          answer: 'For a complete tax declaration, we typically need: salary statement, bank statements (as of Dec 31), securities statement, pillar 3a certificate, health insurance premium statement, receipts for professional expenses, and mortgage statement if applicable.',
+          answer: 'Most clients need 3–5 documents: salary statement, bank statements (as of Dec 31), pillar 3a certificate, health insurance premium statement, and any receipts for professional expenses or mortgage statement.',
         },
         {
           question: 'How long does it take?',
-          answer: 'Typically, you\'ll receive your completed tax declaration within 5–10 business days after we receive all documents. Premium clients enjoy express processing.',
+          answer: 'Typically, you\'ll receive your completed tax declaration within 5–10 business days after we receive all documents. Rush orders available on request.',
         },
         {
           question: 'Is my data secure?',
-          answer: 'Absolutely. All uploaded documents are encrypted with AES-256 at rest. We strictly comply with the Swiss Data Protection Act (DSG) and GDPR. Your data is retained according to our privacy policy and deleted after a defined period.',
+          answer: 'Absolutely. All documents are stored encrypted. We strictly comply with the Swiss Data Protection Act (DSG). Your data is retained according to our privacy policy and deleted after a defined period.',
         },
         {
           question: 'Can I request a deadline extension?',
@@ -773,7 +828,7 @@ export const translations = {
         },
       ],
       ctaText: 'Still have questions? Just get started.',
-      ctaButton: 'Get started today',
+      ctaButton: 'Submit tax declaration',
     },
 
     deadlines: {
@@ -784,7 +839,7 @@ export const translations = {
       extension: 'Extension Possible Until',
       note: 'Deadlines may change. Contact us for current information.',
       urgency: 'Deadline coming up? We\'ll help you file on time.',
-      cta: 'Get started',
+      cta: 'Submit tax declaration',
     },
 
     auth: {
@@ -881,6 +936,8 @@ export const translations = {
       impressum: 'Imprint',
       privacy: 'Privacy Policy',
       contact: 'Contact',
+      questionsHeading: 'Have questions?',
+      startCta: 'Start your tax declaration',
       rights: 'All rights reserved.',
     },
 

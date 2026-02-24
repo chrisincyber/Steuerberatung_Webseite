@@ -19,10 +19,10 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Petertil Tax – Ihre digitale Steuererklärung',
+    default: 'Steuererklärung online einreichen | Petertil Tax',
     template: '%s | Petertil Tax',
   },
-  description: 'Qualifizierte Steuerberatung aus der Schweiz – schnell, digital und bezahlbar. Steuererklärung online einreichen ab CHF 99.',
+  description: 'Steuererklärung online abgeben ab CHF 149. Persönlicher Steuerexperte für alle 26 Kantone. Fixpreis, keine versteckten Kosten.',
   keywords: ['Steuererklärung', 'Schweiz', 'Steuerberatung', 'digital', 'online', 'Steuerberater', 'Tax declaration', 'Switzerland'],
   authors: [{ name: 'Petertil Tax' }],
   openGraph: {
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
     locale: 'de_CH',
     alternateLocale: 'en_US',
     siteName: 'Petertil Tax',
-    title: 'Petertil Tax – Ihre digitale Steuererklärung',
-    description: 'Qualifizierte Steuerberatung aus der Schweiz – schnell, digital und bezahlbar.',
+    title: 'Steuererklärung online einreichen | Petertil Tax',
+    description: 'Steuererklärung online abgeben ab CHF 149. Persönlicher Steuerexperte für alle 26 Kantone. Fixpreis, keine versteckten Kosten.',
   },
   icons: {
     icon: [

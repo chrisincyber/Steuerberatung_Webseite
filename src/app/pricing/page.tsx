@@ -16,6 +16,7 @@ import {
   Shield,
   RotateCcw,
   Clock,
+  Mail,
 } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
@@ -274,7 +275,7 @@ export default function PricingPage() {
   return (
     <>
       {/* Hero – compact */}
-      <section className="gradient-hero pt-32 pb-16 lg:pt-40 lg:pb-20 relative overflow-hidden">
+      <section className="gradient-hero pt-24 pb-16 lg:pt-40 lg:pb-20 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
         </div>
@@ -379,7 +380,7 @@ export default function PricingPage() {
                 <button
                   onClick={goNext}
                   disabled={!canAdvance('assets', state)}
-                  className="btn-gold w-full mt-8 group disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="btn-white w-full mt-8 group disabled:opacity-40 disabled:cursor-not-allowed"
                   aria-label={t.common.next}
                 >
                   {t.common.next}
@@ -533,17 +534,18 @@ export default function PricingPage() {
                   <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                     <Link
                       href="/auth/register"
-                      className="btn-gold group text-base !px-8 !py-4"
+                      className="btn-white group text-base !px-8 !py-4"
                     >
                       {t.pricing.result.ctaStart}
                       <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Link>
-                    <Link
-                      href="/auth/register"
+                    <a
+                      href="mailto:info@petertiltax.ch"
                       className="btn-secondary group text-base !px-8 !py-4"
                     >
+                      <Mail className="w-5 h-5 mr-2" />
                       {t.pricing.result.ctaConsult}
-                    </Link>
+                    </a>
                   </div>
 
                   {/* Restart */}

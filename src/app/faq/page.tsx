@@ -25,7 +25,7 @@ export default function FAQPage() {
   return (
     <>
       {/* Hero */}
-      <section className="gradient-hero pt-32 pb-20 lg:pt-40 lg:pb-28 relative overflow-hidden">
+      <section className="gradient-hero pt-24 pb-20 lg:pt-40 lg:pb-28 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
         </div>
@@ -55,7 +55,7 @@ export default function FAQPage() {
                 >
                   <button
                     onClick={() => toggleIndex(i)}
-                    className="w-full flex items-center justify-between p-6 text-left hover:bg-navy-50/50 transition-colors"
+                    className="w-full flex items-center justify-between p-4 sm:p-6 text-left hover:bg-navy-50/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-navy-100 flex items-center justify-center shrink-0">
@@ -95,7 +95,7 @@ export default function FAQPage() {
             <p className="text-navy-600 mb-4">
               {t.faq.ctaText}
             </p>
-            <Link href="/auth/register" className="btn-gold !px-8 !py-4 group">
+            <Link href="/auth/register" className="btn-primary !px-8 !py-4 group">
               {t.faq.ctaButton}
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
