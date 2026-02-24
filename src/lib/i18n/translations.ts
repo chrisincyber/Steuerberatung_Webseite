@@ -10,7 +10,7 @@ export const translations = {
       taxCalculator: 'Steuerrechner',
       faq: 'FAQ',
       deadlines: 'Fristen',
-      login: 'Anmelden',
+      login: 'Login Kundenportal',
       register: 'Steuererklärung starten',
       dashboard: 'Dashboard',
       logout: 'Abmelden',
@@ -53,8 +53,8 @@ export const translations = {
         description: 'Lohnausweis abfotografieren, hochladen, fertig. Kein Drucker, kein Termin, kein Weg.',
       },
       fast: {
-        title: 'Fertig in 5–10 Tagen',
-        description: 'Ab Dokumenteneingang arbeitet Ihr Steuerexperte sofort los. Keine Warteschlange.',
+        title: 'Schnell und zuverlässig',
+        description: 'Sobald Ihre Dokumente da sind, legt Ihr Steuerexperte los. Keine Warteschlange.',
       },
       experts: {
         title: 'Echte Steuerexperten',
@@ -526,7 +526,7 @@ export const translations = {
       taxCalculator: 'Tax Calculator',
       faq: 'FAQ',
       deadlines: 'Deadlines',
-      login: 'Login',
+      login: 'Client Portal Login',
       register: 'Start my tax declaration',
       dashboard: 'Dashboard',
       logout: 'Logout',
@@ -565,8 +565,8 @@ export const translations = {
         description: 'Snap a photo of your salary statement, upload, done. No printer, no appointment, no commute.',
       },
       fast: {
-        title: 'Done in 5–10 days',
-        description: 'From the moment we receive your documents, your tax expert gets to work. No waiting list.',
+        title: 'Fast and reliable',
+        description: 'As soon as your documents arrive, your tax expert gets to work. No waiting list.',
       },
       experts: {
         title: 'Real tax experts',
