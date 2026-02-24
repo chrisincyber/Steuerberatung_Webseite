@@ -67,18 +67,18 @@ export default function HomePage() {
 
             <div className="flex flex-col sm:flex-row gap-4 mt-10">
               <Link
-                href="/auth/register"
+                href="/pricing"
                 className="btn-white !px-8 !py-4 !text-base group"
               >
                 {t.hero.cta}
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link
-                href="/pricing"
+              <a
+                href="#so-gehts"
                 className="inline-flex items-center justify-center px-8 py-4 rounded-lg font-semibold text-white border-2 border-white/20 hover:bg-white/10 transition-all duration-200"
               >
                 {t.hero.ctaSecondary}
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -160,7 +160,7 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="section-padding">
+      <section id="so-gehts" className="section-padding scroll-mt-20">
         <div className="container-wide">
           <div className="text-center mb-16">
             <h2 className="font-heading text-3xl sm:text-4xl font-bold text-navy-900">
@@ -201,7 +201,7 @@ export default function HomePage() {
           </div>
 
           <div className="text-center mt-14">
-            <Link href="/auth/register" className="btn-primary !px-8 !py-4 group">
+            <Link href="/pricing" className="btn-primary !px-8 !py-4 group">
               {t.howItWorks.cta}
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -333,7 +333,7 @@ export default function HomePage() {
                 {t.finalCta.subtitle}
               </p>
               <Link
-                href="/auth/register"
+                href="/pricing"
                 className="btn-white !px-10 !py-4 !text-base group"
               >
                 {t.finalCta.cta}

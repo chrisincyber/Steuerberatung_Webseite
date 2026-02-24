@@ -75,7 +75,7 @@ export default function FAQPage() {
                         <p className="text-navy-600 leading-relaxed">{item.answer}</p>
                         {showCta && (
                           <Link
-                            href="/auth/register"
+                            href="/pricing"
                             className="inline-flex items-center gap-1 mt-4 text-sm font-medium text-navy-700 hover:text-navy-900 transition-colors"
                           >
                             {t.faq.ctaButton}
@@ -95,7 +95,7 @@ export default function FAQPage() {
             <p className="text-navy-600 mb-4">
               {t.faq.ctaText}
             </p>
-            <Link href="/auth/register" className="btn-primary !px-8 !py-4 group">
+            <Link href="/pricing" className="btn-primary !px-8 !py-4 group">
               {t.faq.ctaButton}
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>

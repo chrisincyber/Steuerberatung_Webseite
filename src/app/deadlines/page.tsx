@@ -51,7 +51,7 @@ export default function DeadlinesPage() {
           <div className="flex items-center gap-3 p-4 bg-gold-50 rounded-xl border border-gold-200">
             <Clock className="w-5 h-5 text-gold-600 shrink-0" />
             <p className="text-sm font-medium text-gold-800">{t.deadlines.urgency}</p>
-            <Link href="/auth/register" className="ml-auto text-sm font-semibold text-gold-700 hover:text-gold-800 whitespace-nowrap inline-flex items-center gap-1">
+            <Link href="/pricing" className="ml-auto text-sm font-semibold text-gold-700 hover:text-gold-800 whitespace-nowrap inline-flex items-center gap-1">
               {t.deadlines.cta}
               <ArrowRight className="w-4 h-4" />
             </Link>
@@ -162,7 +162,7 @@ export default function DeadlinesPage() {
 
           {/* CTA */}
           <div className="text-center mt-14">
-            <Link href="/auth/register" className="btn-primary !px-8 !py-4 group">
+            <Link href="/pricing" className="btn-primary !px-8 !py-4 group">
               {t.deadlines.cta}
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>

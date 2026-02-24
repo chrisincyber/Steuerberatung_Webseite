@@ -22,8 +22,8 @@ export const translations = {
       title: 'Steuererklärung abgeben.',
       titleAccent: 'Zurücklehnen.',
       subtitle: 'Dokumente hochladen, Steuerexperte kümmert sich um alles. Fixpreis ab CHF 149.',
-      cta: 'Steuererklärung abgeben',
-      ctaSecondary: 'Preis berechnen',
+      cta: 'Jetzt loslegen',
+      ctaSecondary: 'So funktioniert\'s',
       trustBadge: '175+ Kunden vertrauen uns in allen 26 Kantonen',
     },
 
@@ -147,7 +147,7 @@ export const translations = {
     finalCta: {
       title: 'Steuererklärung abgeben — in 10 Minuten erledigt',
       subtitle: 'Kein Stress, keine Unsicherheit. Wir kümmern uns darum. Kein Abo, keine Verpflichtung.',
-      cta: 'Steuererklärung abgeben',
+      cta: 'Jetzt loslegen',
     },
 
     // Referral
@@ -184,7 +184,7 @@ export const translations = {
         declarations: '1\'000+',
         declarationsLabel: 'Steuererklärungen',
       },
-      cta: 'Preis berechnen',
+      cta: 'Jetzt loslegen',
     },
 
     // Pricing Wizard
@@ -348,7 +348,7 @@ export const translations = {
         },
       ],
       ctaText: 'Noch Fragen? Legen Sie einfach los.',
-      ctaButton: 'Steuererklärung abgeben',
+      ctaButton: 'Jetzt loslegen',
     },
 
     // Deadlines
@@ -360,7 +360,7 @@ export const translations = {
       extension: 'Verlängerung möglich bis',
       note: 'Die Fristen können sich ändern. Kontaktieren Sie uns für aktuelle Informationen.',
       urgency: 'Frist bald vorbei? Wir helfen Ihnen, rechtzeitig einzureichen.',
-      cta: 'Steuererklärung abgeben',
+      cta: 'Jetzt loslegen',
     },
 
     // Auth
@@ -515,8 +515,8 @@ export const translations = {
       title: 'Tax declaration submitted.',
       titleAccent: 'You relax.',
       subtitle: 'Upload your documents, your tax expert handles everything. Fixed price from CHF 149.',
-      cta: 'Submit tax declaration',
-      ctaSecondary: 'Calculate price',
+      cta: 'Get started',
+      ctaSecondary: 'How it works',
       trustBadge: '175+ clients trust us across all 26 cantons',
     },
 
@@ -632,7 +632,7 @@ export const translations = {
     finalCta: {
       title: 'Submit your tax declaration — done in 10 minutes',
       subtitle: 'No stress, no uncertainty. We take care of it. No subscription, no commitment.',
-      cta: 'Submit tax declaration',
+      cta: 'Get started',
     },
 
     referral: {
@@ -667,7 +667,7 @@ export const translations = {
         declarations: '1\'000+',
         declarationsLabel: 'Tax Declarations',
       },
-      cta: 'Calculate price',
+      cta: 'Get started',
     },
 
     pricing: {
@@ -828,7 +828,7 @@ export const translations = {
         },
       ],
       ctaText: 'Still have questions? Just get started.',
-      ctaButton: 'Submit tax declaration',
+      ctaButton: 'Get started',
     },
 
     deadlines: {
@@ -839,7 +839,7 @@ export const translations = {
       extension: 'Extension Possible Until',
       note: 'Deadlines may change. Contact us for current information.',
       urgency: 'Deadline coming up? We\'ll help you file on time.',
-      cta: 'Submit tax declaration',
+      cta: 'Get started',
     },
 
     auth: {
