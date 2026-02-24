@@ -15,7 +15,7 @@ type NotificationTemplate = 'welcome' | 'documents_received' | 'in_progress' | '
 
 const EMAIL_TEMPLATES: Record<NotificationTemplate, { subject: string; body: string }> = {
   welcome: {
-    subject: 'Willkommen bei Steuerberatung Petertil',
+    subject: 'Willkommen bei Petertil Tax',
     body: 'Vielen Dank für Ihre Registrierung! Laden Sie Ihre Steuerunterlagen in Ihrem Dashboard hoch, um loszulegen.',
   },
   documents_received: {
@@ -45,7 +45,7 @@ const EMAIL_TEMPLATES: Record<NotificationTemplate, { subject: string; body: str
 }
 
 const SMS_TEMPLATES: Record<NotificationTemplate, string> = {
-  welcome: 'Willkommen bei Steuerberatung Petertil! Starten Sie jetzt unter steuerberatung-petertil.ch',
+  welcome: 'Willkommen bei Petertil Tax! Starten Sie jetzt unter petertiltax.ch',
   documents_received: 'Ihre Dokumente sind eingegangen. Wir beginnen mit der Bearbeitung.',
   in_progress: 'Ihre Steuererklärung wird jetzt bearbeitet. Wir melden uns bald!',
   completed: 'Ihre Steuererklärung ist fertig! Laden Sie sie in Ihrem Dashboard herunter.',
@@ -107,13 +107,13 @@ export async function POST(request: Request) {
 
         try {
           await getResend().emails.send({
-            from: 'Steuerberatung Petertil <noreply@steuerberatung-petertil.ch>',
+            from: 'Petertil Tax <noreply@petertiltax.ch>',
             to: [client.email],
             subject,
             html: `
               <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                 <div style="background: #102a43; padding: 24px; text-align: center;">
-                  <h1 style="color: #c49a2e; margin: 0; font-size: 20px;">Steuerberatung Petertil</h1>
+                  <h1 style="color: #c49a2e; margin: 0; font-size: 20px;">Petertil Tax</h1>
                 </div>
                 <div style="padding: 32px 24px; background: #ffffff;">
                   <p style="color: #243b53; line-height: 1.6;">
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
                 </div>
                 <div style="padding: 16px 24px; background: #f0f4f8; text-align: center;">
                   <p style="color: #829ab1; font-size: 12px; margin: 0;">
-                    Steuerberatung Petertil | Schweiz
+                    Petertil Tax | Schweiz
                   </p>
                 </div>
               </div>

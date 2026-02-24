@@ -74,14 +74,14 @@ export default function PrivacyPage() {
             <h2>{locale === 'de' ? '8. Ihre Rechte' : '8. Your Rights'}</h2>
             <p>
               {locale === 'de'
-                ? 'Sie haben das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung Ihrer personenbezogenen Daten. Kontaktieren Sie uns unter info@steuerberatung-petertil.ch.'
-                : 'You have the right to access, rectification, deletion, and restriction of processing of your personal data. Contact us at info@steuerberatung-petertil.ch.'}
+                ? 'Sie haben das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung Ihrer personenbezogenen Daten. Kontaktieren Sie uns unter info@petertiltax.ch.'
+                : 'You have the right to access, rectification, deletion, and restriction of processing of your personal data. Contact us at info@petertiltax.ch.'}
             </p>
 
             <h2>{locale === 'de' ? '9. Kontakt' : '9. Contact'}</h2>
             <p>
-              Steuerberatung Petertil<br />
-              E-Mail: info@steuerberatung-petertil.ch<br />
+              Petertil Tax<br />
+              E-Mail: info@petertiltax.ch<br />
               {locale === 'de' ? 'Telefon' : 'Phone'}: +41 00 000 00 00
             </p>
           </div>

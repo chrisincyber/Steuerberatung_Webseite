@@ -28,7 +28,7 @@ export const translations = {
 
     // Value Propositions
     values: {
-      title: 'Warum Steuerberatung Petertil?',
+      title: 'Warum Petertil Tax?',
       digital: {
         title: '100% Digital',
         description: 'Laden Sie Ihre Dokumente bequem von zu Hause hoch. Kein Papierkram, keine Termine nötig.',
@@ -337,8 +337,8 @@ export const translations = {
 
     // Footer
     footer: {
-      company: 'Steuerberatung Petertil',
-      tagline: 'Ihre digitale Steuerberatung aus der Schweiz',
+      company: 'Petertil Tax',
+      tagline: 'Ihre digitale Steuerlösung aus der Schweiz',
       quickLinks: 'Schnellzugriff',
       legal: 'Rechtliches',
       impressum: 'Impressum',
@@ -401,7 +401,7 @@ export const translations = {
     },
 
     values: {
-      title: 'Why Steuerberatung Petertil?',
+      title: 'Why Petertil Tax?',
       digital: {
         title: '100% Digital',
         description: 'Upload your documents from the comfort of your home. No paperwork, no appointments needed.',
@@ -698,7 +698,7 @@ export const translations = {
     },
 
     footer: {
-      company: 'Steuerberatung Petertil',
+      company: 'Petertil Tax',
       tagline: 'Your digital tax advisory from Switzerland',
       quickLinks: 'Quick Links',
       legal: 'Legal',

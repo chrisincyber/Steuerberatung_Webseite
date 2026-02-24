@@ -60,7 +60,7 @@ function LoginForm() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl gradient-navy flex items-center justify-center text-white font-bold text-xl shadow-sm">
-              SP
+              PT
             </div>
           </Link>
           <h1 className="font-heading text-2xl font-bold text-navy-900 mt-4">

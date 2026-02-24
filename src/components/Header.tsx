@@ -67,14 +67,14 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl gradient-navy flex items-center justify-center text-white font-bold text-lg shadow-sm">
-              SP
+              PT
             </div>
             <div className="hidden sm:block">
               <span className={`font-heading font-bold text-lg ${scrolled ? 'text-navy-900' : 'text-navy-900'}`}>
-                Steuerberatung
+                Petertil
               </span>
               <span className={`font-heading font-bold text-lg ${scrolled ? 'text-gold-500' : 'text-gold-500'} ml-1`}>
-                Petertil
+                Tax
               </span>
             </div>
           </Link>

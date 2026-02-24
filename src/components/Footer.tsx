@@ -16,11 +16,11 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-gold-500 flex items-center justify-center text-white font-bold text-lg">
-                SP
+                PT
               </div>
               <div>
-                <span className="font-heading font-bold text-lg text-white">Steuerberatung</span>
-                <span className="font-heading font-bold text-lg text-gold-400 ml-1">Petertil</span>
+                <span className="font-heading font-bold text-lg text-white">Petertil</span>
+                <span className="font-heading font-bold text-lg text-gold-400 ml-1">Tax</span>
               </div>
             </div>
             <p className="text-navy-300 text-sm leading-relaxed">
@@ -89,8 +89,8 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-navy-300 text-sm">
                 <Mail className="w-4 h-4 text-navy-400" />
-                <a href="mailto:info@steuerberatung-petertil.ch" className="hover:text-white transition-colors">
-                  info@steuerberatung-petertil.ch
+                <a href="mailto:info@petertiltax.ch" className="hover:text-white transition-colors">
+                  info@petertiltax.ch
                 </a>
               </li>
               <li className="flex items-center gap-2 text-navy-300 text-sm">
