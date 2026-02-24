@@ -53,6 +53,11 @@ export default function Header() {
     { href: '/deadlines', label: t.nav.deadlines },
   ]
 
+  // Pages with a dark hero background where we need white text/logo
+  const darkHeroPages = ['/', '/about', '/pricing', '/faq', '/tax-calculator', '/deadlines', '/impressum', '/privacy']
+  const hasDarkHero = darkHeroPages.some(p => p === '/' ? pathname === '/' : pathname.startsWith(p))
+  const useDarkStyle = scrolled || !hasDarkHero
+
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
     return pathname.startsWith(href)
@@ -71,7 +76,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0">
             <Image
-              src={scrolled ? '/logo-dark.svg' : '/logo-white.svg'}
+              src={useDarkStyle ? '/logo-dark.svg' : '/logo-white.svg'}
               alt="Petertil Tax"
               width={150}
               height={30}
@@ -87,7 +92,7 @@ export default function Header() {
                 key={link.href}
                 href={link.href}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  scrolled
+                  useDarkStyle
                     ? isActive(link.href)
                       ? 'text-navy-900 bg-navy-100'
                       : 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
@@ -107,7 +112,7 @@ export default function Header() {
             <button
               onClick={toggleLocale}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                scrolled
+                useDarkStyle
                   ? 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
                   : 'text-white/70 hover:text-white hover:bg-white/10'
               }`}
@@ -123,7 +128,7 @@ export default function Header() {
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    scrolled
+                    useDarkStyle
                       ? 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
                       : 'text-white/70 hover:text-white hover:bg-white/10'
                   }`}
@@ -159,7 +164,7 @@ export default function Header() {
                 <Link
                   href="/auth/login"
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    scrolled
+                    useDarkStyle
                       ? 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
                       : 'text-white/70 hover:text-white hover:bg-white/10'
                   }`}
@@ -179,7 +184,7 @@ export default function Header() {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className={`lg:hidden p-2 rounded-lg transition-colors ${
-                scrolled
+                useDarkStyle
                   ? 'text-navy-600 hover:bg-navy-50'
                   : 'text-white/70 hover:text-white hover:bg-white/10'
               }`}
