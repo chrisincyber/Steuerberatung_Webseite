@@ -73,10 +73,10 @@ export default function Header() {
               PT
             </div>
             <div className="hidden sm:block">
-              <span className={`font-heading font-bold text-lg ${scrolled ? 'text-navy-900' : 'text-navy-900'}`}>
+              <span className={`font-heading font-bold text-lg ${scrolled ? 'text-navy-900' : 'text-white'}`}>
                 Petertil
               </span>
-              <span className={`font-heading font-bold text-lg ${scrolled ? 'text-gold-500' : 'text-gold-500'} ml-1`}>
+              <span className={`font-heading font-bold text-lg text-gold-500 ml-1`}>
                 Tax
               </span>
             </div>

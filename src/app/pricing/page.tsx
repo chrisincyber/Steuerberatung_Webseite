@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { cantons } from '@/lib/swiss-data'
-import { Check, ArrowRight, Star, ChevronDown } from 'lucide-react'
+import { Check, ArrowRight, Star, ChevronDown, Clock } from 'lucide-react'
 
 type Tier = 'basic' | 'standard' | 'premium'
 
@@ -43,12 +43,18 @@ export default function PricingPage() {
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="font-heading text-4xl sm:text-5xl font-bold text-white">
+          <h1 className="font-heading text-4xl sm:text-5xl font-bold dark-text-primary">
             {t.pricing.title}
           </h1>
-          <p className="mt-4 text-xl text-navy-200 max-w-2xl mx-auto">
+          <p className="mt-4 text-xl dark-text-secondary max-w-2xl mx-auto">
             {t.pricing.subtitle}
           </p>
+
+          {/* Urgency banner */}
+          <div className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-full bg-gold-500/20 border border-gold-400/30">
+            <Clock className="w-4 h-4 text-gold-400" />
+            <span className="text-sm font-medium text-gold-300">{t.pricing.urgency}</span>
+          </div>
         </div>
       </section>
 
@@ -57,7 +63,7 @@ export default function PricingPage() {
         <div className="container-wide">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {tiers.map((tier) => {
-              const { key, name, description, price, features, popular } = tier
+              const { key, name, description, price, features, popular, cta: tierCta } = tier
               const isRecommended = recommendedTier === key
               const isPopular = popular
 
@@ -68,17 +74,17 @@ export default function PricingPage() {
                     isRecommended
                       ? 'ring-2 ring-gold-500 shadow-lg scale-[1.02]'
                       : isPopular && !recommendedTier
-                      ? 'ring-2 ring-navy-300 shadow-lg scale-[1.02]'
+                      ? 'ring-2 ring-gold-500 shadow-lg scale-[1.02]'
                       : ''
                   } transition-all duration-300`}
                 >
                   {(isRecommended || (isPopular && !recommendedTier)) && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className={`inline-flex items-center gap-1 px-4 py-1 rounded-full text-xs font-semibold text-white ${isRecommended ? 'bg-gold-500' : 'bg-navy-700'}`}>
+                      <span className="inline-flex items-center gap-1 px-4 py-1 rounded-full text-xs font-semibold text-white bg-gold-500">
                         <Star className="w-3 h-3" />
                         {isRecommended
                           ? (locale === 'de' ? 'Empfohlen für Sie' : 'Recommended for You')
-                          : (locale === 'de' ? 'Am beliebtesten' : 'Most Popular')}
+                          : (locale === 'de' ? t.pricing.tiers.standard.popularLabel : t.pricing.tiers.standard.popularLabel)}
                       </span>
                     </div>
                   )}
@@ -108,7 +114,7 @@ export default function PricingPage() {
                         : 'btn-secondary'
                     } group`}
                   >
-                    {t.pricing.cta}
+                    {tierCta}
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
@@ -258,7 +264,7 @@ export default function PricingPage() {
                     href="/auth/register"
                     className="btn-gold !px-8 !py-3 mt-6 group inline-flex"
                   >
-                    {t.pricing.cta}
+                    {t.pricing.tiers[recommendedTier].cta}
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>

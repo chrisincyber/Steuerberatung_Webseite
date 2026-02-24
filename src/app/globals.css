@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-navy-50: #f0f4f8;
-  --color-navy-100: #d9e2ec;
-  --color-navy-200: #bcccdc;
-  --color-navy-300: #9fb3c8;
-  --color-navy-400: #829ab1;
-  --color-navy-500: #627d98;
-  --color-navy-600: #486581;
-  --color-navy-700: #334e68;
-  --color-navy-800: #243b53;
-  --color-navy-900: #102a43;
-  --color-navy-950: #0a1929;
+  --color-navy-50: #f3f3f8;
+  --color-navy-100: #e2e2ed;
+  --color-navy-200: #c5c5dc;
+  --color-navy-300: #a0a0c6;
+  --color-navy-400: #7a7aae;
+  --color-navy-500: #5a5a92;
+  --color-navy-600: #404072;
+  --color-navy-700: #2d2d55;
+  --color-navy-800: #1c1c3a;
+  --color-navy-900: #0f0f23;
+  --color-navy-950: #09091a;
 
   --color-gold-50: #fdf8f0;
   --color-gold-100: #f9edd8;
@@ -88,7 +88,7 @@
   }
 
   .gradient-navy {
-    background: linear-gradient(135deg, var(--color-navy-900) 0%, var(--color-navy-800) 50%, var(--color-navy-700) 100%);
+    background: linear-gradient(135deg, var(--color-navy-900) 0%, var(--color-navy-700) 100%);
   }
 
   .gradient-hero {
@@ -100,5 +100,22 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* Dark section text hierarchy */
+  .dark-text-primary {
+    color: rgba(255, 255, 255, 1);
+  }
+
+  .dark-text-secondary {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .dark-text-tertiary {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .dark-text-muted {
+    color: rgba(255, 255, 255, 0.35);
   }
 }
