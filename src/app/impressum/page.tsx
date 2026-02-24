@@ -22,7 +22,7 @@ export default function ImpressumPage() {
 
             <h3>{locale === 'de' ? 'Kontaktadresse' : 'Contact Address'}</h3>
             <p>
-              Steuerberatung Petertil<br />
+              Petertil Tax<br />
               [Strasse und Hausnummer]<br />
               [PLZ Ort]<br />
               {locale === 'de' ? 'Schweiz' : 'Switzerland'}
@@ -31,7 +31,7 @@ export default function ImpressumPage() {
             <h3>{locale === 'de' ? 'Kontakt' : 'Contact'}</h3>
             <p>
               {locale === 'de' ? 'Telefon' : 'Phone'}: +41 00 000 00 00<br />
-              E-Mail: info@steuerberatung-petertil.ch
+              E-Mail: info@petertiltax.ch
             </p>
 
             <h3>{locale === 'de' ? 'Vertretungsberechtigte Person' : 'Authorized Representative'}</h3>
@@ -39,7 +39,7 @@ export default function ImpressumPage() {
 
             <h3>{locale === 'de' ? 'Handelsregistereintrag' : 'Commercial Register Entry'}</h3>
             <p>
-              {locale === 'de' ? 'Eingetragener Firmenname' : 'Registered Company Name'}: Steuerberatung Petertil<br />
+              {locale === 'de' ? 'Eingetragener Firmenname' : 'Registered Company Name'}: Petertil Tax<br />
               {locale === 'de' ? 'Handelsregister-Nummer' : 'Register Number'}: [CHE-xxx.xxx.xxx]<br />
               {locale === 'de' ? 'Handelsregisteramt' : 'Register Office'}: [Kanton]
             </p>
@@ -57,8 +57,8 @@ export default function ImpressumPage() {
             <h3>{locale === 'de' ? 'Urheberrechte' : 'Copyright'}</h3>
             <p>
               {locale === 'de'
-                ? 'Die Urheber- und alle anderen Rechte an Inhalten, Bildern, Fotos oder anderen Dateien auf der Website gehören ausschliesslich der Firma Steuerberatung Petertil oder den speziell genannten Rechtsinhabern. Für die Reproduktion jeglicher Elemente ist die schriftliche Zustimmung der Urheberrechtsträger im Voraus einzuholen.'
-                : 'The copyright and all other rights to content, images, photos, or other files on the website belong exclusively to Steuerberatung Petertil or the specifically named rights holders. Written consent of the copyright holders must be obtained in advance for the reproduction of any elements.'}
+                ? 'Die Urheber- und alle anderen Rechte an Inhalten, Bildern, Fotos oder anderen Dateien auf der Website gehören ausschliesslich der Firma Petertil Tax oder den speziell genannten Rechtsinhabern. Für die Reproduktion jeglicher Elemente ist die schriftliche Zustimmung der Urheberrechtsträger im Voraus einzuholen.'
+                : 'The copyright and all other rights to content, images, photos, or other files on the website belong exclusively to Petertil Tax or the specifically named rights holders. Written consent of the copyright holders must be obtained in advance for the reproduction of any elements.'}
             </p>
           </div>
         </div>

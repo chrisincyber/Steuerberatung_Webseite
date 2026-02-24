@@ -24,6 +24,8 @@ export default function Header() {
 
   useEffect(() => {
     const supabase = createClient()
+    if (!supabase) return
+
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -35,6 +37,7 @@ export default function Header() {
 
   const handleLogout = async () => {
     const supabase = createClient()
+    if (!supabase) return
     await supabase.auth.signOut()
     setUser(null)
     setUserMenuOpen(false)
@@ -67,14 +70,14 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl gradient-navy flex items-center justify-center text-white font-bold text-lg shadow-sm">
-              SP
+              PT
             </div>
             <div className="hidden sm:block">
-              <span className={`font-heading font-bold text-lg ${scrolled ? 'text-navy-900' : 'text-navy-900'}`}>
-                Steuerberatung
-              </span>
-              <span className={`font-heading font-bold text-lg ${scrolled ? 'text-gold-500' : 'text-gold-500'} ml-1`}>
+              <span className={`font-heading font-bold text-lg ${scrolled ? 'text-navy-900' : 'text-white'}`}>
                 Petertil
+              </span>
+              <span className={`font-heading font-bold text-lg text-gold-500 ml-1`}>
+                Tax
               </span>
             </div>
           </Link>

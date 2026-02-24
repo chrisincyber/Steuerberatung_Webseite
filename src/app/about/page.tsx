@@ -15,10 +15,10 @@ export default function AboutPage() {
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="font-heading text-4xl sm:text-5xl font-bold text-white">
+          <h1 className="font-heading text-4xl sm:text-5xl font-bold dark-text-primary">
             {t.about.title}
           </h1>
-          <p className="mt-4 text-xl text-navy-200 max-w-2xl mx-auto">
+          <p className="mt-4 text-xl dark-text-secondary max-w-2xl mx-auto">
             {t.about.subtitle}
           </p>
         </div>
@@ -31,7 +31,6 @@ export default function AboutPage() {
             {/* Photo placeholder */}
             <div className="relative">
               <div className="aspect-[4/5] rounded-3xl bg-navy-100 overflow-hidden relative">
-                {/* Placeholder for provided photo */}
                 <div className="absolute inset-0 flex items-center justify-center bg-navy-50">
                   <div className="text-center">
                     <div className="w-32 h-32 rounded-full bg-navy-200 mx-auto mb-4 flex items-center justify-center">
@@ -43,7 +42,6 @@ export default function AboutPage() {
                   </div>
                 </div>
               </div>
-              {/* Decorative element */}
               <div className="absolute -bottom-6 -right-6 w-32 h-32 rounded-2xl gradient-navy -z-10" />
               <div className="absolute -top-6 -left-6 w-24 h-24 rounded-2xl bg-gold-100 -z-10" />
             </div>
@@ -51,7 +49,7 @@ export default function AboutPage() {
             {/* Text */}
             <div>
               <h2 className="font-heading text-3xl font-bold text-navy-900 mb-6">
-                {locale === 'de' ? 'Persönlich für Sie da' : 'Personally Here for You'}
+                {t.about.heading}
               </h2>
               <p className="text-navy-700 leading-relaxed mb-4">
                 {t.about.bio}
@@ -112,7 +110,7 @@ export default function AboutPage() {
 
           <div className="text-center mt-14">
             <Link href="/pricing" className="btn-primary !px-8 !py-4 group">
-              {t.pricing.cta}
+              {t.about.cta}
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>

@@ -28,6 +28,7 @@ export default function UpdatePasswordPage() {
 
     try {
       const supabase = createClient()
+      if (!supabase) { setError('Service unavailable'); return }
       const { error } = await supabase.auth.updateUser({ password })
 
       if (error) {

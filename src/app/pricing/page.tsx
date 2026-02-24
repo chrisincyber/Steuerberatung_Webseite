@@ -15,6 +15,7 @@ import {
   BarChart3,
   Shield,
   RotateCcw,
+  Clock,
 } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
@@ -284,6 +285,12 @@ export default function PricingPage() {
           <p className="mt-4 text-lg text-navy-200 max-w-xl mx-auto">
             {t.pricing.subtitle}
           </p>
+
+          {/* Urgency banner */}
+          <div className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-full bg-gold-500/20 border border-gold-400/30">
+            <Clock className="w-4 h-4 text-gold-400" />
+            <span className="text-sm font-medium text-gold-300">{t.pricing.urgency}</span>
+          </div>
         </div>
       </section>
 

@@ -16,46 +16,46 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-gold-500 flex items-center justify-center text-white font-bold text-lg">
-                SP
+                PT
               </div>
               <div>
-                <span className="font-heading font-bold text-lg text-white">Steuerberatung</span>
-                <span className="font-heading font-bold text-lg text-gold-400 ml-1">Petertil</span>
+                <span className="font-heading font-bold text-lg text-white">Petertil</span>
+                <span className="font-heading font-bold text-lg text-gold-400 ml-1">Tax</span>
               </div>
             </div>
-            <p className="text-navy-300 text-sm leading-relaxed">
+            <p className="dark-text-tertiary text-sm leading-relaxed">
               {t.footer.tagline}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-heading font-semibold text-sm uppercase tracking-wider text-navy-400 mb-4">
+            <h3 className="font-heading font-semibold text-sm uppercase tracking-wider dark-text-muted mb-4">
               {t.footer.quickLinks}
             </h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/about" className="text-navy-300 hover:text-white transition-colors text-sm">
+                <Link href="/about" className="dark-text-tertiary hover:text-white transition-colors text-sm">
                   {t.nav.about}
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="text-navy-300 hover:text-white transition-colors text-sm">
+                <Link href="/pricing" className="dark-text-tertiary hover:text-white transition-colors text-sm">
                   {t.nav.pricing}
                 </Link>
               </li>
               <li>
-                <Link href="/tax-calculator" className="text-navy-300 hover:text-white transition-colors text-sm">
+                <Link href="/tax-calculator" className="dark-text-tertiary hover:text-white transition-colors text-sm">
                   {t.nav.taxCalculator}
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-navy-300 hover:text-white transition-colors text-sm">
+                <Link href="/faq" className="dark-text-tertiary hover:text-white transition-colors text-sm">
                   {t.nav.faq}
                 </Link>
               </li>
               <li>
-                <Link href="/deadlines" className="text-navy-300 hover:text-white transition-colors text-sm">
+                <Link href="/deadlines" className="dark-text-tertiary hover:text-white transition-colors text-sm">
                   {t.nav.deadlines}
                 </Link>
               </li>
@@ -64,17 +64,17 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="font-heading font-semibold text-sm uppercase tracking-wider text-navy-400 mb-4">
+            <h3 className="font-heading font-semibold text-sm uppercase tracking-wider dark-text-muted mb-4">
               {t.footer.legal}
             </h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/impressum" className="text-navy-300 hover:text-white transition-colors text-sm">
+                <Link href="/impressum" className="dark-text-tertiary hover:text-white transition-colors text-sm">
                   {t.footer.impressum}
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-navy-300 hover:text-white transition-colors text-sm">
+                <Link href="/privacy" className="dark-text-tertiary hover:text-white transition-colors text-sm">
                   {t.footer.privacy}
                 </Link>
               </li>
@@ -83,24 +83,24 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="font-heading font-semibold text-sm uppercase tracking-wider text-navy-400 mb-4">
+            <h3 className="font-heading font-semibold text-sm uppercase tracking-wider dark-text-muted mb-4">
               {t.footer.contact}
             </h3>
             <ul className="space-y-3">
-              <li className="flex items-center gap-2 text-navy-300 text-sm">
-                <Mail className="w-4 h-4 text-navy-400" />
-                <a href="mailto:info@steuerberatung-petertil.ch" className="hover:text-white transition-colors">
-                  info@steuerberatung-petertil.ch
+              <li className="flex items-center gap-2 dark-text-tertiary text-sm">
+                <Mail className="w-4 h-4 dark-text-muted" />
+                <a href="mailto:info@petertiltax.ch" className="hover:text-white transition-colors">
+                  info@petertiltax.ch
                 </a>
               </li>
-              <li className="flex items-center gap-2 text-navy-300 text-sm">
-                <Phone className="w-4 h-4 text-navy-400" />
+              <li className="flex items-center gap-2 dark-text-tertiary text-sm">
+                <Phone className="w-4 h-4 dark-text-muted" />
                 <a href="tel:+41000000000" className="hover:text-white transition-colors">
                   +41 00 000 00 00
                 </a>
               </li>
-              <li className="flex items-start gap-2 text-navy-300 text-sm">
-                <MapPin className="w-4 h-4 text-navy-400 mt-0.5" />
+              <li className="flex items-start gap-2 dark-text-tertiary text-sm">
+                <MapPin className="w-4 h-4 dark-text-muted mt-0.5" />
                 <span>Schweiz</span>
               </li>
             </ul>
@@ -109,10 +109,10 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-navy-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-navy-400 text-sm">
+          <p className="dark-text-muted text-sm">
             &copy; {currentYear} {t.footer.company}. {t.footer.rights}
           </p>
-          <div className="flex items-center gap-4 text-navy-400 text-xs">
+          <div className="flex items-center gap-4 dark-text-muted text-xs">
             <Link href="/impressum" className="hover:text-white transition-colors">
               {t.footer.impressum}
             </Link>

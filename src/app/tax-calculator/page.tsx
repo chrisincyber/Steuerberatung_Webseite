@@ -51,10 +51,10 @@ export default function TaxCalculatorPage() {
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="font-heading text-4xl sm:text-5xl font-bold text-white">
+          <h1 className="font-heading text-4xl sm:text-5xl font-bold dark-text-primary">
             {t.taxCalc.title}
           </h1>
-          <p className="mt-4 text-xl text-navy-200 max-w-2xl mx-auto">
+          <p className="mt-4 text-xl dark-text-secondary max-w-2xl mx-auto">
             {t.taxCalc.subtitle}
           </p>
         </div>
@@ -231,10 +231,10 @@ export default function TaxCalculatorPage() {
           {result && (
             <div className="card p-8 sm:p-10 mt-8 bg-navy-900 border-none">
               <div className="text-center">
-                <h3 className="font-heading text-2xl font-bold text-white mb-3">
+                <h3 className="font-heading text-2xl font-bold dark-text-primary mb-3">
                   {t.taxCalc.ctaTitle}
                 </h3>
-                <p className="text-navy-200 mb-6 max-w-lg mx-auto">
+                <p className="dark-text-secondary mb-6 max-w-lg mx-auto">
                   {t.taxCalc.ctaDescription}
                 </p>
                 <Link

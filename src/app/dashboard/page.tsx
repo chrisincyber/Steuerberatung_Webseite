@@ -60,6 +60,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const supabase = createClient()
+    if (!supabase) return
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
   }, [])
 
@@ -385,7 +386,7 @@ export default function DashboardPage() {
               </h3>
               <div className="space-y-2 text-sm text-navy-700">
                 <p><strong>IBAN:</strong> CH00 0000 0000 0000 0000 0</p>
-                <p><strong>{locale === 'de' ? 'Empfänger' : 'Recipient'}:</strong> Steuerberatung Petertil</p>
+                <p><strong>{locale === 'de' ? 'Empfänger' : 'Recipient'}:</strong> Petertil Tax</p>
                 <p><strong>{locale === 'de' ? 'Verwendungszweck' : 'Reference'}:</strong> STK-2025-001</p>
               </div>
             </div>
