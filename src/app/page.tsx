@@ -278,6 +278,13 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+
+          <div className="text-center mt-12">
+            <Link href="/pricing" className="btn-primary !px-8 !py-4 group">
+              {t.hero.cta}
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
       </section>
 

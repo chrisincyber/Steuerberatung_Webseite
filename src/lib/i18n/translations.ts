@@ -139,8 +139,8 @@ export const translations = {
       subtitle: 'Wir stehen hinter unserer Arbeit.',
       items: [
         { title: 'Zufriedenheitsgarantie', description: 'Nicht zufrieden? Sie erhalten Ihr Geld zurück.' },
-        { title: 'Schweizer Datenschutzstandard', description: 'Ihre Daten sind sicher – nach Schweizer Recht geschützt.' },
-        { title: 'Jeder Kanton, jede Gemeinde', description: 'Wir kennen die Besonderheiten jedes Kantons und jeder Gemeinde.' },
+        { title: 'Daten bleiben in Europa', description: 'Ihre Daten werden ausschliesslich auf europäischen Servern gespeichert – niemals ausserhalb.' },
+        { title: 'Jeder Kanton, jede Gemeinde', description: 'Wir erstellen Steuererklärungen für alle Kantone und Gemeinden der Schweiz.' },
         { title: 'Persönlicher Berater', description: 'Ein echter Mensch, der für Sie da ist.' },
       ],
     },
@@ -477,7 +477,7 @@ export const translations = {
     // Footer
     footer: {
       company: 'Petertil Tax',
-      tagline: 'Ihre digitale Steuerlösung aus der Schweiz',
+      tagline: 'Ihre digitale Steuerlösung aus der Schweiz, für die Schweiz.',
       quickLinks: 'Schnellzugriff',
       legal: 'Rechtliches',
       impressum: 'Impressum',
@@ -647,8 +647,8 @@ export const translations = {
       subtitle: 'We stand behind our work.',
       items: [
         { title: 'Satisfaction guarantee', description: 'Not happy? You get your money back.' },
-        { title: 'Swiss data protection standard', description: 'Your data is protected — under Swiss law.' },
-        { title: 'Every canton, every municipality', description: 'We know the specifics of every canton and municipality.' },
+        { title: 'Data stays in Europe', description: 'Your data is stored exclusively on European servers — never outside.' },
+        { title: 'Every canton, every municipality', description: 'We prepare tax returns for all cantons and municipalities in Switzerland.' },
         { title: 'Personal advisor', description: 'A real person who\'s there for you.' },
       ],
     },
@@ -973,7 +973,7 @@ export const translations = {
 
     footer: {
       company: 'Petertil Tax',
-      tagline: 'Your digital tax advisory from Switzerland',
+      tagline: 'Your digital tax advisory from Switzerland, for Switzerland.',
       quickLinks: 'Quick Links',
       legal: 'Legal',
       impressum: 'Imprint',
