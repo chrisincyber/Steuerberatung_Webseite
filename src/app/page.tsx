@@ -22,6 +22,9 @@ import {
   ChevronDown,
   AlertCircle,
   FileText,
+  MessageCircle,
+  Download,
+  BarChart3,
 } from 'lucide-react'
 
 export default function HomePage() {
@@ -209,8 +212,39 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Client Portal */}
       <section className="section-padding bg-navy-50/50">
+        <div className="container-wide">
+          <div className="text-center mb-16">
+            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-navy-900">
+              {t.portal.title}
+            </h2>
+            <p className="mt-4 text-navy-600 text-lg max-w-2xl mx-auto">
+              {t.portal.subtitle}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+            {[
+              { icon: MessageCircle, ...t.portal.chat },
+              { icon: Upload, ...t.portal.documents },
+              { icon: BarChart3, ...t.portal.status },
+              { icon: Download, ...t.portal.download },
+            ].map((item, i) => (
+              <div key={i} className="card p-8 text-center group hover:-translate-y-1 transition-all duration-300">
+                <div className="w-14 h-14 rounded-2xl bg-navy-800 flex items-center justify-center mx-auto mb-5 group-hover:bg-navy-700 transition-colors">
+                  <item.icon className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="font-heading text-lg font-bold text-navy-900 mb-3">{item.title}</h3>
+                <p className="text-navy-600 text-sm leading-relaxed">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="section-padding">
         <div className="container-wide">
           <div className="text-center mb-16">
             <h2 className="font-heading text-3xl sm:text-4xl font-bold text-navy-900">

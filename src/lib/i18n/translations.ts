@@ -85,6 +85,28 @@ export const translations = {
       cta: 'Jetzt Dokumente hochladen',
     },
 
+    // Client Portal
+    portal: {
+      title: 'Ihr persönliches Kundenportal',
+      subtitle: 'Alles an einem Ort — übersichtlich, sicher und jederzeit verfügbar.',
+      chat: {
+        title: 'Direkter Chat',
+        description: 'Schreiben Sie Ihrem Steuerberater direkt — keine Warteschleifen, keine Umwege.',
+      },
+      documents: {
+        title: 'Dokumente hochladen',
+        description: 'Fotos oder PDFs hochladen, wir kümmern uns um den Rest. Alles verschlüsselt.',
+      },
+      status: {
+        title: 'Status verfolgen',
+        description: 'Sehen Sie jederzeit, wo Ihre Steuererklärung steht — vom Eingang bis zur Fertigstellung.',
+      },
+      download: {
+        title: 'Fertige Erklärung herunterladen',
+        description: 'Ihre Steuererklärung zum Prüfen und Unterschreiben — direkt im Portal.',
+      },
+    },
+
     // Testimonials
     testimonials: {
       title: 'Das sagen unsere Kunden',
@@ -572,6 +594,27 @@ export const translations = {
         description: 'You receive your tax declaration for review and signature.',
       },
       cta: 'Upload documents now',
+    },
+
+    portal: {
+      title: 'Your personal client portal',
+      subtitle: 'Everything in one place — clear, secure, and available anytime.',
+      chat: {
+        title: 'Direct chat',
+        description: 'Message your tax advisor directly — no waiting, no detours.',
+      },
+      documents: {
+        title: 'Upload documents',
+        description: 'Upload photos or PDFs, we take care of the rest. Everything encrypted.',
+      },
+      status: {
+        title: 'Track status',
+        description: 'See where your tax declaration stands at any time — from receipt to completion.',
+      },
+      download: {
+        title: 'Download your declaration',
+        description: 'Your completed tax declaration for review and signature — right in the portal.',
+      },
     },
 
     testimonials: {
