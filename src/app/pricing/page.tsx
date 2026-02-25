@@ -17,6 +17,9 @@ import {
   RotateCcw,
   Clock,
   Mail,
+  Phone,
+  User,
+  Loader2,
 } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
@@ -27,14 +30,22 @@ type Employment = 'unselbstaendig' | 'selbstaendig' | 'gmbh_ag'
 type Asset = 'wertschriften' | 'liegenschaft' | 'krypto' | 'keine'
 type Docs = 'ja' | 'teilweise' | 'nein'
 type Tier = 'basis' | 'erweitert' | 'komplex'
-type StepId = 'employment' | 'assets' | 'ausland' | 'unterlagen' | 'buchhaltung' | 'result'
+type StepId = 'employment' | 'buchhaltungBedarf' | 'assets' | 'ausland' | 'unterlagen' | 'kontaktformular' | 'result'
+
+interface KontaktForm {
+  firstName: string
+  lastName: string
+  phone: string
+  email: string
+}
 
 interface WizardState {
   employment: Employment | null
+  buchhaltungBedarf: boolean | null
   assets: Asset[]
   ausland: boolean | null
   unterlagen: Docs | null
-  buchhaltung: boolean | null
+  kontaktForm: KontaktForm
 }
 
 // Icons for employment options
@@ -54,30 +65,39 @@ const assetIcons: Record<Asset, typeof BarChart3> = {
 
 const INITIAL_STATE: WizardState = {
   employment: null,
+  buchhaltungBedarf: null,
   assets: [],
   ausland: null,
   unterlagen: null,
-  buchhaltung: null,
+  kontaktForm: { firstName: '', lastName: '', phone: '', email: '' },
 }
 
 // ---------------------------------------------------------------------------
-// Rule Engine – derives tier from wizard state (no visible price math)
+// Rule Engine – derives tier from wizard state
 // ---------------------------------------------------------------------------
 
 function calculateTier(state: WizardState): Tier {
-  // Selbständig or GmbH/AG → Komplex
-  if (state.employment === 'selbstaendig' || state.employment === 'gmbh_ag') {
+  // GmbH/AG (without bookkeeping) → always Komplex
+  if (state.employment === 'gmbh_ag') {
     return 'komplex'
   }
 
-  // Foreign income/assets → Komplex
+  // Selbständig (without bookkeeping) → min Erweitert, Komplex if Ausland
+  if (state.employment === 'selbstaendig') {
+    if (state.ausland === true) {
+      return 'komplex'
+    }
+    return 'erweitert'
+  }
+
+  // Unselbständig: Foreign income/assets → Komplex
   if (state.ausland === true) {
     return 'komplex'
   }
 
   const hasAssets = state.assets.length > 0 && !state.assets.includes('keine')
 
-  // Unselbständig + assets (Wertschriften / Liegenschaft / Krypto) + no Ausland → Erweitert
+  // Unselbständig + assets → Erweitert
   if (state.employment === 'unselbstaendig' && hasAssets) {
     return 'erweitert'
   }
@@ -90,20 +110,32 @@ function calculateTier(state: WizardState): Tier {
 // Step Sequence – dynamically compute applicable steps
 // ---------------------------------------------------------------------------
 
-function getSteps(employment: Employment | null): StepId[] {
+function getSteps(state: WizardState): StepId[] {
   const steps: StepId[] = ['employment']
+  const emp = state.employment
 
-  if (employment === 'unselbstaendig') {
+  if (emp === 'selbstaendig' || emp === 'gmbh_ag') {
+    steps.push('buchhaltungBedarf')
+
+    // If they need bookkeeping → contact form path
+    if (state.buchhaltungBedarf === true) {
+      steps.push('kontaktformular')
+      return steps
+    }
+  }
+
+  // Normal questionnaire path
+  if (emp === 'unselbstaendig' || (emp === 'selbstaendig' && state.buchhaltungBedarf === false)) {
     steps.push('assets')
   }
 
-  steps.push('ausland', 'unterlagen')
-
-  if (employment === 'selbstaendig') {
-    steps.push('buchhaltung')
+  // GmbH/AG without bookkeeping skips assets, goes to ausland
+  if (emp !== null) {
+    if (state.buchhaltungBedarf !== true) {
+      steps.push('ausland', 'unterlagen', 'result')
+    }
   }
 
-  steps.push('result')
   return steps
 }
 
@@ -115,14 +147,18 @@ function canAdvance(step: StepId, state: WizardState): boolean {
   switch (step) {
     case 'employment':
       return state.employment !== null
+    case 'buchhaltungBedarf':
+      return state.buchhaltungBedarf !== null
     case 'assets':
       return state.assets.length > 0
     case 'ausland':
       return state.ausland !== null
     case 'unterlagen':
       return state.unterlagen !== null
-    case 'buchhaltung':
-      return state.buchhaltung !== null
+    case 'kontaktformular': {
+      const f = state.kontaktForm
+      return f.firstName.trim() !== '' && f.lastName.trim() !== '' && f.phone.trim() !== '' && f.email.trim() !== '' && f.email.includes('@')
+    }
     default:
       return true
   }
@@ -146,17 +182,26 @@ export default function PricingPage() {
   const [stepIndex, setStepIndex] = useState(0)
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
   const [animKey, setAnimKey] = useState(0)
+  const [formSubmitting, setFormSubmitting] = useState(false)
+  const [formSuccess, setFormSuccess] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const steps = useMemo(() => getSteps(state.employment), [state.employment])
+  const steps = useMemo(() => getSteps(state), [state])
   const currentStep = steps[stepIndex]
-  const totalSteps = steps.length
   const tier = useMemo(() => calculateTier(state), [state])
+
+  // Count only questionnaire steps (exclude result and kontaktformular for progress)
+  const isQuestionnaireStep = currentStep !== 'result' && currentStep !== 'kontaktformular'
+  const questionnaireSteps = steps.filter((s) => s !== 'result' && s !== 'kontaktformular')
+  const questionnaireTotal = questionnaireSteps.length
+  const questionnaireIndex = questionnaireSteps.indexOf(currentStep as typeof questionnaireSteps[number])
 
   // Analytics: track step views
   useEffect(() => {
     if (currentStep === 'result') {
       window.dataLayer?.push({ event: 'pricing_completed', tier: tier })
+    } else if (currentStep === 'kontaktformular') {
+      window.dataLayer?.push({ event: 'pricing_kontaktformular' })
     } else {
       window.dataLayer?.push({ event: 'pricing_step', step: stepIndex + 1 })
     }
@@ -181,6 +226,8 @@ export default function PricingPage() {
     setStepIndex(0)
     setDirection('forward')
     setAnimKey((k) => k + 1)
+    setFormSuccess(false)
+    setFormSubmitting(false)
   }, [])
 
   // State updaters
@@ -188,16 +235,39 @@ export default function PricingPage() {
     (emp: Employment) => {
       setState({
         employment: emp,
+        buchhaltungBedarf: null,
         assets: [],
         ausland: null,
         unterlagen: null,
-        buchhaltung: null,
+        kontaktForm: { firstName: '', lastName: '', phone: '', email: '' },
       })
+      setFormSuccess(false)
       // Auto-advance after selection
       setTimeout(() => {
         setDirection('forward')
         setAnimKey((k) => k + 1)
         setStepIndex(1) // always index 1 after employment
+      }, 150)
+    },
+    [],
+  )
+
+  const selectBuchhaltungBedarf = useCallback(
+    (val: boolean) => {
+      setState((prev) => ({
+        ...prev,
+        buchhaltungBedarf: val,
+        // Reset downstream state when changing this
+        assets: [],
+        ausland: null,
+        unterlagen: null,
+        kontaktForm: { firstName: '', lastName: '', phone: '', email: '' },
+      }))
+      setFormSuccess(false)
+      setTimeout(() => {
+        setDirection('forward')
+        setAnimKey((k) => k + 1)
+        setStepIndex(2) // always index 2 after buchhaltungBedarf
       }, 150)
     },
     [],
@@ -230,23 +300,47 @@ export default function PricingPage() {
     [goNext],
   )
 
-  const selectBuchhaltung = useCallback(
-    (val: boolean) => {
-      setState((prev) => ({ ...prev, buchhaltung: val }))
-      setTimeout(() => goNext(), 150)
-    },
-    [goNext],
-  )
+  const updateKontaktForm = useCallback((field: keyof KontaktForm, value: string) => {
+    setState((prev) => ({
+      ...prev,
+      kontaktForm: { ...prev.kontaktForm, [field]: value },
+    }))
+  }, [])
+
+  const submitKontaktForm = useCallback(async () => {
+    if (formSubmitting) return
+    setFormSubmitting(true)
+    try {
+      const res = await fetch('/_api/bookkeeping-inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: state.kontaktForm.firstName,
+          lastName: state.kontaktForm.lastName,
+          phone: state.kontaktForm.phone,
+          email: state.kontaktForm.email,
+          employment: state.employment,
+        }),
+      })
+      if (res.ok) {
+        setFormSuccess(true)
+      }
+    } catch {
+      // Silently fail — user sees no success message
+    } finally {
+      setFormSubmitting(false)
+    }
+  }, [formSubmitting, state.kontaktForm, state.employment])
 
   // Keyboard navigation
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
-        if (stepIndex > 0 && currentStep !== 'result') {
+        if (stepIndex > 0 && currentStep !== 'result' && currentStep !== 'kontaktformular') {
           goBack()
         }
       }
-      if (e.key === 'Enter' && currentStep !== 'result' && currentStep !== 'employment') {
+      if (e.key === 'Enter' && currentStep !== 'result' && currentStep !== 'employment' && currentStep !== 'kontaktformular') {
         if (canAdvance(currentStep, state)) {
           goNext()
         }
@@ -298,12 +392,12 @@ export default function PricingPage() {
       {/* Wizard container */}
       <section ref={containerRef} className="section-padding -mt-8">
         <div className="max-w-2xl mx-auto">
-          {/* Progress bar (hidden on result) */}
-          {currentStep !== 'result' && (
-            <div className="mb-8" role="progressbar" aria-valuenow={stepIndex + 1} aria-valuemin={1} aria-valuemax={totalSteps - 1}>
+          {/* Progress bar (shown only for questionnaire steps) */}
+          {isQuestionnaireStep && (
+            <div className="mb-8" role="progressbar" aria-valuenow={questionnaireIndex + 1} aria-valuemin={1} aria-valuemax={questionnaireTotal}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-navy-600">
-                  {t.pricing.progress} {stepIndex + 1} {t.pricing.progressOf} {totalSteps - 1}
+                  {t.pricing.progress} {questionnaireIndex + 1} {t.pricing.progressOf} {questionnaireTotal}
                 </span>
                 {stepIndex > 0 && (
                   <button
@@ -319,7 +413,7 @@ export default function PricingPage() {
               <div className="h-2 bg-navy-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-navy-800 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${((stepIndex + 1) / (totalSteps - 1)) * 100}%` }}
+                  style={{ width: `${((questionnaireIndex + 1) / questionnaireTotal) * 100}%` }}
                 />
               </div>
             </div>
@@ -348,6 +442,31 @@ export default function PricingPage() {
                       )
                     },
                   )}
+                </div>
+              </StepCard>
+            )}
+
+            {/* ---- Step: Buchhaltung Bedarf ---- */}
+            {currentStep === 'buchhaltungBedarf' && (
+              <StepCard>
+                <StepQuestion>{t.pricing.steps.buchhaltungBedarf.question}</StepQuestion>
+                <div className="grid grid-cols-2 gap-4 mt-8">
+                  <OptionButton
+                    selected={state.buchhaltungBedarf === true}
+                    onClick={() => selectBuchhaltungBedarf(true)}
+                    aria-label={t.pricing.steps.buchhaltungBedarf.options.ja}
+                  >
+                    <BookOpen className="w-6 h-6 shrink-0" />
+                    <span className="text-lg font-medium">{t.pricing.steps.buchhaltungBedarf.options.ja}</span>
+                  </OptionButton>
+                  <OptionButton
+                    selected={state.buchhaltungBedarf === false}
+                    onClick={() => selectBuchhaltungBedarf(false)}
+                    aria-label={t.pricing.steps.buchhaltungBedarf.options.nein}
+                  >
+                    <BookOpen className="w-6 h-6 shrink-0" />
+                    <span className="text-lg font-medium">{t.pricing.steps.buchhaltungBedarf.options.nein}</span>
+                  </OptionButton>
                 </div>
               </StepCard>
             )}
@@ -436,35 +555,144 @@ export default function PricingPage() {
               </StepCard>
             )}
 
-            {/* ---- Step: Buchhaltung ---- */}
-            {currentStep === 'buchhaltung' && (
-              <StepCard>
-                <StepQuestion>{t.pricing.steps.buchhaltung.question}</StepQuestion>
-                <div className="grid grid-cols-2 gap-4 mt-8">
-                  <OptionButton
-                    selected={state.buchhaltung === true}
-                    onClick={() => selectBuchhaltung(true)}
-                    aria-label={t.pricing.steps.buchhaltung.options.ja}
-                  >
-                    <BookOpen className="w-6 h-6 shrink-0" />
-                    <span className="text-lg font-medium">{t.pricing.steps.buchhaltung.options.ja}</span>
-                  </OptionButton>
-                  <OptionButton
-                    selected={state.buchhaltung === false}
-                    onClick={() => selectBuchhaltung(false)}
-                    aria-label={t.pricing.steps.buchhaltung.options.nein}
-                  >
-                    <BookOpen className="w-6 h-6 shrink-0" />
-                    <span className="text-lg font-medium">{t.pricing.steps.buchhaltung.options.nein}</span>
-                  </OptionButton>
+            {/* ---- Step: Kontaktformular ---- */}
+            {currentStep === 'kontaktformular' && (
+              <div className="wizard-fade-up">
+                <div className="card p-8 sm:p-10 lg:p-12">
+                  {formSuccess ? (
+                    <div className="text-center">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-trust-50 border border-trust-200 mb-6">
+                        <Check className="w-8 h-8 text-trust-600" />
+                      </div>
+                      <p className="text-lg font-medium text-navy-900">
+                        {t.pricing.steps.kontaktformular.success}
+                      </p>
+                      <button
+                        onClick={restart}
+                        className="mt-8 inline-flex items-center gap-2 text-sm text-navy-400 hover:text-navy-600 transition-colors"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        {t.pricing.result.restart}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Back button */}
+                      <button
+                        onClick={goBack}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-500 hover:text-navy-700 transition-colors mb-6"
+                        aria-label={t.common.back}
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        {t.common.back}
+                      </button>
+
+                      <h2 className="font-heading text-xl sm:text-2xl font-bold text-navy-900 text-center">
+                        {t.pricing.steps.kontaktformular.heading}
+                      </h2>
+                      <p className="text-navy-500 text-sm mt-2 mb-8 text-center max-w-md mx-auto">
+                        {t.pricing.steps.kontaktformular.description}
+                      </p>
+
+                      <div className="space-y-4 max-w-md mx-auto">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-navy-700 mb-1">
+                              {t.pricing.steps.kontaktformular.firstName}
+                            </label>
+                            <div className="relative">
+                              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
+                              <input
+                                type="text"
+                                value={state.kontaktForm.firstName}
+                                onChange={(e) => updateKontaktForm('firstName', e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:outline-none transition-colors"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-navy-700 mb-1">
+                              {t.pricing.steps.kontaktformular.lastName}
+                            </label>
+                            <div className="relative">
+                              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
+                              <input
+                                type="text"
+                                value={state.kontaktForm.lastName}
+                                onChange={(e) => updateKontaktForm('lastName', e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:outline-none transition-colors"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-navy-700 mb-1">
+                            {t.pricing.steps.kontaktformular.phone}
+                          </label>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
+                            <input
+                              type="tel"
+                              value={state.kontaktForm.phone}
+                              onChange={(e) => updateKontaktForm('phone', e.target.value)}
+                              className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:outline-none transition-colors"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-navy-700 mb-1">
+                            {t.pricing.steps.kontaktformular.email}
+                          </label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
+                            <input
+                              type="email"
+                              value={state.kontaktForm.email}
+                              onChange={(e) => updateKontaktForm('email', e.target.value)}
+                              className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:outline-none transition-colors"
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={submitKontaktForm}
+                          disabled={!canAdvance('kontaktformular', state) || formSubmitting}
+                          className="btn-white w-full mt-4 group disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {formSubmitting ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <>
+                              {t.pricing.steps.kontaktformular.submit}
+                              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
-              </StepCard>
+              </div>
             )}
 
             {/* ---- Result Screen ---- */}
             {currentStep === 'result' && (
               <div className="wizard-fade-up">
                 <div className="card p-8 sm:p-10 lg:p-12 text-center">
+                  {/* Back button */}
+                  <div className="text-left mb-4">
+                    <button
+                      onClick={goBack}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-500 hover:text-navy-700 transition-colors"
+                      aria-label={t.common.back}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      {t.common.back}
+                    </button>
+                  </div>
+
                   {/* Heading */}
                   <h2 className="font-heading text-2xl sm:text-3xl font-bold text-navy-900">
                     {t.pricing.result.heading}

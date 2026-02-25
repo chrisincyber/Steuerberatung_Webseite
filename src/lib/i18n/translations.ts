@@ -19,9 +19,10 @@ export const translations = {
 
     // Homepage
     hero: {
-      title: 'Steuererklärung abgeben.',
-      titleAccent: 'Zurücklehnen.',
-      subtitle: 'Dokumente hochladen, Steuerexperte kümmert sich um alles. Fixpreis ab CHF 149.',
+      title: 'Steuern? Erledigt.',
+      titleAccent: 'Mit ',
+      titleRotatingWords: ['10 Minuten Aufwand', 'null Papierkram', 'maximalem Abzug', 'persönlichem Experten'],
+      subtitle: 'Dokumente hochladen — Ihr Steuerberater übernimmt den Rest. Fixpreis ab CHF 149.',
       cta: 'Jetzt loslegen',
       ctaSecondary: 'So funktioniert\'s',
       trustBadge: '175+ Kunden vertrauen uns in allen 26 Kantonen',
@@ -217,12 +218,26 @@ export const translations = {
       cta: 'Jetzt beauftragen',
       steps: {
         employment: {
-          question: 'Wie sind Sie steuerlich eingestuft?',
+          question: 'Wie ist Ihre berufliche Situation?',
           options: {
             unselbstaendig: 'Unselbständig',
             selbstaendig: 'Selbständig',
             gmbh_ag: 'GmbH / AG',
           },
+        },
+        buchhaltungBedarf: {
+          question: 'Benötigen Sie eine Buchhaltung?',
+          options: { ja: 'Ja', nein: 'Nein' },
+        },
+        kontaktformular: {
+          heading: 'Persönliche Beratung',
+          description: 'Buchhaltung ist individuell — wir kontaktieren Sie innert 48 Stunden für ein persönliches Gespräch.',
+          firstName: 'Vorname',
+          lastName: 'Nachname',
+          phone: 'Telefonnummer',
+          email: 'E-Mail',
+          submit: 'Anfrage senden',
+          success: 'Vielen Dank! Wir melden uns innert 48 Stunden bei Ihnen.',
         },
         assets: {
           question: 'Haben Sie folgende Vermögenswerte?',
@@ -240,10 +255,6 @@ export const translations = {
         unterlagen: {
           question: 'Sind Ihre Unterlagen vollständig digital und strukturiert?',
           options: { ja: 'Ja', teilweise: 'Teilweise', nein: 'Nein' },
-        },
-        buchhaltung: {
-          question: 'Haben Sie eine saubere Buchhaltung?',
-          options: { ja: 'Ja', nein: 'Nein' },
         },
       },
       progress: 'Schritt',
@@ -534,9 +545,10 @@ export const translations = {
     },
 
     hero: {
-      title: 'Tax declaration submitted.',
-      titleAccent: 'You relax.',
-      subtitle: 'Upload your documents, your tax expert handles everything. Fixed price from CHF 149.',
+      title: 'Taxes? Done.',
+      titleAccent: 'With ',
+      titleRotatingWords: ['10 minutes of effort', 'zero paperwork', 'maximum deductions', 'a personal expert'],
+      subtitle: 'Upload your documents — your tax advisor handles the rest. Fixed price from CHF 149.',
       cta: 'Get started',
       ctaSecondary: 'How it works',
       trustBadge: '175+ clients trust us across all 26 cantons',
@@ -720,12 +732,26 @@ export const translations = {
       cta: 'Order now',
       steps: {
         employment: {
-          question: 'What is your tax status?',
+          question: 'What is your professional situation?',
           options: {
             unselbstaendig: 'Employed',
             selbstaendig: 'Self-Employed',
             gmbh_ag: 'GmbH / AG',
           },
+        },
+        buchhaltungBedarf: {
+          question: 'Do you need bookkeeping services?',
+          options: { ja: 'Yes', nein: 'No' },
+        },
+        kontaktformular: {
+          heading: 'Personal Consultation',
+          description: 'Bookkeeping is individual — we will contact you within 48 hours for a personal consultation.',
+          firstName: 'First Name',
+          lastName: 'Last Name',
+          phone: 'Phone Number',
+          email: 'Email',
+          submit: 'Send Inquiry',
+          success: 'Thank you! We will get back to you within 48 hours.',
         },
         assets: {
           question: 'Do you have the following assets?',
@@ -743,10 +769,6 @@ export const translations = {
         unterlagen: {
           question: 'Are your documents fully digital and structured?',
           options: { ja: 'Yes', teilweise: 'Partially', nein: 'No' },
-        },
-        buchhaltung: {
-          question: 'Do you have clean bookkeeping?',
-          options: { ja: 'Yes', nein: 'No' },
         },
       },
       progress: 'Step',
