@@ -51,6 +51,7 @@ interface WizardState {
   employment: Employment | null
   buchhaltungBedarf: boolean | null
   assets: Asset[]
+  wertschriftenOver10: boolean | null
   liegenschaftDetail: LiegenschaftDetail
   ausland: boolean | null
   unterlagen: Docs | null
@@ -76,6 +77,7 @@ const INITIAL_STATE: WizardState = {
   employment: null,
   buchhaltungBedarf: null,
   assets: [],
+  wertschriftenOver10: null,
   liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 },
   ausland: null,
   unterlagen: null,
@@ -113,8 +115,12 @@ function calculateTier(state: WizardState): Tier {
 
   const hasAssets = state.assets.length > 0 && !state.assets.includes('keine')
 
-  // Unselbständig + assets → Erweitert
+  // Unselbständig + assets → Erweitert (but Wertschriften ≤10 positions alone stays Basis)
   if (state.employment === 'unselbstaendig' && hasAssets) {
+    const onlyWertschriften = state.assets.length === 1 && state.assets[0] === 'wertschriften'
+    if (onlyWertschriften && state.wertschriftenOver10 === false) {
+      return 'basis'
+    }
     return 'erweitert'
   }
 
@@ -167,6 +173,8 @@ function canAdvance(step: StepId, state: WizardState): boolean {
       return state.buchhaltungBedarf !== null
     case 'assets': {
       if (state.assets.length === 0) return false
+      // If wertschriften selected, require over10 answer
+      if (state.assets.includes('wertschriften') && state.wertschriftenOver10 === null) return false
       // If liegenschaft selected, require at least 1 property total
       if (state.assets.includes('liegenschaft')) {
         const total = state.liegenschaftDetail.selbstbewohnt + state.liegenschaftDetail.vermietet
@@ -260,6 +268,7 @@ export default function PricingPage() {
         employment: emp,
         buchhaltungBedarf: null,
         assets: [],
+        wertschriftenOver10: null,
         liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 },
         ausland: null,
         unterlagen: null,
@@ -283,6 +292,7 @@ export default function PricingPage() {
         buchhaltungBedarf: val,
         // Reset downstream state when changing this
         assets: [],
+        wertschriftenOver10: null,
         liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 },
         ausland: null,
         unterlagen: null,
@@ -301,17 +311,16 @@ export default function PricingPage() {
   const toggleAsset = useCallback((asset: Asset) => {
     setState((prev) => {
       if (asset === 'keine') {
-        return { ...prev, assets: ['keine'], liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 } }
+        return { ...prev, assets: ['keine'], wertschriftenOver10: null, liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 } }
       }
       const without = prev.assets.filter((a) => a !== 'keine' && a !== asset)
       const has = prev.assets.includes(asset)
       const newAssets = has ? without : [...without, asset]
-      // Reset liegenschaft detail if liegenschaft is deselected
-      const resetLiegenschaft = asset === 'liegenschaft' && has
       return {
         ...prev,
         assets: newAssets,
-        liegenschaftDetail: resetLiegenschaft ? { selbstbewohnt: 0, vermietet: 0 } : prev.liegenschaftDetail,
+        wertschriftenOver10: asset === 'wertschriften' && has ? null : prev.wertschriftenOver10,
+        liegenschaftDetail: asset === 'liegenschaft' && has ? { selbstbewohnt: 0, vermietet: 0 } : prev.liegenschaftDetail,
       }
     })
   }, [])
@@ -530,6 +539,39 @@ export default function PricingPage() {
                             <Icon className="w-6 h-6 shrink-0" />
                             <span className="text-lg font-medium">{label}</span>
                           </OptionButton>
+
+                          {/* Wertschriften detail */}
+                          {key === 'wertschriften' && state.assets.includes('wertschriften') && (
+                            <div className="mt-3 ml-2 p-4 rounded-xl bg-navy-50 border border-navy-200">
+                              <p className="text-sm font-medium text-navy-700 mb-3">
+                                {t.pricing.steps.assets.wertschriften.over10}
+                              </p>
+                              <div className="grid grid-cols-2 gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => setState((prev) => ({ ...prev, wertschriftenOver10: true }))}
+                                  className={`px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                                    state.wertschriftenOver10 === true
+                                      ? 'border-navy-800 bg-navy-800 text-white'
+                                      : 'border-navy-200 text-navy-700 hover:border-navy-400'
+                                  }`}
+                                >
+                                  {t.pricing.steps.ausland.options.ja}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setState((prev) => ({ ...prev, wertschriftenOver10: false }))}
+                                  className={`px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                                    state.wertschriftenOver10 === false
+                                      ? 'border-navy-800 bg-navy-800 text-white'
+                                      : 'border-navy-200 text-navy-700 hover:border-navy-400'
+                                  }`}
+                                >
+                                  {t.pricing.steps.ausland.options.nein}
+                                </button>
+                              </div>
+                            </div>
+                          )}
 
                           {/* Liegenschaft detail rows */}
                           {key === 'liegenschaft' && state.assets.includes('liegenschaft') && (

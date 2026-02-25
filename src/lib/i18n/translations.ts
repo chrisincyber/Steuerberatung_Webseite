@@ -22,7 +22,7 @@ export const translations = {
       title: 'Steuern? Erledigt.',
       titleAccent: 'Mit ',
       titleRotatingWords: ['10 Minuten Aufwand', 'null Papierkram', 'maximalem Abzug', 'persönlichem Experten'],
-      subtitle: 'Dokumente hochladen — Ihr Steuerberater übernimmt den Rest. Fixpreis ab CHF 149.',
+      subtitle: 'Passende Lösung in drei Minuten. Dokumente hochladen — Ihr Steuerberater übernimmt den Rest. Fixpreis ab CHF 149.–',
       cta: 'Jetzt loslegen',
       ctaSecondary: 'So funktioniert\'s',
       trustBadge: '175+ Kunden vertrauen uns in allen 26 Kantonen',
@@ -246,6 +246,9 @@ export const translations = {
             liegenschaft: 'Liegenschaft',
             krypto: 'Krypto',
             keine: 'Keine davon',
+          },
+          wertschriften: {
+            over10: 'Mehr als 10 Positionen?',
           },
           liegenschaft: {
             selbstbewohnt: 'Selbstbewohnt (Hauptwohnsitz, Ferienobjekt)',
@@ -552,7 +555,7 @@ export const translations = {
       title: 'Taxes? Done.',
       titleAccent: 'With ',
       titleRotatingWords: ['10 minutes of effort', 'zero paperwork', 'maximum deductions', 'a personal expert'],
-      subtitle: 'Upload your documents — your tax advisor handles the rest. Fixed price from CHF 149.',
+      subtitle: 'Find the right solution in three minutes. Upload your documents — your tax advisor handles the rest. Fixed price from CHF 149.–',
       cta: 'Get started',
       ctaSecondary: 'How it works',
       trustBadge: '175+ clients trust us across all 26 cantons',
@@ -764,6 +767,9 @@ export const translations = {
             liegenschaft: 'Property',
             krypto: 'Crypto',
             keine: 'None of the above',
+          },
+          wertschriften: {
+            over10: 'More than 10 positions?',
           },
           liegenschaft: {
             selbstbewohnt: 'Owner-occupied (Primary residence, Holiday property)',

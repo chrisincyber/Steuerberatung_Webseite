@@ -171,12 +171,6 @@ export default function Header() {
                 >
                   {t.nav.login}
                 </Link>
-                <Link
-                  href="/auth/register"
-                  className="btn-primary !py-2 !px-4 !text-sm"
-                >
-                  {t.nav.register}
-                </Link>
               </div>
             )}
 
@@ -221,13 +215,6 @@ export default function Header() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {t.nav.login}
-                  </Link>
-                  <Link
-                    href="/auth/register"
-                    className="btn-primary !text-sm text-center"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {t.nav.register}
                   </Link>
                 </div>
               )}
