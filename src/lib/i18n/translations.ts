@@ -242,10 +242,14 @@ export const translations = {
         assets: {
           question: 'Haben Sie folgende Vermögenswerte?',
           options: {
-            wertschriften: 'Wertschriften',
-            liegenschaft: '1 Liegenschaft (CH)',
+            wertschriften: 'Wertschriften (Aktien, Fonds, Depot)',
+            liegenschaft: 'Liegenschaft',
             krypto: 'Krypto',
             keine: 'Keine davon',
+          },
+          liegenschaft: {
+            selbstbewohnt: 'Selbstbewohnt (Hauptwohnsitz, Ferienobjekt)',
+            vermietet: 'Vermietete Objekte',
           },
         },
         ausland: {
@@ -756,10 +760,14 @@ export const translations = {
         assets: {
           question: 'Do you have the following assets?',
           options: {
-            wertschriften: 'Securities',
-            liegenschaft: '1 Property (CH)',
+            wertschriften: 'Securities (Stocks, Funds, Depot)',
+            liegenschaft: 'Property',
             krypto: 'Crypto',
             keine: 'None of the above',
+          },
+          liegenschaft: {
+            selbstbewohnt: 'Owner-occupied (Primary residence, Holiday property)',
+            vermietet: 'Rented out properties',
           },
         },
         ausland: {

@@ -20,6 +20,9 @@ import {
   Phone,
   User,
   Loader2,
+  Home,
+  Minus,
+  Plus,
 } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
@@ -32,6 +35,11 @@ type Docs = 'ja' | 'teilweise' | 'nein'
 type Tier = 'basis' | 'erweitert' | 'komplex'
 type StepId = 'employment' | 'buchhaltungBedarf' | 'assets' | 'ausland' | 'unterlagen' | 'kontaktformular' | 'result'
 
+interface LiegenschaftDetail {
+  selbstbewohnt: number
+  vermietet: number
+}
+
 interface KontaktForm {
   firstName: string
   lastName: string
@@ -43,6 +51,7 @@ interface WizardState {
   employment: Employment | null
   buchhaltungBedarf: boolean | null
   assets: Asset[]
+  liegenschaftDetail: LiegenschaftDetail
   ausland: boolean | null
   unterlagen: Docs | null
   kontaktForm: KontaktForm
@@ -67,6 +76,7 @@ const INITIAL_STATE: WizardState = {
   employment: null,
   buchhaltungBedarf: null,
   assets: [],
+  liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 },
   ausland: null,
   unterlagen: null,
   kontaktForm: { firstName: '', lastName: '', phone: '', email: '' },
@@ -92,6 +102,12 @@ function calculateTier(state: WizardState): Tier {
 
   // Unselbständig: Foreign income/assets → Komplex
   if (state.ausland === true) {
+    return 'komplex'
+  }
+
+  // Total Liegenschaften > 2 → Komplex
+  const totalLiegenschaften = state.liegenschaftDetail.selbstbewohnt + state.liegenschaftDetail.vermietet
+  if (state.assets.includes('liegenschaft') && totalLiegenschaften > 2) {
     return 'komplex'
   }
 
@@ -149,8 +165,15 @@ function canAdvance(step: StepId, state: WizardState): boolean {
       return state.employment !== null
     case 'buchhaltungBedarf':
       return state.buchhaltungBedarf !== null
-    case 'assets':
-      return state.assets.length > 0
+    case 'assets': {
+      if (state.assets.length === 0) return false
+      // If liegenschaft selected, require at least 1 property total
+      if (state.assets.includes('liegenschaft')) {
+        const total = state.liegenschaftDetail.selbstbewohnt + state.liegenschaftDetail.vermietet
+        if (total < 1) return false
+      }
+      return true
+    }
     case 'ausland':
       return state.ausland !== null
     case 'unterlagen':
@@ -237,6 +260,7 @@ export default function PricingPage() {
         employment: emp,
         buchhaltungBedarf: null,
         assets: [],
+        liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 },
         ausland: null,
         unterlagen: null,
         kontaktForm: { firstName: '', lastName: '', phone: '', email: '' },
@@ -259,6 +283,7 @@ export default function PricingPage() {
         buchhaltungBedarf: val,
         // Reset downstream state when changing this
         assets: [],
+        liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 },
         ausland: null,
         unterlagen: null,
         kontaktForm: { firstName: '', lastName: '', phone: '', email: '' },
@@ -276,12 +301,26 @@ export default function PricingPage() {
   const toggleAsset = useCallback((asset: Asset) => {
     setState((prev) => {
       if (asset === 'keine') {
-        return { ...prev, assets: ['keine'] }
+        return { ...prev, assets: ['keine'], liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 } }
       }
       const without = prev.assets.filter((a) => a !== 'keine' && a !== asset)
       const has = prev.assets.includes(asset)
-      return { ...prev, assets: has ? without : [...without, asset] }
+      const newAssets = has ? without : [...without, asset]
+      // Reset liegenschaft detail if liegenschaft is deselected
+      const resetLiegenschaft = asset === 'liegenschaft' && has
+      return {
+        ...prev,
+        assets: newAssets,
+        liegenschaftDetail: resetLiegenschaft ? { selbstbewohnt: 0, vermietet: 0 } : prev.liegenschaftDetail,
+      }
     })
+  }, [])
+
+  const updateLiegenschaft = useCallback((field: keyof LiegenschaftDetail, value: number) => {
+    setState((prev) => ({
+      ...prev,
+      liegenschaftDetail: { ...prev.liegenschaftDetail, [field]: value },
+    }))
   }, [])
 
   const selectAusland = useCallback(
@@ -481,16 +520,54 @@ export default function PricingPage() {
                     ([key, label]) => {
                       const Icon = assetIcons[key]
                       return (
-                        <OptionButton
-                          key={key}
-                          selected={state.assets.includes(key)}
-                          onClick={() => toggleAsset(key)}
-                          aria-label={label}
-                          aria-pressed={state.assets.includes(key)}
-                        >
-                          <Icon className="w-6 h-6 shrink-0" />
-                          <span className="text-lg font-medium">{label}</span>
-                        </OptionButton>
+                        <div key={key}>
+                          <OptionButton
+                            selected={state.assets.includes(key)}
+                            onClick={() => toggleAsset(key)}
+                            aria-label={label}
+                            aria-pressed={state.assets.includes(key)}
+                          >
+                            <Icon className="w-6 h-6 shrink-0" />
+                            <span className="text-lg font-medium">{label}</span>
+                          </OptionButton>
+
+                          {/* Liegenschaft detail rows */}
+                          {key === 'liegenschaft' && state.assets.includes('liegenschaft') && (
+                            <div className="mt-3 ml-2 space-y-3 p-4 rounded-xl bg-navy-50 border border-navy-200">
+                              {/* Row 1: Selbstbewohnt */}
+                              <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <Home className="w-4 h-4 text-navy-500 shrink-0" />
+                                  <span className="text-sm font-medium text-navy-700 truncate">
+                                    {t.pricing.steps.assets.liegenschaft.selbstbewohnt}
+                                  </span>
+                                </div>
+                                <NumberStepper
+                                  value={state.liegenschaftDetail.selbstbewohnt}
+                                  min={0}
+                                  max={5}
+                                  onChange={(v) => updateLiegenschaft('selbstbewohnt', v)}
+                                />
+                              </div>
+                              {/* Row 2: Vermietete Objekte */}
+                              <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <Building2 className="w-4 h-4 text-navy-500 shrink-0" />
+                                  <span className="text-sm font-medium text-navy-700 truncate">
+                                    {t.pricing.steps.assets.liegenschaft.vermietet}
+                                  </span>
+                                </div>
+                                <NumberStepper
+                                  value={state.liegenschaftDetail.vermietet}
+                                  min={0}
+                                  max={3}
+                                  onChange={(v) => updateLiegenschaft('vermietet', v)}
+                                  showPlus={true}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )
                     },
                   )}
@@ -838,5 +915,43 @@ function OptionButton({
     >
       {children}
     </button>
+  )
+}
+
+function NumberStepper({
+  value,
+  min,
+  max,
+  onChange,
+  showPlus,
+}: {
+  value: number
+  min: number
+  max: number
+  onChange: (v: number) => void
+  showPlus?: boolean
+}) {
+  return (
+    <div className="flex items-center gap-1 shrink-0">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(min, value - 1))}
+        disabled={value <= min}
+        className="w-8 h-8 flex items-center justify-center rounded-lg border border-navy-200 text-navy-600 hover:bg-navy-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      >
+        <Minus className="w-3.5 h-3.5" />
+      </button>
+      <span className="w-8 text-center text-sm font-semibold text-navy-900">
+        {value === max && showPlus ? `${value}+` : value}
+      </span>
+      <button
+        type="button"
+        onClick={() => onChange(Math.min(max, value + 1))}
+        disabled={value >= max}
+        className="w-8 h-8 flex items-center justify-center rounded-lg border border-navy-200 text-navy-600 hover:bg-navy-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      >
+        <Plus className="w-3.5 h-3.5" />
+      </button>
+    </div>
   )
 }
