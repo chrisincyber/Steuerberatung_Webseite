@@ -231,6 +231,7 @@ export const translations = {
           multiHint: 'Mehrfachauswahl möglich',
           options: {
             unselbstaendig: 'Angestellt',
+            pensioniert: 'Pensioniert',
             selbstaendig: 'Selbständig',
             gmbh_ag: 'GmbH / AG',
           },
@@ -762,6 +763,7 @@ export const translations = {
           multiHint: 'Multiple selections possible',
           options: {
             unselbstaendig: 'Employed',
+            pensioniert: 'Retired',
             selbstaendig: 'Self-Employed',
             gmbh_ag: 'GmbH / AG',
           },

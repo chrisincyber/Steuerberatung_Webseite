@@ -20,6 +20,7 @@ import {
   Phone,
   User,
   Users,
+  Armchair,
   Loader2,
   Home,
   Minus,
@@ -31,7 +32,7 @@ import {
 // ---------------------------------------------------------------------------
 
 type Personen = 'einzelperson' | 'ehepaar'
-type Employment = 'unselbstaendig' | 'selbstaendig' | 'gmbh_ag'
+type Employment = 'unselbstaendig' | 'pensioniert' | 'selbstaendig' | 'gmbh_ag'
 type Asset = 'wertschriften' | 'liegenschaft' | 'krypto' | 'keine'
 type Docs = 'ja' | 'teilweise' | 'nein'
 type Tier = 'basis' | 'erweitert' | 'komplex'
@@ -64,6 +65,7 @@ interface WizardState {
 // Icons for employment options
 const employmentIcons: Record<Employment, typeof Briefcase> = {
   unselbstaendig: Briefcase,
+  pensioniert: Armchair,
   selbstaendig: BarChart3,
   gmbh_ag: Building2,
 }
@@ -97,7 +99,7 @@ const INITIAL_STATE: WizardState = {
 function getEffectiveEmployment(selected: Employment[]): Employment | null {
   if (selected.includes('gmbh_ag')) return 'gmbh_ag'
   if (selected.includes('selbstaendig')) return 'selbstaendig'
-  if (selected.includes('unselbstaendig')) return 'unselbstaendig'
+  if (selected.includes('unselbstaendig') || selected.includes('pensioniert')) return 'unselbstaendig'
   return null
 }
 
