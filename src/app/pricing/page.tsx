@@ -19,6 +19,7 @@ import {
   Mail,
   Phone,
   User,
+  Users,
   Loader2,
   Home,
   Minus,
@@ -29,11 +30,12 @@ import {
 // Types
 // ---------------------------------------------------------------------------
 
+type Personen = 'einzelperson' | 'ehepaar'
 type Employment = 'unselbstaendig' | 'selbstaendig' | 'gmbh_ag'
 type Asset = 'wertschriften' | 'liegenschaft' | 'krypto' | 'keine'
 type Docs = 'ja' | 'teilweise' | 'nein'
 type Tier = 'basis' | 'erweitert' | 'komplex'
-type StepId = 'employment' | 'buchhaltungBedarf' | 'assets' | 'ausland' | 'unterlagen' | 'kontaktformular' | 'result'
+type StepId = 'personen' | 'employment' | 'buchhaltungBedarf' | 'assets' | 'ausland' | 'unterlagen' | 'kontaktformular' | 'result'
 
 interface LiegenschaftDetail {
   selbstbewohnt: number
@@ -48,7 +50,8 @@ interface KontaktForm {
 }
 
 interface WizardState {
-  employment: Employment | null
+  personen: Personen | null
+  employment: Employment[]
   buchhaltungBedarf: boolean | null
   assets: Asset[]
   wertschriftenOver10: boolean | null
@@ -74,7 +77,8 @@ const assetIcons: Record<Asset, typeof BarChart3> = {
 }
 
 const INITIAL_STATE: WizardState = {
-  employment: null,
+  personen: null,
+  employment: [],
   buchhaltungBedarf: null,
   assets: [],
   wertschriftenOver10: null,
@@ -88,14 +92,25 @@ const INITIAL_STATE: WizardState = {
 // Rule Engine – derives tier from wizard state
 // ---------------------------------------------------------------------------
 
+// Returns the "highest" selected Employment for tier logic
+// Priority: gmbh_ag > selbstaendig > unselbstaendig
+function getEffectiveEmployment(selected: Employment[]): Employment | null {
+  if (selected.includes('gmbh_ag')) return 'gmbh_ag'
+  if (selected.includes('selbstaendig')) return 'selbstaendig'
+  if (selected.includes('unselbstaendig')) return 'unselbstaendig'
+  return null
+}
+
 function calculateTier(state: WizardState): Tier {
+  const emp = getEffectiveEmployment(state.employment)
+
   // GmbH/AG (without bookkeeping) → always Komplex
-  if (state.employment === 'gmbh_ag') {
+  if (emp === 'gmbh_ag') {
     return 'komplex'
   }
 
   // Selbständig (without bookkeeping) → min Erweitert, Komplex if Ausland
-  if (state.employment === 'selbstaendig') {
+  if (emp === 'selbstaendig') {
     if (state.ausland === true) {
       return 'komplex'
     }
@@ -116,7 +131,7 @@ function calculateTier(state: WizardState): Tier {
   const hasAssets = state.assets.length > 0 && !state.assets.includes('keine')
 
   // Unselbständig + assets → Erweitert (but Wertschriften ≤10 positions alone stays Basis)
-  if (state.employment === 'unselbstaendig' && hasAssets) {
+  if (emp === 'unselbstaendig' && hasAssets) {
     const onlyWertschriften = state.assets.length === 1 && state.assets[0] === 'wertschriften'
     if (onlyWertschriften && state.wertschriftenOver10 === false) {
       return 'basis'
@@ -133,8 +148,8 @@ function calculateTier(state: WizardState): Tier {
 // ---------------------------------------------------------------------------
 
 function getSteps(state: WizardState): StepId[] {
-  const steps: StepId[] = ['employment']
-  const emp = state.employment
+  const steps: StepId[] = ['personen', 'employment']
+  const emp = getEffectiveEmployment(state.employment)
 
   if (emp === 'selbstaendig' || emp === 'gmbh_ag') {
     steps.push('buchhaltungBedarf')
@@ -167,8 +182,10 @@ function getSteps(state: WizardState): StepId[] {
 
 function canAdvance(step: StepId, state: WizardState): boolean {
   switch (step) {
+    case 'personen':
+      return state.personen !== null
     case 'employment':
-      return state.employment !== null
+      return state.employment.length > 0
     case 'buchhaltungBedarf':
       return state.buchhaltungBedarf !== null
     case 'assets': {
@@ -262,10 +279,11 @@ export default function PricingPage() {
   }, [])
 
   // State updaters
-  const selectEmployment = useCallback(
-    (emp: Employment) => {
+  const selectPersonen = useCallback(
+    (val: Personen) => {
       setState({
-        employment: emp,
+        personen: val,
+        employment: [],
         buchhaltungBedarf: null,
         assets: [],
         wertschriftenOver10: null,
@@ -279,11 +297,33 @@ export default function PricingPage() {
       setTimeout(() => {
         setDirection('forward')
         setAnimKey((k) => k + 1)
-        setStepIndex(1) // always index 1 after employment
+        setStepIndex(1) // always index 1 after personen
       }, 150)
     },
     [],
   )
+
+  const toggleEmployment = useCallback((emp: Employment) => {
+    setState((prev) => {
+      const has = prev.employment.includes(emp)
+      const newEmployment = has
+        ? prev.employment.filter((e) => e !== emp)
+        : [...prev.employment, emp]
+      return {
+        ...prev,
+        employment: newEmployment,
+        // Reset downstream when selection changes
+        buchhaltungBedarf: null,
+        assets: [],
+        wertschriftenOver10: null,
+        liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 },
+        ausland: null,
+        unterlagen: null,
+        kontaktForm: { firstName: '', lastName: '', phone: '', email: '' },
+      }
+    })
+    setFormSuccess(false)
+  }, [])
 
   const selectBuchhaltungBedarf = useCallback(
     (val: boolean) => {
@@ -302,7 +342,7 @@ export default function PricingPage() {
       setTimeout(() => {
         setDirection('forward')
         setAnimKey((k) => k + 1)
-        setStepIndex(2) // always index 2 after buchhaltungBedarf
+        setStepIndex(3) // always index 3 after buchhaltungBedarf (personen=0, employment=1, buchhaltung=2)
       }, 150)
     },
     [],
@@ -367,7 +407,7 @@ export default function PricingPage() {
           lastName: state.kontaktForm.lastName,
           phone: state.kontaktForm.phone,
           email: state.kontaktForm.email,
-          employment: state.employment,
+          employment: getEffectiveEmployment(state.employment),
         }),
       })
       if (res.ok) {
@@ -388,7 +428,7 @@ export default function PricingPage() {
           goBack()
         }
       }
-      if (e.key === 'Enter' && currentStep !== 'result' && currentStep !== 'employment' && currentStep !== 'kontaktformular') {
+      if (e.key === 'Enter' && currentStep !== 'result' && currentStep !== 'personen' && currentStep !== 'kontaktformular') {
         if (canAdvance(currentStep, state)) {
           goNext()
         }
@@ -469,20 +509,57 @@ export default function PricingPage() {
 
           {/* Step content */}
           <div key={animKey} className={animClass}>
-            {/* ---- Step: Employment ---- */}
+            {/* ---- Step: Personen ---- */}
+            {currentStep === 'personen' && (
+              <StepCard>
+                <StepQuestion>{t.pricing.steps.personen.question}</StepQuestion>
+                <div className="grid gap-4 mt-8">
+                  <OptionButton
+                    selected={state.personen === 'einzelperson'}
+                    onClick={() => selectPersonen('einzelperson')}
+                    aria-label={t.pricing.steps.personen.options.einzelperson}
+                  >
+                    <User className="w-6 h-6 shrink-0" />
+                    <div>
+                      <span className="text-lg font-medium">{t.pricing.steps.personen.options.einzelperson}</span>
+                      <p className={`text-sm mt-0.5 ${state.personen === 'einzelperson' ? 'text-white/70' : 'text-navy-500'}`}>
+                        {t.pricing.steps.personen.options.einzelpersonHint}
+                      </p>
+                    </div>
+                  </OptionButton>
+                  <OptionButton
+                    selected={state.personen === 'ehepaar'}
+                    onClick={() => selectPersonen('ehepaar')}
+                    aria-label={t.pricing.steps.personen.options.ehepaar}
+                  >
+                    <Users className="w-6 h-6 shrink-0" />
+                    <div>
+                      <span className="text-lg font-medium">{t.pricing.steps.personen.options.ehepaar}</span>
+                      <p className={`text-sm mt-0.5 ${state.personen === 'ehepaar' ? 'text-white/70' : 'text-navy-500'}`}>
+                        {t.pricing.steps.personen.options.ehepaarHint}
+                      </p>
+                    </div>
+                  </OptionButton>
+                </div>
+              </StepCard>
+            )}
+
+            {/* ---- Step: Employment (Multi-Select) ---- */}
             {currentStep === 'employment' && (
               <StepCard>
                 <StepQuestion>{t.pricing.steps.employment.question}</StepQuestion>
-                <div className="grid gap-4 mt-8">
+                <p className="text-navy-500 text-sm mt-2 mb-8">{t.pricing.steps.employment.multiHint}</p>
+                <div className="grid gap-4">
                   {(Object.entries(t.pricing.steps.employment.options) as [Employment, string][]).map(
                     ([key, label]) => {
                       const Icon = employmentIcons[key]
                       return (
                         <OptionButton
                           key={key}
-                          selected={state.employment === key}
-                          onClick={() => selectEmployment(key)}
+                          selected={state.employment.includes(key)}
+                          onClick={() => toggleEmployment(key)}
                           aria-label={label}
+                          aria-pressed={state.employment.includes(key)}
                         >
                           <Icon className="w-6 h-6 shrink-0" />
                           <span className="text-lg font-medium">{label}</span>
@@ -491,6 +568,16 @@ export default function PricingPage() {
                     },
                   )}
                 </div>
+                {/* Continue button for multi-select */}
+                <button
+                  onClick={goNext}
+                  disabled={!canAdvance('employment', state)}
+                  className="btn-white w-full mt-8 group disabled:opacity-40 disabled:cursor-not-allowed"
+                  aria-label={t.common.next}
+                >
+                  {t.common.next}
+                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </button>
               </StepCard>
             )}
 

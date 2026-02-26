@@ -217,10 +217,20 @@ export const translations = {
       urgency: 'Steuerfrist rückt näher – heute noch starten',
       cta: 'Jetzt beauftragen',
       steps: {
+        personen: {
+          question: 'Für wen ist die Steuererklärung?',
+          options: {
+            einzelperson: 'Einzelperson',
+            einzelpersonHint: 'Ledig, Geschieden oder Verwitwet',
+            ehepaar: 'Ehepaar / Partnerschaft',
+            ehepaarHint: 'Verheiratet oder eingetragene Partnerschaft',
+          },
+        },
         employment: {
           question: 'Wie ist Ihre berufliche Situation?',
+          multiHint: 'Mehrfachauswahl möglich',
           options: {
-            unselbstaendig: 'Unselbständig',
+            unselbstaendig: 'Angestellt',
             selbstaendig: 'Selbständig',
             gmbh_ag: 'GmbH / AG',
           },
@@ -738,8 +748,18 @@ export const translations = {
       urgency: 'Tax deadline approaching — start today',
       cta: 'Order now',
       steps: {
+        personen: {
+          question: 'Who is the tax declaration for?',
+          options: {
+            einzelperson: 'Individual',
+            einzelpersonHint: 'Single, Divorced or Widowed',
+            ehepaar: 'Couple / Partnership',
+            ehepaarHint: 'Married or registered partnership',
+          },
+        },
         employment: {
           question: 'What is your professional situation?',
+          multiHint: 'Multiple selections possible',
           options: {
             unselbstaendig: 'Employed',
             selbstaendig: 'Self-Employed',
