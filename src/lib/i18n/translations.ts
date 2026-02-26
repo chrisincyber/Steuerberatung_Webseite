@@ -249,6 +249,7 @@ export const translations = {
           email: 'E-Mail',
           submit: 'Anfrage senden',
           success: 'Vielen Dank! Wir melden uns innert 48 Stunden bei Ihnen.',
+          error: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
         },
         assets: {
           question: 'Haben Sie folgende Vermögenswerte?',
@@ -781,6 +782,7 @@ export const translations = {
           email: 'Email',
           submit: 'Send Inquiry',
           success: 'Thank you! We will get back to you within 48 hours.',
+          error: 'An error occurred. Please try again.',
         },
         assets: {
           question: 'Do you have the following assets?',

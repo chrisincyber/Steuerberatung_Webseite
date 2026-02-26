@@ -205,7 +205,7 @@ function canAdvance(step: StepId, state: WizardState): boolean {
       return state.unterlagen !== null
     case 'kontaktformular': {
       const f = state.kontaktForm
-      return f.firstName.trim() !== '' && f.lastName.trim() !== '' && f.phone.trim() !== '' && f.email.trim() !== '' && f.email.includes('@')
+      return f.firstName.trim() !== '' && f.lastName.trim() !== '' && f.phone.replace(/\D/g, '').length >= 10 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)
     }
     default:
       return true
@@ -232,6 +232,7 @@ export default function PricingPage() {
   const [animKey, setAnimKey] = useState(0)
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [formSuccess, setFormSuccess] = useState(false)
+  const [formError, setFormError] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const steps = useMemo(() => getSteps(state), [state])
@@ -276,6 +277,7 @@ export default function PricingPage() {
     setAnimKey((k) => k + 1)
     setFormSuccess(false)
     setFormSubmitting(false)
+    setFormError(false)
   }, [])
 
   // State updaters
@@ -398,6 +400,7 @@ export default function PricingPage() {
   const submitKontaktForm = useCallback(async () => {
     if (formSubmitting) return
     setFormSubmitting(true)
+    setFormError(false)
     try {
       const res = await fetch('/_api/bookkeeping-inquiry', {
         method: 'POST',
@@ -412,9 +415,11 @@ export default function PricingPage() {
       })
       if (res.ok) {
         setFormSuccess(true)
+      } else {
+        setFormError(true)
       }
     } catch {
-      // Silently fail — user sees no success message
+      setFormError(true)
     } finally {
       setFormSubmitting(false)
     }
@@ -610,7 +615,7 @@ export default function PricingPage() {
             {currentStep === 'assets' && (
               <StepCard>
                 <StepQuestion>{t.pricing.steps.assets.question}</StepQuestion>
-                <p className="text-navy-500 text-sm mt-2 mb-8">Mehrfachauswahl möglich</p>
+                <p className="text-navy-500 text-sm mt-2 mb-8">{t.pricing.steps.employment.multiHint}</p>
                 <div className="grid gap-4">
                   {(Object.entries(t.pricing.steps.assets.options) as [Asset, string][]).map(
                     ([key, label]) => {
@@ -801,7 +806,7 @@ export default function PricingPage() {
                       </p>
 
                       <div className="space-y-4 max-w-md mx-auto">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-navy-700 mb-1">
                               {t.pricing.steps.kontaktformular.firstName}
@@ -876,6 +881,11 @@ export default function PricingPage() {
                             </>
                           )}
                         </button>
+                        {formError && (
+                          <p className="text-red-600 text-sm text-center mt-3">
+                            {t.pricing.steps.kontaktformular.error}
+                          </p>
+                        )}
                       </div>
                     </>
                   )}
@@ -1066,7 +1076,7 @@ function NumberStepper({
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
-        className="w-8 h-8 flex items-center justify-center rounded-lg border border-navy-200 text-navy-600 hover:bg-navy-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="w-10 h-10 flex items-center justify-center rounded-lg border border-navy-200 text-navy-600 hover:bg-navy-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         <Minus className="w-3.5 h-3.5" />
       </button>
@@ -1077,7 +1087,7 @@ function NumberStepper({
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
-        className="w-8 h-8 flex items-center justify-center rounded-lg border border-navy-200 text-navy-600 hover:bg-navy-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="w-10 h-10 flex items-center justify-center rounded-lg border border-navy-200 text-navy-600 hover:bg-navy-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         <Plus className="w-3.5 h-3.5" />
       </button>
