@@ -161,16 +161,14 @@ function getSteps(state: WizardState): StepId[] {
     }
   }
 
-  // Normal questionnaire path
-  if (emp === 'unselbstaendig' || (emp === 'selbstaendig' && state.buchhaltungBedarf === false)) {
+  // Normal questionnaire path (include assets when emp unknown for stable progress count)
+  if (emp === null || emp === 'unselbstaendig' || (emp === 'selbstaendig' && state.buchhaltungBedarf === false)) {
     steps.push('assets')
   }
 
-  // GmbH/AG without bookkeeping skips assets, goes to ausland
-  if (emp !== null) {
-    if (state.buchhaltungBedarf !== true) {
-      steps.push('ausland', 'unterlagen', 'result')
-    }
+  // Remaining steps — always include for stable progress counter
+  if (state.buchhaltungBedarf !== true) {
+    steps.push('ausland', 'unterlagen', 'result')
   }
 
   return steps
