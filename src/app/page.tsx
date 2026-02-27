@@ -111,7 +111,6 @@ export default function HomePage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
   const { displayText, prefersReducedMotion } = useTypewriter(t.hero.titleRotatingWords)
   const declarations = useCountUp(1000)
-  const clients = useCountUp(175)
 
   return (
     <>
@@ -180,10 +179,9 @@ export default function HomePage() {
                 <span className="text-sm dark-text-secondary">Steuererklärungen</span>
               </div>
               <div className="text-center">
-                <span ref={clients.ref} className="block text-2xl sm:text-3xl font-bold text-white">
-                  {clients.count}+
+                <span className="block text-2xl sm:text-3xl font-bold text-white">
+                  Schweizer Datenschutz
                 </span>
-                <span className="text-sm dark-text-secondary">Kunden</span>
               </div>
             </div>
           </div>
