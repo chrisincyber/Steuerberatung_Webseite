@@ -169,15 +169,15 @@ export default function HomePage() {
             {/* Animated stat counters */}
             <div className="animate-hero-4 flex flex-wrap gap-8 mt-12">
               <div className="text-center">
+                <span className="block text-2xl sm:text-3xl font-bold text-white">
+                  Seit 2018
+                </span>
+              </div>
+              <div className="text-center">
                 <span ref={declarations.ref} className="block text-2xl sm:text-3xl font-bold text-white">
                   {declarations.count.toLocaleString('de-CH')}{declarations.count >= 1000 ? '+' : ''}
                 </span>
                 <span className="text-sm dark-text-secondary">Steuererklärungen</span>
-              </div>
-              <div className="text-center">
-                <span className="block text-2xl sm:text-3xl font-bold text-white">
-                  Seit 2018
-                </span>
               </div>
               <div className="text-center">
                 <span ref={clients.ref} className="block text-2xl sm:text-3xl font-bold text-white">
