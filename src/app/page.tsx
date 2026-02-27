@@ -111,7 +111,6 @@ export default function HomePage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
   const { displayText, prefersReducedMotion } = useTypewriter(t.hero.titleRotatingWords)
   const declarations = useCountUp(1000)
-  const cantons = useCountUp(26)
   const clients = useCountUp(175)
 
   return (
@@ -176,10 +175,9 @@ export default function HomePage() {
                 <span className="text-sm dark-text-secondary">Steuererklärungen</span>
               </div>
               <div className="text-center">
-                <span ref={cantons.ref} className="block text-2xl sm:text-3xl font-bold text-white">
-                  {cantons.count}
+                <span className="block text-2xl sm:text-3xl font-bold text-white">
+                  Seit 2018
                 </span>
-                <span className="text-sm dark-text-secondary">Kantone</span>
               </div>
               <div className="text-center">
                 <span ref={clients.ref} className="block text-2xl sm:text-3xl font-bold text-white">
