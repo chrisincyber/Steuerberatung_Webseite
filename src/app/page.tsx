@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import {
@@ -27,9 +27,92 @@ import {
   BarChart3,
 } from 'lucide-react'
 
+function useTypewriter(words: readonly string[], typingSpeed = 80, deletingSpeed = 40, pauseDuration = 2000) {
+  const [displayText, setDisplayText] = useState('')
+  const [wordIndex, setWordIndex] = useState(0)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setDisplayText(words[0])
+      return
+    }
+
+    const currentWord = words[wordIndex]
+
+    if (!isDeleting && displayText === currentWord) {
+      const timeout = setTimeout(() => setIsDeleting(true), pauseDuration)
+      return () => clearTimeout(timeout)
+    }
+
+    if (isDeleting && displayText === '') {
+      setIsDeleting(false)
+      setWordIndex((prev) => (prev + 1) % words.length)
+      return
+    }
+
+    const timeout = setTimeout(() => {
+      setDisplayText(
+        isDeleting
+          ? currentWord.substring(0, displayText.length - 1)
+          : currentWord.substring(0, displayText.length + 1)
+      )
+    }, isDeleting ? deletingSpeed : typingSpeed)
+
+    return () => clearTimeout(timeout)
+  }, [displayText, isDeleting, wordIndex, words, typingSpeed, deletingSpeed, pauseDuration, prefersReducedMotion])
+
+  return { displayText, prefersReducedMotion }
+}
+
+function useCountUp(target: number, duration = 2000) {
+  const [count, setCount] = useState(0)
+  const ref = useRef<HTMLSpanElement>(null)
+  const hasAnimated = useRef(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true
+          const start = performance.now()
+          const animate = (now: number) => {
+            const progress = Math.min((now - start) / duration, 1)
+            const eased = 1 - Math.pow(1 - progress, 3) // easeOutCubic
+            setCount(Math.round(eased * target))
+            if (progress < 1) requestAnimationFrame(animate)
+          }
+          requestAnimationFrame(animate)
+        }
+      },
+      { threshold: 0.5 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [target, duration])
+
+  return { count, ref }
+}
+
 export default function HomePage() {
   const { t } = useI18n()
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
+  const { displayText, prefersReducedMotion } = useTypewriter(t.hero.titleRotatingWords)
+  const declarations = useCountUp(1000)
+  const cantons = useCountUp(26)
+  const clients = useCountUp(175)
 
   return (
     <>
@@ -37,8 +120,8 @@ export default function HomePage() {
       <section className="relative gradient-hero overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-navy-700/20 blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-white/5 blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-navy-700/20 blur-3xl animate-float" />
+          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-white/5 blur-3xl animate-float-slow" />
           <div
             className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -51,24 +134,30 @@ export default function HomePage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 lg:pt-44 lg:pb-32">
           <div className="max-w-3xl">
             {/* Trust badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 mb-8">
+            <div className="animate-hero-1 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 mb-8">
               <Shield className="w-4 h-4 text-white/80" />
               <span className="text-sm font-medium dark-text-secondary">
                 {t.hero.trustBadge}
               </span>
             </div>
 
-            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold dark-text-primary leading-[1.1] tracking-tight">
+            <h1 className="animate-hero-2 font-heading text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold dark-text-primary leading-[1.1] tracking-tight">
               {t.hero.title}
               <br />
-              <span className="text-gradient">{t.hero.titleAccent}</span>
+              <span className="text-gradient">
+                {t.hero.titleAccent}
+                <span className="inline">
+                  {displayText}
+                  {!prefersReducedMotion && <span className="typewriter-cursor">|</span>}
+                </span>
+              </span>
             </h1>
 
-            <p className="mt-6 text-lg sm:text-xl dark-text-secondary max-w-2xl leading-relaxed">
+            <p className="animate-hero-3 mt-6 text-lg sm:text-xl dark-text-secondary max-w-2xl leading-relaxed">
               {t.hero.subtitle}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mt-10">
+            <div className="animate-hero-3 flex flex-col sm:flex-row gap-4 mt-10">
               <Link
                 href="/pricing"
                 className="btn-white !px-8 !py-4 !text-base group"
@@ -82,6 +171,28 @@ export default function HomePage() {
               >
                 {t.hero.ctaSecondary}
               </a>
+            </div>
+
+            {/* Animated stat counters */}
+            <div className="animate-hero-4 flex flex-wrap gap-8 mt-12">
+              <div className="text-center">
+                <span ref={declarations.ref} className="block text-2xl sm:text-3xl font-bold text-white">
+                  {declarations.count.toLocaleString('de-CH')}{declarations.count >= 1000 ? '+' : ''}
+                </span>
+                <span className="text-sm dark-text-secondary">Steuererklärungen</span>
+              </div>
+              <div className="text-center">
+                <span ref={cantons.ref} className="block text-2xl sm:text-3xl font-bold text-white">
+                  {cantons.count}
+                </span>
+                <span className="text-sm dark-text-secondary">Kantone</span>
+              </div>
+              <div className="text-center">
+                <span ref={clients.ref} className="block text-2xl sm:text-3xl font-bold text-white">
+                  {clients.count}+
+                </span>
+                <span className="text-sm dark-text-secondary">Kunden</span>
+              </div>
             </div>
           </div>
         </div>
