@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { STATUS_ORDER } from '@/lib/types/portal'
 
 export async function PATCH(request: Request) {
   try {
@@ -21,29 +22,24 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { declarationId, status } = await request.json()
+    const { taxYearId, status } = await request.json()
 
-    const validStatuses = ['documents_outstanding', 'in_progress', 'review', 'completed']
-    if (!validStatuses.includes(status)) {
+    if (!STATUS_ORDER.includes(status)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
     }
 
     const { data, error } = await supabase
-      .from('declarations')
+      .from('tax_years')
       .update({ status })
-      .eq('id', declarationId)
-      .select('*, client:profiles(*)')
+      .eq('id', taxYearId)
+      .select()
       .single()
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Trigger notification for status change
-    // This would call the notifications API internally
-    // For now, we log and let the admin trigger manually or set up a DB trigger
-
-    return NextResponse.json({ declaration: data })
+    return NextResponse.json({ taxYear: data })
   } catch (error) {
     console.error('Status update error:', error)
     return NextResponse.json(

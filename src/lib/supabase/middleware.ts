@@ -42,7 +42,8 @@ export async function updateSession(request: NextRequest) {
   if (isProtectedPath && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
-    url.searchParams.set('redirect', request.nextUrl.pathname)
+    const redirectPath = request.nextUrl.pathname + request.nextUrl.search
+    url.searchParams.set('redirect', redirectPath)
     return NextResponse.redirect(url)
   }
 

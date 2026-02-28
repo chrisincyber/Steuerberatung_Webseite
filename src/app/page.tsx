@@ -21,7 +21,6 @@ import {
   User,
   ChevronDown,
   AlertCircle,
-  FileText,
   Check,
   Quote,
   Server,
@@ -215,26 +214,11 @@ export default function HomePage() {
 
         <div className="absolute bottom-0 left-0 right-0">
           <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-            <path d="M0 80H1440V40C1440 40 1320 0 1080 20C840 40 720 60 480 40C240 20 120 0 0 20V80Z" fill="white" />
+            <path d="M0 0H1440V80H0Z" fill="white" />
           </svg>
         </div>
       </section>
 
-      {/* ============ SOCIAL PROOF BAR ============ */}
-      <section className="py-6 border-b border-navy-100">
-        <div className="container-wide">
-          <div className="flex flex-wrap justify-center gap-8 text-center">
-            <div className="flex items-center gap-2 text-navy-600">
-              <FileText className="w-5 h-5 text-navy-400" />
-              <span className="text-sm font-medium">{t.socialProof.declarations}</span>
-            </div>
-            <div className="flex items-center gap-2 text-navy-600">
-              <MapPin className="w-5 h-5 text-navy-400" />
-              <span className="text-sm font-medium">{t.socialProof.cantons}</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ============ TRUST BADGES ============ */}
       <section className="section-padding">
