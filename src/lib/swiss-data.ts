@@ -56,6 +56,44 @@ export const cantonDeadlines = [
   { code: 'ZH', deadline: '31. März', extension: '30. September' },
 ] as const
 
+export const cantonSlugs: Record<string, string> = {
+  AG: 'aargau',
+  AI: 'appenzell-innerrhoden',
+  AR: 'appenzell-ausserrhoden',
+  BE: 'bern',
+  BL: 'basel-landschaft',
+  BS: 'basel-stadt',
+  FR: 'freiburg',
+  GE: 'genf',
+  GL: 'glarus',
+  GR: 'graubuenden',
+  JU: 'jura',
+  LU: 'luzern',
+  NE: 'neuenburg',
+  NW: 'nidwalden',
+  OW: 'obwalden',
+  SG: 'st-gallen',
+  SH: 'schaffhausen',
+  SO: 'solothurn',
+  SZ: 'schwyz',
+  TG: 'thurgau',
+  TI: 'tessin',
+  UR: 'uri',
+  VD: 'waadt',
+  VS: 'wallis',
+  ZG: 'zug',
+  ZH: 'zuerich',
+}
+
+export function getCantonBySlug(slug: string) {
+  const code = Object.entries(cantonSlugs).find(([, s]) => s === slug)?.[0]
+  if (!code) return null
+  const canton = cantons.find(c => c.code === code)
+  const deadline = cantonDeadlines.find(d => d.code === code)
+  if (!canton || !deadline) return null
+  return { ...canton, ...deadline, slug }
+}
+
 export function calculateSwissTax(params: {
   grossIncome: number
   cantonCode: string

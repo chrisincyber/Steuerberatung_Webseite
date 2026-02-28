@@ -539,6 +539,57 @@ export const translations = {
       learnMore: 'Mehr erfahren',
     },
 
+    // Trust Badges (homepage)
+    trustBadges: {
+      title: 'Warum uns vertrauen?',
+      swissPrivacy: {
+        title: 'Schweizer Datenschutz',
+        description: 'Ihre Daten unterliegen dem Schweizer Datenschutzgesetz (DSG) — dem strengsten der Welt.',
+      },
+      sslEncrypted: {
+        title: 'SSL Verschlüsselt',
+        description: 'Alle Datenübertragungen sind mit 256-Bit-SSL-Verschlüsselung geschützt.',
+      },
+      swissServer: {
+        title: 'Swiss Server',
+        description: 'Ihre Daten werden ausschliesslich auf Servern in der Schweiz und Europa gespeichert.',
+      },
+    },
+
+    // Dashboard Preview (homepage)
+    dashboardPreview: {
+      title: 'Ihr persönliches Kundenportal',
+      subtitle: 'Alles an einem Ort — übersichtlich, sicher und jederzeit verfügbar.',
+      badge: 'In Entwicklung',
+      features: [
+        'Direkter Chat mit Ihrem Steuerberater',
+        'Dokumente sicher hochladen und verwalten',
+        'Status Ihrer Steuererklärung jederzeit einsehen',
+        'Fertige Erklärung herunterladen und unterschreiben',
+      ],
+    },
+
+    // Canton SEO Pages
+    cantonPage: {
+      heroTitle: 'Steuererklärung im Kanton {canton}',
+      heroSubtitle: 'Professionelle Steuererklärung für den Kanton {canton} — persönlich, digital und zum Fixpreis.',
+      deadlineTitle: 'Fristen & Steuerdaten',
+      deadlineLabel: 'Einreichefrist',
+      extensionLabel: 'Verlängerung bis',
+      taxMultiplierLabel: 'Kantonaler Steuerfuss',
+      whyUs: {
+        title: 'Warum Petertil Tax im Kanton {canton}?',
+        items: [
+          { title: 'Lokale Expertise', description: 'Wir kennen die kantonalen Besonderheiten und Abzugsmöglichkeiten.' },
+          { title: 'Fixpreis ab CHF 149', description: 'Keine versteckten Kosten — Sie wissen vorher, was es kostet.' },
+          { title: 'Persönlicher Berater', description: 'Ein echter Mensch, der Ihre Steuererklärung prüft und optimiert.' },
+          { title: 'Digital & unkompliziert', description: 'Dokumente hochladen, fertig. Kein Termin, kein Papierkram.' },
+        ],
+      },
+      cta: 'Jetzt Steuererklärung starten',
+      otherCantons: 'Steuererklärung in anderen Kantonen',
+    },
+
     // Cookie consent
     cookie: {
       message: 'Diese Website verwendet Cookies, um Ihnen die bestmögliche Erfahrung zu bieten.',
@@ -1061,6 +1112,54 @@ export const translations = {
       submit: 'Submit',
       close: 'Close',
       learnMore: 'Learn more',
+    },
+
+    trustBadges: {
+      title: 'Why trust us?',
+      swissPrivacy: {
+        title: 'Swiss Data Protection',
+        description: 'Your data is subject to the Swiss Data Protection Act (DSG) — one of the strictest in the world.',
+      },
+      sslEncrypted: {
+        title: 'SSL Encrypted',
+        description: 'All data transfers are protected with 256-bit SSL encryption.',
+      },
+      swissServer: {
+        title: 'Swiss Server',
+        description: 'Your data is stored exclusively on servers in Switzerland and Europe.',
+      },
+    },
+
+    dashboardPreview: {
+      title: 'Your personal client portal',
+      subtitle: 'Everything in one place — clear, secure, and available anytime.',
+      badge: 'In Development',
+      features: [
+        'Direct chat with your tax advisor',
+        'Upload and manage documents securely',
+        'Track the status of your tax declaration anytime',
+        'Download and sign your completed declaration',
+      ],
+    },
+
+    cantonPage: {
+      heroTitle: 'Tax Declaration in Canton {canton}',
+      heroSubtitle: 'Professional tax declaration for Canton {canton} — personal, digital, and at a fixed price.',
+      deadlineTitle: 'Deadlines & Tax Data',
+      deadlineLabel: 'Submission Deadline',
+      extensionLabel: 'Extension Until',
+      taxMultiplierLabel: 'Cantonal Tax Multiplier',
+      whyUs: {
+        title: 'Why Petertil Tax in Canton {canton}?',
+        items: [
+          { title: 'Local Expertise', description: 'We know the cantonal specifics and deduction opportunities.' },
+          { title: 'Fixed Price from CHF 149', description: 'No hidden costs — you know the price upfront.' },
+          { title: 'Personal Advisor', description: 'A real person who reviews and optimizes your tax declaration.' },
+          { title: 'Digital & Simple', description: 'Upload documents, done. No appointment, no paperwork.' },
+        ],
+      },
+      cta: 'Start Your Tax Declaration',
+      otherCantons: 'Tax declarations in other cantons',
     },
 
     cookie: {

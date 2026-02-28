@@ -5,14 +5,25 @@ import Image from 'next/image'
 import { useI18n } from '@/lib/i18n/context'
 import { Mail, ArrowRight } from 'lucide-react'
 
+const popularCantons = [
+  { slug: 'zuerich', de: 'Zürich', en: 'Zurich' },
+  { slug: 'bern', de: 'Bern', en: 'Bern' },
+  { slug: 'luzern', de: 'Luzern', en: 'Lucerne' },
+  { slug: 'aargau', de: 'Aargau', en: 'Aargau' },
+  { slug: 'st-gallen', de: 'St. Gallen', en: 'St. Gallen' },
+  { slug: 'basel-stadt', de: 'Basel-Stadt', en: 'Basel-Stadt' },
+  { slug: 'zug', de: 'Zug', en: 'Zug' },
+  { slug: 'schwyz', de: 'Schwyz', en: 'Schwyz' },
+]
+
 export default function Footer() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const currentYear = new Date().getFullYear()
 
   return (
     <footer className="bg-navy-950 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
@@ -67,6 +78,25 @@ export default function Footer() {
                   {t.nav.deadlines}
                 </Link>
               </li>
+            </ul>
+          </div>
+
+          {/* Canton Links */}
+          <div>
+            <h3 className="font-heading font-semibold text-sm uppercase tracking-wider dark-text-muted mb-4">
+              {locale === 'de' ? 'Kantone' : 'Cantons'}
+            </h3>
+            <ul className="space-y-3">
+              {popularCantons.map((c) => (
+                <li key={c.slug}>
+                  <Link
+                    href={`/kanton/${c.slug}`}
+                    className="dark-text-tertiary hover:text-white transition-colors text-sm"
+                  >
+                    {locale === 'de' ? c.de : c.en}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

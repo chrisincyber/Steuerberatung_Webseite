@@ -54,7 +54,7 @@ export default function Header() {
   ]
 
   // Pages with a dark hero background where we need white text/logo
-  const darkHeroPages = ['/', '/about', '/pricing', '/faq', '/tax-calculator', '/deadlines', '/impressum', '/privacy']
+  const darkHeroPages = ['/', '/about', '/pricing', '/faq', '/tax-calculator', '/deadlines', '/impressum', '/privacy', '/kanton']
   const hasDarkHero = darkHeroPages.some(p => p === '/' ? pathname === '/' : pathname.startsWith(p))
   const useDarkStyle = scrolled || !hasDarkHero
 
