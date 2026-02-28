@@ -2,7 +2,9 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/context'
+import { createClient } from '@/lib/supabase/client'
 import {
   Check,
   ArrowRight,
@@ -235,9 +237,34 @@ export default function PricingPage() {
   const [formError, setFormError] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  const pricingRouter = useRouter()
   const steps = useMemo(() => getSteps(state), [state])
   const currentStep = steps[stepIndex]
   const tier = useMemo(() => calculateTier(state), [state])
+
+  // Map tier name → numeric + price for portal callback
+  const tierNumeric = tier === 'basis' ? 1 : tier === 'erweitert' ? 2 : 3
+  const tierPrice = tier === 'basis' ? 149 : tier === 'erweitert' ? 199 : null
+
+  const handleOrderNow = useCallback(async () => {
+    const params = new URLSearchParams({
+      tier: String(tierNumeric),
+      year: '2025',
+      ...(tierPrice ? { price: String(tierPrice) } : {}),
+    })
+
+    const supabase = createClient()
+    if (supabase) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        pricingRouter.push(`/dashboard?${params.toString()}`)
+        return
+      }
+    }
+
+    const redirectPath = `/dashboard?${params.toString()}`
+    pricingRouter.push(`/auth/register?redirect=${encodeURIComponent(redirectPath)}`)
+  }, [tierNumeric, tierPrice, pricingRouter])
 
   // Count only questionnaire steps (exclude result and kontaktformular for progress)
   const isQuestionnaireStep = currentStep !== 'result' && currentStep !== 'kontaktformular'
@@ -976,13 +1003,13 @@ export default function PricingPage() {
 
                   {/* CTA buttons */}
                   <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link
-                      href="/auth/register"
+                    <button
+                      onClick={handleOrderNow}
                       className="btn-white group text-base !px-8 !py-4"
                     >
                       {t.pricing.result.ctaStart}
                       <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                    </button>
                     <a
                       href="mailto:info@petertiltax.ch"
                       className="btn-secondary group text-base !px-8 !py-4"

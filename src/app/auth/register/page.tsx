@@ -1,13 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/context'
 import { createClient } from '@/lib/supabase/client'
 import { Mail, Lock, User, Phone, Eye, EyeOff, AlertCircle, UserPlus } from 'lucide-react'
 
 export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  )
+}
+
+function RegisterForm() {
   const { t, locale } = useI18n()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/dashboard'
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -78,7 +89,7 @@ export default function RegisterPage() {
             <p className="text-navy-600 text-sm leading-relaxed">
               {t.auth.verifyEmailSent}
             </p>
-            <Link href="/auth/login" className="btn-primary mt-6 inline-flex">
+            <Link href={`/auth/login${redirect !== '/dashboard' ? `?redirect=${encodeURIComponent(redirect)}` : ''}`} className="btn-primary mt-6 inline-flex">
               {t.auth.login}
             </Link>
           </div>
@@ -239,7 +250,7 @@ export default function RegisterPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-navy-600">
               {t.auth.hasAccount}{' '}
-              <Link href="/auth/login" className="font-semibold text-navy-900 hover:text-navy-600 transition-colors">
+              <Link href={`/auth/login${redirect !== '/dashboard' ? `?redirect=${encodeURIComponent(redirect)}` : ''}`} className="font-semibold text-navy-900 hover:text-navy-600 transition-colors">
                 {t.auth.login}
               </Link>
             </p>

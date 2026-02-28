@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
-const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png']
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 
 export async function POST(request: Request) {
@@ -15,14 +14,11 @@ export async function POST(request: Request) {
 
     const formData = await request.formData()
     const file = formData.get('file') as File
-    const declarationId = formData.get('declarationId') as string
+    const taxYearId = formData.get('taxYearId') as string
+    const category = (formData.get('category') as string) || 'sonstige'
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
-    }
-
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: 'Invalid file type' }, { status: 400 })
     }
 
     if (file.size > MAX_FILE_SIZE) {
@@ -30,9 +26,9 @@ export async function POST(request: Request) {
     }
 
     // Upload to Supabase Storage
-    const filePath = `${user.id}/${declarationId}/${Date.now()}-${file.name}`
+    const filePath = `${user.id}/${taxYearId}/${Date.now()}-${file.name}`
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('documents')
+      .from('portal-documents')
       .upload(filePath, file, {
         contentType: file.type,
         upsert: false,
@@ -44,16 +40,17 @@ export async function POST(request: Request) {
 
     // Save document record
     const { data: doc, error: docError } = await supabase
-      .from('documents')
+      .from('portal_documents')
       .insert({
-        declaration_id: declarationId,
-        client_id: user.id,
+        user_id: user.id,
+        tax_year_id: taxYearId,
         file_name: file.name,
-        file_path: uploadData.path,
+        original_name: file.name,
         file_size: file.size,
         file_type: file.type,
-        uploaded_by: 'client',
-        document_type: 'upload',
+        storage_path: uploadData.path,
+        category,
+        status: 'offen',
       })
       .select()
       .single()
