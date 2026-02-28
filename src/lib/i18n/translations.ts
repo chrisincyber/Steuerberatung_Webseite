@@ -28,12 +28,6 @@ export const translations = {
       trustBadge: '175+ Kunden vertrauen uns in allen 26 Kantonen',
     },
 
-    // Social Proof Bar
-    socialProof: {
-      declarations: 'Über 1\'000 Steuererklärungen eingereicht',
-      cantons: 'Alle 26 Kantone',
-    },
-
     // Problem/Pain Section
     problem: {
       title: 'Kommt Ihnen das bekannt vor?',
@@ -622,11 +616,6 @@ export const translations = {
       cta: 'Get started',
       ctaSecondary: 'How it works',
       trustBadge: '175+ clients trust us across all 26 cantons',
-    },
-
-    socialProof: {
-      declarations: 'Over 1,000 tax declarations filed',
-      cantons: 'All 26 cantons',
     },
 
     problem: {
