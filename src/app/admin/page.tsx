@@ -9,7 +9,7 @@ import { StatusBadge } from '@/components/portal/StatusBadge'
 import { DocumentCard } from '@/components/portal/DocumentCard'
 import {
   Users, FileText, DollarSign, TrendingUp, Search, Eye, X,
-  CheckCircle, Clock, Send, StickyNote, Loader2,
+  CheckCircle, Send, StickyNote, Loader2,
 } from 'lucide-react'
 
 type AdminTab = 'overview' | 'clients'

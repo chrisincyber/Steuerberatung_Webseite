@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { useI18n } from '@/lib/i18n/context'
 import { createClient } from '@/lib/supabase/client'
-import type { Document as PortalDocument, DocumentStatus, DocumentCategory } from '@/lib/types/portal'
+import type { Document as PortalDocument, DocumentStatus } from '@/lib/types/portal'
 import { DocStatusBadge } from './StatusBadge'
-import { FileText, Image, Trash2, Pencil, Check, X } from 'lucide-react'
+import { FileText, Image as ImageIcon, Trash2, Pencil, Check, X } from 'lucide-react'
 
 interface DocumentCardProps {
   doc: PortalDocument
@@ -63,7 +63,7 @@ export function DocumentCard({ doc, onUpdate, isAdmin }: DocumentCardProps) {
       <div className="flex items-start gap-3">
         <div className="w-12 h-12 rounded-xl bg-navy-50 flex items-center justify-center shrink-0">
           {isImage ? (
-            <Image className="w-6 h-6 text-navy-500" />
+            <ImageIcon className="w-6 h-6 text-navy-500" />
           ) : (
             <FileText className="w-6 h-6 text-navy-500" />
           )}
