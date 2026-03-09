@@ -10,6 +10,8 @@ export const translations = {
       taxCalculator: 'Steuerrechner',
       faq: 'FAQ',
       deadlines: 'Fristen',
+      resources: 'Ratgeber',
+      cantons: 'Kantone',
       login: 'Login Kundenportal',
       register: 'Steuererklärung starten',
       dashboard: 'Dashboard',
@@ -667,6 +669,13 @@ export const translations = {
         title: 'Empfehlungscodes',
         manage: 'Codes verwalten',
       },
+      drillDown: {
+        taxYearsTitle: 'Steuerjahre',
+        download: 'Herunterladen',
+        preview: 'Vorschau',
+        noPreview: 'Keine Vorschau verfügbar',
+        results: 'Ergebnisse',
+      },
     },
 
     // Footer
@@ -780,6 +789,8 @@ export const translations = {
       taxCalculator: 'Tax Calculator',
       faq: 'FAQ',
       deadlines: 'Deadlines',
+      resources: 'Resources',
+      cantons: 'Cantons',
       login: 'Client Portal Login',
       register: 'Start my tax declaration',
       dashboard: 'Dashboard',
@@ -1413,6 +1424,13 @@ export const translations = {
       referrals: {
         title: 'Referral Codes',
         manage: 'Manage Codes',
+      },
+      drillDown: {
+        taxYearsTitle: 'Tax Years',
+        download: 'Download',
+        preview: 'Preview',
+        noPreview: 'No preview available',
+        results: 'results',
       },
     },
 
