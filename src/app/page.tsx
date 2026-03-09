@@ -246,32 +246,6 @@ export default function HomePage() {
       {/* Gradient divider */}
       <div className="h-px bg-gradient-to-r from-transparent via-navy-200 to-transparent" />
 
-      {/* ============ PROBLEM / PAIN SECTION ============ */}
-      <section className="section-padding">
-        <SectionWrapper>
-          <div className="container-narrow">
-            <div className="text-center mb-12">
-              <h2 className="font-heading text-3xl sm:text-4xl font-bold text-navy-900">
-                {t.problem.title}
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
-              {t.problem.items.map((item, i) => (
-                <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-navy-50 border border-navy-100">
-                  <AlertCircle className="w-5 h-5 text-navy-400 shrink-0 mt-0.5" />
-                  <span className="text-navy-700 text-sm leading-relaxed">{item}</span>
-                </div>
-              ))}
-            </div>
-
-            <p className="text-center mt-10 text-xl font-heading font-semibold text-navy-900">
-              {t.problem.transition}
-            </p>
-          </div>
-        </SectionWrapper>
-      </section>
-
       {/* ============ BENEFITS ============ */}
       <section className="section-padding bg-navy-50/50">
         <SectionWrapper>
@@ -349,6 +323,32 @@ export default function HomePage() {
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
+          </div>
+        </SectionWrapper>
+      </section>
+
+      {/* ============ PROBLEM / PAIN SECTION ============ */}
+      <section className="section-padding">
+        <SectionWrapper>
+          <div className="container-narrow">
+            <div className="text-center mb-12">
+              <h2 className="font-heading text-3xl sm:text-4xl font-bold text-navy-900">
+                {t.problem.title}
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
+              {t.problem.items.map((item, i) => (
+                <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-navy-50 border border-navy-100">
+                  <AlertCircle className="w-5 h-5 text-navy-400 shrink-0 mt-0.5" />
+                  <span className="text-navy-700 text-sm leading-relaxed">{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-center mt-10 text-xl font-heading font-semibold text-navy-900">
+              {t.problem.transition}
+            </p>
           </div>
         </SectionWrapper>
       </section>

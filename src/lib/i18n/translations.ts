@@ -733,7 +733,7 @@ export const translations = {
         description: 'Alle Datenübertragungen sind mit 256-Bit-SSL-Verschlüsselung geschützt.',
       },
       swissServer: {
-        title: 'Westeuropäische Server',
+        title: 'Server in Westeuropa',
         description: 'Ihre Daten werden in der Schweiz verarbeitet und auf Servern in Westeuropa gespeichert.',
       },
     },
