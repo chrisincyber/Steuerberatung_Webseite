@@ -717,15 +717,15 @@ export const translations = {
       title: 'Warum uns vertrauen?',
       swissPrivacy: {
         title: 'Schweizer Datenschutz',
-        description: 'Ihre Daten unterliegen dem Schweizer Datenschutzgesetz (DSG) — dem strengsten der Welt.',
+        description: 'Ihre Daten unterliegen dem Schweizer Datenschutzgesetz (DSG), dem strengsten der Welt.',
       },
       sslEncrypted: {
         title: 'SSL Verschlüsselt',
         description: 'Alle Datenübertragungen sind mit 256-Bit-SSL-Verschlüsselung geschützt.',
       },
       swissServer: {
-        title: 'Swiss Server',
-        description: 'Ihre Daten werden ausschliesslich auf Servern in der Schweiz und Europa gespeichert.',
+        title: 'Westeuropäische Server',
+        description: 'Ihre Daten werden in der Schweiz verarbeitet und auf Servern in Westeuropa gespeichert.',
       },
     },
 
@@ -1460,15 +1460,15 @@ export const translations = {
       title: 'Why trust us?',
       swissPrivacy: {
         title: 'Swiss Data Protection',
-        description: 'Your data is subject to the Swiss Data Protection Act (DSG) — one of the strictest in the world.',
+        description: 'Your data is subject to the Swiss Data Protection Act (DSG), one of the strictest in the world.',
       },
       sslEncrypted: {
         title: 'SSL Encrypted',
         description: 'All data transfers are protected with 256-bit SSL encryption.',
       },
       swissServer: {
-        title: 'Swiss Server',
-        description: 'Your data is stored exclusively on servers in Switzerland and Europe.',
+        title: 'West European Servers',
+        description: 'Your data is processed in Switzerland and stored on servers in Western Europe.',
       },
     },
 
