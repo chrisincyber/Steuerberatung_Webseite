@@ -85,6 +85,37 @@ export const cantonSlugs: Record<string, string> = {
   ZH: 'zuerich',
 }
 
+// Default cantonal capitals with ESTV TaxLocationIDs for auto-selection
+// Default cantonal capitals with verified ESTV TaxLocationIDs
+export const cantonCapitals: Record<string, { name: string; taxLocationId: number; zipCode: string }> = {
+  AG: { name: 'Aarau', taxLocationId: 500000000, zipCode: '5000' },
+  AI: { name: 'Appenzell', taxLocationId: 905000000, zipCode: '9050' },
+  AR: { name: 'Herisau', taxLocationId: 910000000, zipCode: '9100' },
+  BE: { name: 'Bern', taxLocationId: 300000000, zipCode: '3000' },
+  BL: { name: 'Liestal', taxLocationId: 441000000, zipCode: '4410' },
+  BS: { name: 'Basel', taxLocationId: 400000000, zipCode: '4000' },
+  FR: { name: 'Fribourg', taxLocationId: 170000000, zipCode: '1700' },
+  GE: { name: 'Genève', taxLocationId: 120000000, zipCode: '1200' },
+  GL: { name: 'Glarus', taxLocationId: 875000000, zipCode: '8750' },
+  GR: { name: 'Chur', taxLocationId: 700000000, zipCode: '7000' },
+  JU: { name: 'Delémont', taxLocationId: 280000000, zipCode: '2800' },
+  LU: { name: 'Luzern', taxLocationId: 600000000, zipCode: '6000' },
+  NE: { name: 'Neuchâtel', taxLocationId: 200000000, zipCode: '2000' },
+  NW: { name: 'Stans', taxLocationId: 637000000, zipCode: '6370' },
+  OW: { name: 'Sarnen', taxLocationId: 606000000, zipCode: '6060' },
+  SG: { name: 'St. Gallen', taxLocationId: 900000000, zipCode: '9000' },
+  SH: { name: 'Schaffhausen', taxLocationId: 820000000, zipCode: '8200' },
+  SO: { name: 'Solothurn', taxLocationId: 450000000, zipCode: '4500' },
+  SZ: { name: 'Schwyz', taxLocationId: 643000000, zipCode: '6430' },
+  TG: { name: 'Frauenfeld', taxLocationId: 850000000, zipCode: '8500' },
+  TI: { name: 'Bellinzona', taxLocationId: 650000000, zipCode: '6500' },
+  UR: { name: 'Altdorf', taxLocationId: 646000000, zipCode: '6460' },
+  VD: { name: 'Lausanne', taxLocationId: 100000000, zipCode: '1000' },
+  VS: { name: 'Sion', taxLocationId: 195000000, zipCode: '1950' },
+  ZG: { name: 'Zug', taxLocationId: 630000000, zipCode: '6300' },
+  ZH: { name: 'Zürich', taxLocationId: 800000000, zipCode: '8000' },
+}
+
 export function getCantonBySlug(slug: string) {
   const code = Object.entries(cantonSlugs).find(([, s]) => s === slug)?.[0]
   if (!code) return null
