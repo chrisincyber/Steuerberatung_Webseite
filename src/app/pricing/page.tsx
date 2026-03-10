@@ -8,206 +8,111 @@ import {
   Check,
   ArrowRight,
   ArrowLeft,
-  Briefcase,
-  Building2,
-  Globe,
-  FolderOpen,
-  BookOpen,
-  BarChart3,
   Shield,
   RotateCcw,
   Clock,
-  Mail,
-  Phone,
   User,
   Users,
-  Armchair,
-  Loader2,
+  GraduationCap,
   Home,
+  Bitcoin,
+  Baby,
+  Briefcase,
+  Zap,
   Minus,
   Plus,
+  Repeat,
 } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type Personen = 'einzelperson' | 'ehepaar'
-type Employment = 'unselbstaendig' | 'pensioniert' | 'selbstaendig' | 'gmbh_ag'
-type Asset = 'wertschriften' | 'liegenschaft' | 'krypto' | 'keine'
-type Docs = 'ja' | 'teilweise' | 'nein'
-type Tier = 'basis' | 'erweitert' | 'komplex'
-type StepId = 'personen' | 'employment' | 'buchhaltungBedarf' | 'assets' | 'ausland' | 'unterlagen' | 'kontaktformular' | 'result'
-
-interface LiegenschaftDetail {
-  selbstbewohnt: number
-  vermietet: number
-}
-
-interface KontaktForm {
-  firstName: string
-  lastName: string
-  phone: string
-  email: string
-}
+type Personentyp = 'lehrling' | 'einzelperson' | 'ehepaar'
+type StepId = 'personentyp' | 'zusatzleistungen' | 'selbstaendig' | 'bearbeitungszeit' | 'result'
 
 interface WizardState {
-  personen: Personen | null
-  employment: Employment[]
-  buchhaltungBedarf: boolean | null
-  assets: Asset[]
-  wertschriftenOver10: boolean | null
-  liegenschaftDetail: LiegenschaftDetail
-  ausland: boolean | null
-  unterlagen: Docs | null
-  kontaktForm: KontaktForm
-}
-
-// Icons for employment options
-const employmentIcons: Record<Employment, typeof Briefcase> = {
-  unselbstaendig: Briefcase,
-  pensioniert: Armchair,
-  selbstaendig: BarChart3,
-  gmbh_ag: Building2,
-}
-
-// Icons for asset options
-const assetIcons: Record<Asset, typeof BarChart3> = {
-  wertschriften: BarChart3,
-  liegenschaft: Building2,
-  krypto: Globe,
-  keine: Shield,
+  personentyp: Personentyp | null
+  liegenschaften: number
+  krypto: boolean
+  kinder: number
+  selbstaendig: boolean | null
+  express: boolean | null
+  abo: boolean
 }
 
 const INITIAL_STATE: WizardState = {
-  personen: null,
-  employment: [],
-  buchhaltungBedarf: null,
-  assets: [],
-  wertschriftenOver10: null,
-  liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 },
-  ausland: null,
-  unterlagen: null,
-  kontaktForm: { firstName: '', lastName: '', phone: '', email: '' },
+  personentyp: null,
+  liegenschaften: 0,
+  krypto: false,
+  kinder: 0,
+  selbstaendig: null,
+  express: null,
+  abo: false,
 }
 
 // ---------------------------------------------------------------------------
-// Rule Engine – derives tier from wizard state
+// Price Calculation
 // ---------------------------------------------------------------------------
 
-// Returns the "highest" selected Employment for tier logic
-// Priority: gmbh_ag > selbstaendig > unselbstaendig
-function getEffectiveEmployment(selected: Employment[]): Employment | null {
-  if (selected.includes('gmbh_ag')) return 'gmbh_ag'
-  if (selected.includes('selbstaendig')) return 'selbstaendig'
-  if (selected.includes('unselbstaendig') || selected.includes('pensioniert')) return 'unselbstaendig'
-  return null
-}
+function calculatePrice(state: WizardState): {
+  total: number
+  aboTotal: number
+  aboSavings: number
+  breakdown: { label: string; amount: number }[]
+} {
+  const breakdown: { label: string; amount: number }[] = []
 
-function calculateTier(state: WizardState): Tier {
-  const emp = getEffectiveEmployment(state.employment)
+  // Basispreis
+  const basePrice = state.personentyp === 'lehrling' ? 89
+    : state.personentyp === 'ehepaar' ? 139 : 119
+  breakdown.push({ label: 'Basispreis', amount: basePrice })
 
-  // GmbH/AG (without bookkeeping) → always Komplex
-  if (emp === 'gmbh_ag') {
-    return 'komplex'
+  // Liegenschaften
+  if (state.liegenschaften > 0) {
+    breakdown.push({ label: `${state.liegenschaften}× Liegenschaft`, amount: state.liegenschaften * 35 })
   }
 
-  // Selbständig (without bookkeeping) → min Erweitert, Komplex if Ausland
-  if (emp === 'selbstaendig') {
-    if (state.ausland === true) {
-      return 'komplex'
-    }
-    return 'erweitert'
+  // Krypto
+  if (state.krypto) {
+    breakdown.push({ label: 'Krypto-Vermögen', amount: 50 })
   }
 
-  // Unselbständig: Foreign income/assets → Komplex
-  if (state.ausland === true) {
-    return 'komplex'
+  // Kinder
+  if (state.kinder > 0) {
+    breakdown.push({ label: `${state.kinder}× Kind/Unterhalt`, amount: state.kinder * 25 })
   }
 
-  // Total Liegenschaften > 2 → Komplex
-  const totalLiegenschaften = state.liegenschaftDetail.selbstbewohnt + state.liegenschaftDetail.vermietet
-  if (state.assets.includes('liegenschaft') && totalLiegenschaften > 2) {
-    return 'komplex'
+  // Express
+  if (state.express) {
+    breakdown.push({ label: 'Express-Bearbeitung', amount: 40 })
   }
 
-  const hasAssets = state.assets.length > 0 && !state.assets.includes('keine')
+  const total = breakdown.reduce((s, b) => s + b.amount, 0)
+  const aboSavings = Math.round(total * 0.1)
+  const aboTotal = total - aboSavings
 
-  // Unselbständig + assets → Erweitert (but Wertschriften ≤10 positions alone stays Basis)
-  if (emp === 'unselbstaendig' && hasAssets) {
-    const onlyWertschriften = state.assets.length === 1 && state.assets[0] === 'wertschriften'
-    if (onlyWertschriften && state.wertschriftenOver10 === false) {
-      return 'basis'
-    }
-    return 'erweitert'
-  }
-
-  // Unselbständig + no assets + no Ausland → Basis
-  return 'basis'
+  return { total, aboTotal, aboSavings, breakdown }
 }
 
 // ---------------------------------------------------------------------------
-// Step Sequence – dynamically compute applicable steps
+// Steps
 // ---------------------------------------------------------------------------
 
-function getSteps(state: WizardState): StepId[] {
-  const steps: StepId[] = ['personen', 'employment']
-  const emp = getEffectiveEmployment(state.employment)
-
-  if (emp === 'selbstaendig' || emp === 'gmbh_ag') {
-    steps.push('buchhaltungBedarf')
-
-    // If they need bookkeeping → contact form path
-    if (state.buchhaltungBedarf === true) {
-      steps.push('kontaktformular')
-      return steps
-    }
-  }
-
-  // Normal questionnaire path (include assets when emp unknown for stable progress count)
-  if (emp === null || emp === 'unselbstaendig' || (emp === 'selbstaendig' && state.buchhaltungBedarf === false)) {
-    steps.push('assets')
-  }
-
-  // Remaining steps — always include for stable progress counter
-  if (state.buchhaltungBedarf !== true) {
-    steps.push('ausland', 'unterlagen', 'result')
-  }
-
-  return steps
+function getSteps(): StepId[] {
+  return ['personentyp', 'zusatzleistungen', 'selbstaendig', 'bearbeitungszeit', 'result']
 }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 function canAdvance(step: StepId, state: WizardState): boolean {
   switch (step) {
-    case 'personen':
-      return state.personen !== null
-    case 'employment':
-      return state.employment.length > 0
-    case 'buchhaltungBedarf':
-      return state.buchhaltungBedarf !== null
-    case 'assets': {
-      if (state.assets.length === 0) return false
-      // If wertschriften selected, require over10 answer
-      if (state.assets.includes('wertschriften') && state.wertschriftenOver10 === null) return false
-      // If liegenschaft selected, require at least 1 property total
-      if (state.assets.includes('liegenschaft')) {
-        const total = state.liegenschaftDetail.selbstbewohnt + state.liegenschaftDetail.vermietet
-        if (total < 1) return false
-      }
-      return true
-    }
-    case 'ausland':
-      return state.ausland !== null
-    case 'unterlagen':
-      return state.unterlagen !== null
-    case 'kontaktformular': {
-      const f = state.kontaktForm
-      return f.firstName.trim() !== '' && f.lastName.trim() !== '' && f.phone.replace(/\D/g, '').length >= 10 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)
-    }
+    case 'personentyp':
+      return state.personentyp !== null
+    case 'zusatzleistungen':
+      return true // always can advance, selections are optional
+    case 'selbstaendig':
+      return state.selbstaendig !== null
+    case 'bearbeitungszeit':
+      return state.express !== null
     default:
       return true
   }
@@ -231,58 +136,82 @@ export default function PricingPage() {
   const [stepIndex, setStepIndex] = useState(0)
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
   const [animKey, setAnimKey] = useState(0)
-  const [formSubmitting, setFormSubmitting] = useState(false)
-  const [formSuccess, setFormSuccess] = useState(false)
-  const [formError, setFormError] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const pricingRouter = useRouter()
-  const steps = useMemo(() => getSteps(state), [state])
+  const steps = useMemo(() => getSteps(), [])
   const currentStep = steps[stepIndex]
-  const tier = useMemo(() => calculateTier(state), [state])
+  const { total, aboTotal, aboSavings, breakdown } = useMemo(() => calculatePrice(state), [state])
 
-  // Map tier name → numeric + price for portal callback
-  const tierNumeric = tier === 'basis' ? 1 : tier === 'erweitert' ? 2 : 3
-  const tierPrice = tier === 'basis' ? 149 : tier === 'erweitert' ? 199 : null
+  const [orderLoading, setOrderLoading] = useState(false)
 
   const handleOrderNow = useCallback(async () => {
-    const params = new URLSearchParams({
-      tier: String(tierNumeric),
-      year: '2025',
-      ...(tierPrice ? { price: String(tierPrice) } : {}),
-    })
+    const finalPrice = state.abo ? aboTotal : total
 
-    const supabase = createClient()
-    if (supabase) {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        pricingRouter.push(`/dashboard?${params.toString()}`)
-        return
+    // Selbständige: no Stripe, go to registration/dashboard directly
+    if (state.selbstaendig) {
+      const params = new URLSearchParams({
+        year: '2025',
+        selbstaendig: 'true',
+      })
+
+      const supabase = createClient()
+      if (supabase) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          pricingRouter.push(`/dashboard?${params.toString()}`)
+          return
+        }
       }
+
+      pricingRouter.push(`/auth/register?redirect=${encodeURIComponent(`/dashboard?${params.toString()}`)}`)
+      return
     }
 
-    const redirectPath = `/dashboard?${params.toString()}`
-    pricingRouter.push(`/auth/register?redirect=${encodeURIComponent(redirectPath)}`)
-  }, [tierNumeric, tierPrice, pricingRouter])
+    // All others: go through Stripe Checkout
+    setOrderLoading(true)
+    try {
+      const res = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          price: finalPrice,
+          year: 2025,
+          selbstaendig: false,
+          express: state.express === true,
+          abo: state.abo,
+        }),
+      })
 
-  // Count only questionnaire steps (exclude result and kontaktformular for progress)
-  const isQuestionnaireStep = currentStep !== 'result' && currentStep !== 'kontaktformular'
-  const questionnaireSteps = steps.filter((s) => s !== 'result' && s !== 'kontaktformular')
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        console.error('No checkout URL returned')
+        setOrderLoading(false)
+      }
+    } catch (error) {
+      console.error('Checkout error:', error)
+      setOrderLoading(false)
+    }
+  }, [total, aboTotal, state.selbstaendig, state.express, state.abo, pricingRouter])
+
+  // Progress: exclude result step
+  const isQuestionnaireStep = currentStep !== 'result'
+  const questionnaireSteps = steps.filter((s) => s !== 'result')
   const questionnaireTotal = questionnaireSteps.length
   const questionnaireIndex = questionnaireSteps.indexOf(currentStep as typeof questionnaireSteps[number])
 
-  // Analytics: track step views
+  // Analytics
   useEffect(() => {
     if (currentStep === 'result') {
-      window.dataLayer?.push({ event: 'pricing_completed', tier: tier })
-    } else if (currentStep === 'kontaktformular') {
-      window.dataLayer?.push({ event: 'pricing_kontaktformular' })
+      window.dataLayer?.push({ event: 'pricing_completed', price: total })
     } else {
       window.dataLayer?.push({ event: 'pricing_step', step: stepIndex + 1 })
     }
-  }, [stepIndex, currentStep, tier])
+  }, [stepIndex, currentStep, total])
 
-  // Navigation helpers
+  // Navigation
   const goNext = useCallback(() => {
     setDirection('forward')
     setAnimKey((k) => k + 1)
@@ -301,165 +230,57 @@ export default function PricingPage() {
     setStepIndex(0)
     setDirection('forward')
     setAnimKey((k) => k + 1)
-    setFormSuccess(false)
-    setFormSubmitting(false)
-    setFormError(false)
   }, [])
 
   // State updaters
-  const selectPersonen = useCallback(
-    (val: Personen) => {
+  const selectPersonentyp = useCallback(
+    (val: Personentyp) => {
       setState({
-        personen: val,
-        employment: [],
-        buchhaltungBedarf: null,
-        assets: [],
-        wertschriftenOver10: null,
-        liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 },
-        ausland: null,
-        unterlagen: null,
-        kontaktForm: { firstName: '', lastName: '', phone: '', email: '' },
+        ...INITIAL_STATE,
+        personentyp: val,
       })
-      setFormSuccess(false)
-      // Auto-advance after selection
       setTimeout(() => {
         setDirection('forward')
         setAnimKey((k) => k + 1)
-        setStepIndex(1) // always index 1 after personen
+        setStepIndex(1)
       }, 150)
     },
     [],
   )
 
-  const toggleEmployment = useCallback((emp: Employment) => {
-    setState((prev) => {
-      const has = prev.employment.includes(emp)
-      const newEmployment = has
-        ? prev.employment.filter((e) => e !== emp)
-        : [...prev.employment, emp]
-      return {
-        ...prev,
-        employment: newEmployment,
-        // Reset downstream when selection changes
-        buchhaltungBedarf: null,
-        assets: [],
-        wertschriftenOver10: null,
-        liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 },
-        ausland: null,
-        unterlagen: null,
-        kontaktForm: { firstName: '', lastName: '', phone: '', email: '' },
-      }
-    })
-    setFormSuccess(false)
-  }, [])
-
-  const selectBuchhaltungBedarf = useCallback(
+  const selectSelbstaendig = useCallback(
     (val: boolean) => {
-      setState((prev) => ({
-        ...prev,
-        buchhaltungBedarf: val,
-        // Reset downstream state when changing this
-        assets: [],
-        wertschriftenOver10: null,
-        liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 },
-        ausland: null,
-        unterlagen: null,
-        kontaktForm: { firstName: '', lastName: '', phone: '', email: '' },
-      }))
-      setFormSuccess(false)
+      setState((prev) => ({ ...prev, selbstaendig: val }))
       setTimeout(() => {
         setDirection('forward')
         setAnimKey((k) => k + 1)
-        setStepIndex(3) // always index 3 after buchhaltungBedarf (personen=0, employment=1, buchhaltung=2)
+        setStepIndex(3) // bearbeitungszeit
       }, 150)
     },
     [],
   )
 
-  const toggleAsset = useCallback((asset: Asset) => {
-    setState((prev) => {
-      if (asset === 'keine') {
-        return { ...prev, assets: ['keine'], wertschriftenOver10: null, liegenschaftDetail: { selbstbewohnt: 0, vermietet: 0 } }
-      }
-      const without = prev.assets.filter((a) => a !== 'keine' && a !== asset)
-      const has = prev.assets.includes(asset)
-      const newAssets = has ? without : [...without, asset]
-      return {
-        ...prev,
-        assets: newAssets,
-        wertschriftenOver10: asset === 'wertschriften' && has ? null : prev.wertschriftenOver10,
-        liegenschaftDetail: asset === 'liegenschaft' && has ? { selbstbewohnt: 0, vermietet: 0 } : prev.liegenschaftDetail,
-      }
-    })
-  }, [])
-
-  const updateLiegenschaft = useCallback((field: keyof LiegenschaftDetail, value: number) => {
-    setState((prev) => ({
-      ...prev,
-      liegenschaftDetail: { ...prev.liegenschaftDetail, [field]: value },
-    }))
-  }, [])
-
-  const selectAusland = useCallback(
+  const selectExpress = useCallback(
     (val: boolean) => {
-      setState((prev) => ({ ...prev, ausland: val }))
-      setTimeout(() => goNext(), 150)
+      setState((prev) => ({ ...prev, express: val }))
+      setTimeout(() => {
+        setDirection('forward')
+        setAnimKey((k) => k + 1)
+        setStepIndex(4) // result
+      }, 150)
     },
-    [goNext],
+    [],
   )
-
-  const selectUnterlagen = useCallback(
-    (val: Docs) => {
-      setState((prev) => ({ ...prev, unterlagen: val }))
-      setTimeout(() => goNext(), 150)
-    },
-    [goNext],
-  )
-
-  const updateKontaktForm = useCallback((field: keyof KontaktForm, value: string) => {
-    setState((prev) => ({
-      ...prev,
-      kontaktForm: { ...prev.kontaktForm, [field]: value },
-    }))
-  }, [])
-
-  const submitKontaktForm = useCallback(async () => {
-    if (formSubmitting) return
-    setFormSubmitting(true)
-    setFormError(false)
-    try {
-      const res = await fetch('/_api/bookkeeping-inquiry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: state.kontaktForm.firstName,
-          lastName: state.kontaktForm.lastName,
-          phone: state.kontaktForm.phone,
-          email: state.kontaktForm.email,
-          employment: getEffectiveEmployment(state.employment),
-        }),
-      })
-      if (res.ok) {
-        setFormSuccess(true)
-      } else {
-        setFormError(true)
-      }
-    } catch {
-      setFormError(true)
-    } finally {
-      setFormSubmitting(false)
-    }
-  }, [formSubmitting, state.kontaktForm, state.employment])
 
   // Keyboard navigation
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
-        if (stepIndex > 0 && currentStep !== 'result' && currentStep !== 'kontaktformular') {
+        if (stepIndex > 0 && currentStep !== 'result') {
           goBack()
         }
       }
-      if (e.key === 'Enter' && currentStep !== 'result' && currentStep !== 'personen' && currentStep !== 'kontaktformular') {
+      if (e.key === 'Enter' && currentStep !== 'result' && currentStep !== 'personentyp') {
         if (canAdvance(currentStep, state)) {
           goNext()
         }
@@ -474,11 +295,6 @@ export default function PricingPage() {
     containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [stepIndex])
 
-  // Show docs messy note?
-  const showMessyDocsNote =
-    currentStep === 'result' && (state.unterlagen === 'teilweise' || state.unterlagen === 'nein')
-
-  // Animation class
   const animClass = direction === 'forward' ? 'wizard-forward' : 'wizard-backward'
 
   // ---------------------------------------------------------------------------
@@ -487,7 +303,7 @@ export default function PricingPage() {
 
   return (
     <>
-      {/* Hero – compact */}
+      {/* Hero */}
       <section className="gradient-hero pt-24 pb-16 lg:pt-40 lg:pb-20 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
@@ -499,8 +315,6 @@ export default function PricingPage() {
           <p className="mt-4 text-lg text-navy-200 max-w-xl mx-auto">
             {t.pricing.subtitle}
           </p>
-
-          {/* Urgency banner */}
           <div className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-full bg-white/10 border border-white/20">
             <Clock className="w-4 h-4 text-white/80" />
             <span className="text-sm font-medium text-white/80">{t.pricing.urgency}</span>
@@ -511,7 +325,7 @@ export default function PricingPage() {
       {/* Wizard container */}
       <section ref={containerRef} className="section-padding -mt-8">
         <div className="max-w-2xl mx-auto">
-          {/* Progress bar (shown only for questionnaire steps) */}
+          {/* Progress bar */}
           {isQuestionnaireStep && (
             <div className="mb-8" role="progressbar" aria-valuenow={questionnaireIndex + 1} aria-valuemin={1} aria-valuemax={questionnaireTotal}>
               <div className="flex items-center justify-between mb-2">
@@ -540,389 +354,225 @@ export default function PricingPage() {
 
           {/* Step content */}
           <div key={animKey} className={animClass}>
-            {/* ---- Step: Personen ---- */}
-            {currentStep === 'personen' && (
+            {/* ---- Step 1: Personentyp ---- */}
+            {currentStep === 'personentyp' && (
               <StepCard>
-                <StepQuestion>{t.pricing.steps.personen.question}</StepQuestion>
+                <StepQuestion>{t.pricing.steps.personentyp.question}</StepQuestion>
                 <div className="grid gap-4 mt-8">
                   <OptionButton
-                    selected={state.personen === 'einzelperson'}
-                    onClick={() => selectPersonen('einzelperson')}
-                    aria-label={t.pricing.steps.personen.options.einzelperson}
+                    selected={state.personentyp === 'lehrling'}
+                    onClick={() => selectPersonentyp('lehrling')}
+                    aria-label={t.pricing.steps.personentyp.options.lehrling}
+                  >
+                    <GraduationCap className="w-6 h-6 shrink-0" />
+                    <div className="flex-1">
+                      <span className="text-lg font-medium">{t.pricing.steps.personentyp.options.lehrling}</span>
+                      <p className={`text-sm mt-0.5 ${state.personentyp === 'lehrling' ? 'text-white/70' : 'text-navy-500'}`}>
+                        {t.pricing.steps.personentyp.options.lehrlingHint}
+                      </p>
+                    </div>
+                    <span className={`text-lg font-bold shrink-0 ${state.personentyp === 'lehrling' ? 'text-white' : 'text-navy-900'}`}>
+                      CHF 89.-
+                    </span>
+                  </OptionButton>
+                  <OptionButton
+                    selected={state.personentyp === 'einzelperson'}
+                    onClick={() => selectPersonentyp('einzelperson')}
+                    aria-label={t.pricing.steps.personentyp.options.einzelperson}
                   >
                     <User className="w-6 h-6 shrink-0" />
-                    <div>
-                      <span className="text-lg font-medium">{t.pricing.steps.personen.options.einzelperson}</span>
-                      <p className={`text-sm mt-0.5 ${state.personen === 'einzelperson' ? 'text-white/70' : 'text-navy-500'}`}>
-                        {t.pricing.steps.personen.options.einzelpersonHint}
+                    <div className="flex-1">
+                      <span className="text-lg font-medium">{t.pricing.steps.personentyp.options.einzelperson}</span>
+                      <p className={`text-sm mt-0.5 ${state.personentyp === 'einzelperson' ? 'text-white/70' : 'text-navy-500'}`}>
+                        {t.pricing.steps.personentyp.options.einzelpersonHint}
                       </p>
                     </div>
+                    <span className={`text-lg font-bold shrink-0 ${state.personentyp === 'einzelperson' ? 'text-white' : 'text-navy-900'}`}>
+                      CHF 119.-
+                    </span>
                   </OptionButton>
                   <OptionButton
-                    selected={state.personen === 'ehepaar'}
-                    onClick={() => selectPersonen('ehepaar')}
-                    aria-label={t.pricing.steps.personen.options.ehepaar}
+                    selected={state.personentyp === 'ehepaar'}
+                    onClick={() => selectPersonentyp('ehepaar')}
+                    aria-label={t.pricing.steps.personentyp.options.ehepaar}
                   >
                     <Users className="w-6 h-6 shrink-0" />
-                    <div>
-                      <span className="text-lg font-medium">{t.pricing.steps.personen.options.ehepaar}</span>
-                      <p className={`text-sm mt-0.5 ${state.personen === 'ehepaar' ? 'text-white/70' : 'text-navy-500'}`}>
-                        {t.pricing.steps.personen.options.ehepaarHint}
+                    <div className="flex-1">
+                      <span className="text-lg font-medium">{t.pricing.steps.personentyp.options.ehepaar}</span>
+                      <p className={`text-sm mt-0.5 ${state.personentyp === 'ehepaar' ? 'text-white/70' : 'text-navy-500'}`}>
+                        {t.pricing.steps.personentyp.options.ehepaarHint}
                       </p>
                     </div>
+                    <span className={`text-lg font-bold shrink-0 ${state.personentyp === 'ehepaar' ? 'text-white' : 'text-navy-900'}`}>
+                      CHF 139.-
+                    </span>
                   </OptionButton>
                 </div>
               </StepCard>
             )}
 
-            {/* ---- Step: Employment (Multi-Select) ---- */}
-            {currentStep === 'employment' && (
+            {/* ---- Step 2: Zusatzleistungen ---- */}
+            {currentStep === 'zusatzleistungen' && (
               <StepCard>
-                <StepQuestion>{t.pricing.steps.employment.question}</StepQuestion>
-                <p className="text-navy-500 text-sm mt-2 mb-8">{t.pricing.steps.employment.multiHint}</p>
-                <div className="grid gap-4">
-                  {(Object.entries(t.pricing.steps.employment.options) as [Employment, string][]).map(
-                    ([key, label]) => {
-                      const Icon = employmentIcons[key]
-                      return (
-                        <OptionButton
-                          key={key}
-                          selected={state.employment.includes(key)}
-                          onClick={() => toggleEmployment(key)}
-                          aria-label={label}
-                          aria-pressed={state.employment.includes(key)}
-                        >
-                          <Icon className="w-6 h-6 shrink-0" />
-                          <span className="text-lg font-medium">{label}</span>
-                        </OptionButton>
-                      )
-                    },
-                  )}
+                <StepQuestion>{t.pricing.steps.zusatzleistungen.question}</StepQuestion>
+                <p className="text-navy-500 text-sm mt-2 mb-8 text-center">{t.pricing.steps.zusatzleistungen.hint}</p>
+                <div className="space-y-4">
+                  {/* Liegenschaften */}
+                  <div
+                    className={`flex items-center gap-4 w-full px-6 py-5 rounded-xl border-2 transition-all duration-200 ${
+                      state.liegenschaften > 0
+                        ? 'border-navy-800 bg-navy-800 text-white'
+                        : 'border-navy-200 text-navy-700'
+                    }`}
+                  >
+                    <Home className="w-6 h-6 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-lg font-medium">{t.pricing.steps.zusatzleistungen.options.liegenschaften}</span>
+                      <p className={`text-sm mt-0.5 ${state.liegenschaften > 0 ? 'text-white/70' : 'text-navy-500'}`}>
+                        CHF 35.- {t.pricing.steps.zusatzleistungen.perUnit}
+                      </p>
+                    </div>
+                    <NumberStepper
+                      value={state.liegenschaften}
+                      min={0}
+                      max={10}
+                      onChange={(v) => setState((prev) => ({ ...prev, liegenschaften: v }))}
+                      inverted={state.liegenschaften > 0}
+                    />
+                  </div>
+
+                  {/* Krypto */}
+                  <OptionButton
+                    selected={state.krypto}
+                    onClick={() => setState((prev) => ({ ...prev, krypto: !prev.krypto }))}
+                    aria-label={t.pricing.steps.zusatzleistungen.options.krypto}
+                    aria-pressed={state.krypto}
+                  >
+                    <Bitcoin className="w-6 h-6 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-lg font-medium">{t.pricing.steps.zusatzleistungen.options.krypto}</span>
+                      <p className={`text-sm mt-0.5 ${state.krypto ? 'text-white/70' : 'text-navy-500'}`}>
+                        CHF 50.- {t.pricing.steps.zusatzleistungen.flat}
+                      </p>
+                    </div>
+                    {state.krypto && <Check className="w-5 h-5 shrink-0" />}
+                  </OptionButton>
+
+                  {/* Kinder */}
+                  <div
+                    className={`flex items-center gap-4 w-full px-6 py-5 rounded-xl border-2 transition-all duration-200 ${
+                      state.kinder > 0
+                        ? 'border-navy-800 bg-navy-800 text-white'
+                        : 'border-navy-200 text-navy-700'
+                    }`}
+                  >
+                    <Baby className="w-6 h-6 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-lg font-medium">{t.pricing.steps.zusatzleistungen.options.kinder}</span>
+                      <p className={`text-sm mt-0.5 ${state.kinder > 0 ? 'text-white/70' : 'text-navy-500'}`}>
+                        CHF 25.- {t.pricing.steps.zusatzleistungen.perChild}
+                      </p>
+                    </div>
+                    <NumberStepper
+                      value={state.kinder}
+                      min={0}
+                      max={10}
+                      onChange={(v) => setState((prev) => ({ ...prev, kinder: v }))}
+                      inverted={state.kinder > 0}
+                    />
+                  </div>
                 </div>
-                {/* Continue button for multi-select */}
+
+                {/* Continue button */}
                 <button
                   onClick={goNext}
-                  disabled={!canAdvance('employment', state)}
-                  className="btn-white w-full mt-8 group disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="btn-white w-full mt-8 group"
                   aria-label={t.common.next}
                 >
-                  {t.common.next}
+                  {state.liegenschaften === 0 && !state.krypto && state.kinder === 0
+                    ? t.pricing.steps.zusatzleistungen.noneButton
+                    : t.common.next}
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </button>
               </StepCard>
             )}
 
-            {/* ---- Step: Buchhaltung Bedarf ---- */}
-            {currentStep === 'buchhaltungBedarf' && (
+            {/* ---- Step 3: Selbständig ---- */}
+            {currentStep === 'selbstaendig' && (
               <StepCard>
-                <StepQuestion>{t.pricing.steps.buchhaltungBedarf.question}</StepQuestion>
+                <StepQuestion>{t.pricing.steps.selbstaendig.question}</StepQuestion>
                 <div className="grid grid-cols-2 gap-4 mt-8">
                   <OptionButton
-                    selected={state.buchhaltungBedarf === true}
-                    onClick={() => selectBuchhaltungBedarf(true)}
-                    aria-label={t.pricing.steps.buchhaltungBedarf.options.ja}
+                    selected={state.selbstaendig === false}
+                    onClick={() => selectSelbstaendig(false)}
+                    aria-label={t.pricing.steps.selbstaendig.options.nein}
                   >
-                    <BookOpen className="w-6 h-6 shrink-0" />
-                    <span className="text-lg font-medium">{t.pricing.steps.buchhaltungBedarf.options.ja}</span>
+                    <span className="text-lg font-medium">{t.pricing.steps.selbstaendig.options.nein}</span>
                   </OptionButton>
                   <OptionButton
-                    selected={state.buchhaltungBedarf === false}
-                    onClick={() => selectBuchhaltungBedarf(false)}
-                    aria-label={t.pricing.steps.buchhaltungBedarf.options.nein}
+                    selected={state.selbstaendig === true}
+                    onClick={() => selectSelbstaendig(true)}
+                    aria-label={t.pricing.steps.selbstaendig.options.ja}
                   >
-                    <BookOpen className="w-6 h-6 shrink-0" />
-                    <span className="text-lg font-medium">{t.pricing.steps.buchhaltungBedarf.options.nein}</span>
+                    <Briefcase className="w-6 h-6 shrink-0" />
+                    <span className="text-lg font-medium">{t.pricing.steps.selbstaendig.options.ja}</span>
                   </OptionButton>
                 </div>
+                {state.selbstaendig === true && (
+                  <div className="mt-6 p-4 rounded-xl bg-navy-50 border border-navy-200">
+                    <p className="text-sm text-navy-600">
+                      {t.pricing.steps.selbstaendig.disclaimer}
+                    </p>
+                  </div>
+                )}
               </StepCard>
             )}
 
-            {/* ---- Step: Assets ---- */}
-            {currentStep === 'assets' && (
+            {/* ---- Step 4: Bearbeitungszeit ---- */}
+            {currentStep === 'bearbeitungszeit' && (
               <StepCard>
-                <StepQuestion>{t.pricing.steps.assets.question}</StepQuestion>
-                <p className="text-navy-500 text-sm mt-2 mb-8">{t.pricing.steps.employment.multiHint}</p>
-                <div className="grid gap-4">
-                  {(Object.entries(t.pricing.steps.assets.options) as [Asset, string][]).map(
-                    ([key, label]) => {
-                      const Icon = assetIcons[key]
-                      return (
-                        <div key={key}>
-                          <OptionButton
-                            selected={state.assets.includes(key)}
-                            onClick={() => toggleAsset(key)}
-                            aria-label={label}
-                            aria-pressed={state.assets.includes(key)}
-                          >
-                            <Icon className="w-6 h-6 shrink-0" />
-                            <span className="text-lg font-medium">{label}</span>
-                          </OptionButton>
-
-                          {/* Wertschriften detail */}
-                          {key === 'wertschriften' && state.assets.includes('wertschriften') && (
-                            <div className="mt-3 ml-2 p-4 rounded-xl bg-navy-50 border border-navy-200">
-                              <p className="text-sm font-medium text-navy-700 mb-3">
-                                {t.pricing.steps.assets.wertschriften.over10}
-                              </p>
-                              <div className="grid grid-cols-2 gap-3">
-                                <button
-                                  type="button"
-                                  onClick={() => setState((prev) => ({ ...prev, wertschriftenOver10: true }))}
-                                  className={`px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
-                                    state.wertschriftenOver10 === true
-                                      ? 'border-navy-800 bg-navy-800 text-white'
-                                      : 'border-navy-200 text-navy-700 hover:border-navy-400'
-                                  }`}
-                                >
-                                  {t.pricing.steps.ausland.options.ja}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setState((prev) => ({ ...prev, wertschriftenOver10: false }))}
-                                  className={`px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
-                                    state.wertschriftenOver10 === false
-                                      ? 'border-navy-800 bg-navy-800 text-white'
-                                      : 'border-navy-200 text-navy-700 hover:border-navy-400'
-                                  }`}
-                                >
-                                  {t.pricing.steps.ausland.options.nein}
-                                </button>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Liegenschaft detail rows */}
-                          {key === 'liegenschaft' && state.assets.includes('liegenschaft') && (
-                            <div className="mt-3 ml-2 space-y-3 p-4 rounded-xl bg-navy-50 border border-navy-200">
-                              {/* Row 1: Selbstbewohnt */}
-                              <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <Home className="w-4 h-4 text-navy-500 shrink-0" />
-                                  <span className="text-sm font-medium text-navy-700 truncate">
-                                    {t.pricing.steps.assets.liegenschaft.selbstbewohnt}
-                                  </span>
-                                </div>
-                                <NumberStepper
-                                  value={state.liegenschaftDetail.selbstbewohnt}
-                                  min={0}
-                                  max={5}
-                                  onChange={(v) => updateLiegenschaft('selbstbewohnt', v)}
-                                />
-                              </div>
-                              {/* Row 2: Vermietete Objekte */}
-                              <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <Building2 className="w-4 h-4 text-navy-500 shrink-0" />
-                                  <span className="text-sm font-medium text-navy-700 truncate">
-                                    {t.pricing.steps.assets.liegenschaft.vermietet}
-                                  </span>
-                                </div>
-                                <NumberStepper
-                                  value={state.liegenschaftDetail.vermietet}
-                                  min={0}
-                                  max={3}
-                                  onChange={(v) => updateLiegenschaft('vermietet', v)}
-                                  showPlus={true}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    },
-                  )}
-                </div>
-                {/* Continue button for multi-select */}
-                <button
-                  onClick={goNext}
-                  disabled={!canAdvance('assets', state)}
-                  className="btn-white w-full mt-8 group disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label={t.common.next}
-                >
-                  {t.common.next}
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </StepCard>
-            )}
-
-            {/* ---- Step: Ausland ---- */}
-            {currentStep === 'ausland' && (
-              <StepCard>
-                <StepQuestion>{t.pricing.steps.ausland.question}</StepQuestion>
-                <div className="grid grid-cols-2 gap-4 mt-8">
-                  <OptionButton
-                    selected={state.ausland === true}
-                    onClick={() => selectAusland(true)}
-                    aria-label={t.pricing.steps.ausland.options.ja}
-                  >
-                    <Globe className="w-6 h-6 shrink-0" />
-                    <span className="text-lg font-medium">{t.pricing.steps.ausland.options.ja}</span>
-                  </OptionButton>
-                  <OptionButton
-                    selected={state.ausland === false}
-                    onClick={() => selectAusland(false)}
-                    aria-label={t.pricing.steps.ausland.options.nein}
-                  >
-                    <Shield className="w-6 h-6 shrink-0" />
-                    <span className="text-lg font-medium">{t.pricing.steps.ausland.options.nein}</span>
-                  </OptionButton>
-                </div>
-              </StepCard>
-            )}
-
-            {/* ---- Step: Unterlagen ---- */}
-            {currentStep === 'unterlagen' && (
-              <StepCard>
-                <StepQuestion>{t.pricing.steps.unterlagen.question}</StepQuestion>
+                <StepQuestion>{t.pricing.steps.bearbeitungszeit.question}</StepQuestion>
                 <div className="grid gap-4 mt-8">
-                  {(Object.entries(t.pricing.steps.unterlagen.options) as [Docs, string][]).map(
-                    ([key, label]) => (
-                      <OptionButton
-                        key={key}
-                        selected={state.unterlagen === key}
-                        onClick={() => selectUnterlagen(key)}
-                        aria-label={label}
-                      >
-                        <FolderOpen className="w-6 h-6 shrink-0" />
-                        <span className="text-lg font-medium">{label}</span>
-                      </OptionButton>
-                    ),
-                  )}
+                  <OptionButton
+                    selected={state.express === false}
+                    onClick={() => selectExpress(false)}
+                    aria-label={t.pricing.steps.bearbeitungszeit.options.standard}
+                  >
+                    <Clock className="w-6 h-6 shrink-0" />
+                    <div className="flex-1">
+                      <span className="text-lg font-medium">{t.pricing.steps.bearbeitungszeit.options.standard}</span>
+                      <p className={`text-sm mt-0.5 ${state.express === false ? 'text-white/70' : 'text-navy-500'}`}>
+                        {t.pricing.steps.bearbeitungszeit.standardHint}
+                      </p>
+                    </div>
+                    <span className={`text-lg font-bold shrink-0 ${state.express === false ? 'text-white' : 'text-navy-900'}`}>
+                      CHF 0.-
+                    </span>
+                  </OptionButton>
+                  <OptionButton
+                    selected={state.express === true}
+                    onClick={() => selectExpress(true)}
+                    aria-label={t.pricing.steps.bearbeitungszeit.options.express}
+                  >
+                    <Zap className="w-6 h-6 shrink-0" />
+                    <div className="flex-1">
+                      <span className="text-lg font-medium">{t.pricing.steps.bearbeitungszeit.options.express}</span>
+                      <p className={`text-sm mt-0.5 ${state.express === true ? 'text-white/70' : 'text-navy-500'}`}>
+                        {t.pricing.steps.bearbeitungszeit.expressHint}
+                      </p>
+                    </div>
+                    <span className={`text-lg font-bold shrink-0 ${state.express === true ? 'text-white' : 'text-navy-900'}`}>
+                      + CHF 40.-
+                    </span>
+                  </OptionButton>
                 </div>
               </StepCard>
-            )}
-
-            {/* ---- Step: Kontaktformular ---- */}
-            {currentStep === 'kontaktformular' && (
-              <div className="wizard-fade-up">
-                <div className="card p-8 sm:p-10 lg:p-12">
-                  {formSuccess ? (
-                    <div className="text-center">
-                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-trust-50 border border-trust-200 mb-6">
-                        <Check className="w-8 h-8 text-trust-600" />
-                      </div>
-                      <p className="text-lg font-medium text-navy-900">
-                        {t.pricing.steps.kontaktformular.success}
-                      </p>
-                      <button
-                        onClick={restart}
-                        className="mt-8 inline-flex items-center gap-2 text-sm text-navy-400 hover:text-navy-600 transition-colors"
-                      >
-                        <RotateCcw className="w-4 h-4" />
-                        {t.pricing.result.restart}
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      {/* Back button */}
-                      <button
-                        onClick={goBack}
-                        className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-500 hover:text-navy-700 transition-colors mb-6"
-                        aria-label={t.common.back}
-                      >
-                        <ArrowLeft className="w-4 h-4" />
-                        {t.common.back}
-                      </button>
-
-                      <h2 className="font-heading text-xl sm:text-2xl font-bold text-navy-900 text-center">
-                        {t.pricing.steps.kontaktformular.heading}
-                      </h2>
-                      <p className="text-navy-500 text-sm mt-2 mb-8 text-center max-w-md mx-auto">
-                        {t.pricing.steps.kontaktformular.description}
-                      </p>
-
-                      <div className="space-y-4 max-w-md mx-auto">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-navy-700 mb-1">
-                              {t.pricing.steps.kontaktformular.firstName}
-                            </label>
-                            <div className="relative">
-                              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
-                              <input
-                                type="text"
-                                value={state.kontaktForm.firstName}
-                                onChange={(e) => updateKontaktForm('firstName', e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:outline-none transition-colors"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-navy-700 mb-1">
-                              {t.pricing.steps.kontaktformular.lastName}
-                            </label>
-                            <div className="relative">
-                              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
-                              <input
-                                type="text"
-                                value={state.kontaktForm.lastName}
-                                onChange={(e) => updateKontaktForm('lastName', e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:outline-none transition-colors"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-navy-700 mb-1">
-                            {t.pricing.steps.kontaktformular.phone}
-                          </label>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
-                            <input
-                              type="tel"
-                              value={state.kontaktForm.phone}
-                              onChange={(e) => updateKontaktForm('phone', e.target.value)}
-                              className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:outline-none transition-colors"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-navy-700 mb-1">
-                            {t.pricing.steps.kontaktformular.email}
-                          </label>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
-                            <input
-                              type="email"
-                              value={state.kontaktForm.email}
-                              onChange={(e) => updateKontaktForm('email', e.target.value)}
-                              className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:outline-none transition-colors"
-                            />
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={submitKontaktForm}
-                          disabled={!canAdvance('kontaktformular', state) || formSubmitting}
-                          className="btn-white w-full mt-4 group disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          {formSubmitting ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                          ) : (
-                            <>
-                              {t.pricing.steps.kontaktformular.submit}
-                              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                            </>
-                          )}
-                        </button>
-                        {formError && (
-                          <p className="text-red-600 text-sm text-center mt-3">
-                            {t.pricing.steps.kontaktformular.error}
-                          </p>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
             )}
 
             {/* ---- Result Screen ---- */}
             {currentStep === 'result' && (
               <div className="wizard-fade-up">
-                <div className="card p-8 sm:p-10 lg:p-12 text-center">
+                <div className="card p-8 sm:p-10 lg:p-12">
                   {/* Back button */}
                   <div className="text-left mb-4">
                     <button
@@ -936,97 +586,149 @@ export default function PricingPage() {
                   </div>
 
                   {/* Heading */}
-                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-navy-900">
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-navy-900 text-center">
                     {t.pricing.result.heading}
                   </h2>
 
-                  {/* Tier badge */}
-                  <div className="mt-6 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-navy-50 border border-navy-200">
-                    <Check className="w-5 h-5 text-navy-700" />
-                    <span className="font-heading font-bold text-navy-900 text-lg">
-                      {t.pricing.tiers[tier].name}
-                    </span>
+                  {/* Breakdown table */}
+                  <div className="mt-8 max-w-md mx-auto">
+                    <div className="space-y-3">
+                      {breakdown.map((item, i) => (
+                        <div key={i} className="flex items-center justify-between py-2 border-b border-navy-100 last:border-b-0">
+                          <span className="text-navy-700 text-sm">{item.label}</span>
+                          <span className="text-navy-900 font-medium text-sm">CHF {item.amount}.-</span>
+                        </div>
+                      ))}
+                      {state.selbstaendig && (
+                        <div className="flex items-center justify-between py-2 border-b border-navy-100">
+                          <span className="text-navy-700 text-sm">{t.pricing.result.selbstaendigLine}</span>
+                          <span className="text-navy-500 font-medium text-sm italic">{t.pricing.result.selbstaendigPrice}</span>
+                        </div>
+                      )}
+                      {state.abo && (
+                        <div className="flex items-center justify-between py-2 border-b border-navy-100">
+                          <span className="text-trust-700 text-sm font-medium">{t.pricing.result.aboDiscount}</span>
+                          <span className="text-trust-700 font-medium text-sm">− CHF {aboSavings}.-</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Total */}
+                    <div className="mt-4 pt-4 border-t-2 border-navy-800 flex items-center justify-between">
+                      <span className="font-heading font-bold text-navy-900 text-lg">{t.pricing.result.total}</span>
+                      <span className="font-heading font-bold text-navy-900 text-3xl sm:text-4xl">
+                        CHF {state.abo ? aboTotal : total}.-
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Price */}
-                  <div className="mt-6">
-                    <span className="text-4xl sm:text-5xl font-bold text-navy-900">
-                      {t.pricing.tiers[tier].price}
-                    </span>
-                    <p className="text-navy-500 text-sm mt-1">
-                      {t.pricing.tiers[tier].priceLabel}
-                    </p>
-                  </div>
+                  {/* Abo Toggle (hidden for Lehrling) */}
+                  {state.personentyp !== 'lehrling' && <div className="mt-8 max-w-md mx-auto">
+                    <div className="flex rounded-xl border-2 border-navy-200 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setState((prev) => ({ ...prev, abo: false }))}
+                        className={`flex-1 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                          !state.abo
+                            ? 'bg-navy-800 text-white'
+                            : 'bg-white text-navy-600 hover:bg-navy-50'
+                        }`}
+                      >
+                        {t.pricing.result.aboToggleEinmalig}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setState((prev) => ({ ...prev, abo: true }))}
+                        className={`flex-1 px-4 py-3 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                          state.abo
+                            ? 'bg-navy-800 text-white'
+                            : 'bg-white text-navy-600 hover:bg-navy-50'
+                        }`}
+                      >
+                        <Repeat className="w-4 h-4" />
+                        {t.pricing.result.aboToggleAbo}
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                          state.abo ? 'bg-trust-400 text-white' : 'bg-trust-100 text-trust-700'
+                        }`}>
+                          {t.pricing.result.aboSavingsBadge}
+                        </span>
+                      </button>
+                    </div>
 
-                  {/* Fixed price badge for Basis & Erweitert */}
-                  {(tier === 'basis' || tier === 'erweitert') && (
-                    <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-trust-50 border border-trust-200 text-trust-700 text-sm font-medium">
+                    {/* Abo note */}
+                    {state.abo && (
+                      <div className="mt-4 p-4 rounded-xl bg-trust-50 border border-trust-200">
+                        <p className="text-sm text-trust-700 text-center">
+                          {t.pricing.result.aboNote}
+                        </p>
+                      </div>
+                    )}
+                  </div>}
+
+                  {/* Fixed price badge */}
+                  <div className="mt-6 flex justify-center">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-trust-50 border border-trust-200 text-trust-700 text-sm font-medium">
                       <Shield className="w-4 h-4" />
                       {t.pricing.result.fixedBadge}
                     </div>
-                  )}
+                  </div>
 
-                  {/* Komplex note */}
-                  {tier === 'komplex' && (
-                    <p className="mt-4 text-navy-600 text-sm max-w-md mx-auto bg-navy-50 rounded-lg p-4 border border-navy-100">
-                      {t.pricing.result.komplexNote}
-                    </p>
-                  )}
-
-                  {/* Description */}
-                  <p className="mt-6 text-navy-600 text-base max-w-md mx-auto">
-                    {t.pricing.tiers[tier].description}
-                  </p>
-
-                  {/* Features list */}
-                  <div className="mt-8 text-left max-w-sm mx-auto">
-                    <p className="text-sm font-semibold text-navy-900 mb-4">
-                      {t.pricing.result.included}
-                    </p>
-                    <ul className="space-y-3">
-                      {t.pricing.tiers[tier].features.map((feature, i) => (
+                  {/* Included hints */}
+                  <div className="mt-8 flex justify-center">
+                    <ul className="space-y-3 inline-block">
+                      {t.pricing.result.included.map((item: string, i: number) => (
                         <li key={i} className="flex items-start gap-3">
                           <Check className="w-5 h-5 text-trust-500 shrink-0 mt-0.5" />
-                          <span className="text-navy-700 text-sm">{feature}</span>
+                          <span className="text-navy-700 text-sm">{item}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  {/* Messy docs note */}
-                  {showMessyDocsNote && (
-                    <p className="mt-6 text-xs text-navy-500 italic max-w-sm mx-auto">
-                      {t.pricing.result.messyDocsNote}
-                    </p>
+                  {/* Selbständig disclaimer */}
+                  {state.selbstaendig && (
+                    <div className="mt-6 p-4 rounded-xl bg-navy-50 border border-navy-200 max-w-md mx-auto">
+                      <p className="text-sm text-navy-600 text-center">
+                        {t.pricing.result.selbstaendigNote}
+                      </p>
+                    </div>
                   )}
 
-                  {/* CTA buttons */}
-                  <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+                  {/* CTA */}
+                  <div className="mt-10 flex justify-center">
                     <button
                       onClick={handleOrderNow}
-                      className="btn-white group text-base !px-8 !py-4"
+                      disabled={orderLoading}
+                      className="btn-white group text-base !px-8 !py-4 disabled:opacity-50"
                     >
-                      {t.pricing.result.ctaStart}
-                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                      {orderLoading ? (
+                        <span className="flex items-center gap-2">
+                          <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          {t.pricing.paymentLoading}
+                        </span>
+                      ) : (
+                        <>
+                          {t.pricing.cta}
+                          <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
                     </button>
-                    <a
-                      href="mailto:info@petertiltax.ch"
-                      className="btn-secondary group text-base !px-8 !py-4"
-                    >
-                      <Mail className="w-5 h-5 mr-2" />
-                      {t.pricing.result.ctaConsult}
-                    </a>
                   </div>
 
                   {/* Restart */}
-                  <button
-                    onClick={restart}
-                    className="mt-6 inline-flex items-center gap-2 text-sm text-navy-400 hover:text-navy-600 transition-colors"
-                    aria-label={t.pricing.result.restart}
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    {t.pricing.result.restart}
-                  </button>
+                  <div className="mt-6 text-center">
+                    <button
+                      onClick={restart}
+                      className="inline-flex items-center gap-2 text-sm text-navy-400 hover:text-navy-600 transition-colors"
+                      aria-label={t.pricing.result.restart}
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      {t.pricing.result.restart}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -1088,32 +790,36 @@ function NumberStepper({
   min,
   max,
   onChange,
-  showPlus,
+  inverted,
 }: {
   value: number
   min: number
   max: number
   onChange: (v: number) => void
-  showPlus?: boolean
+  inverted?: boolean
 }) {
+  const borderColor = inverted ? 'border-white/30' : 'border-navy-200'
+  const textColor = inverted ? 'text-white' : 'text-navy-600'
+  const hoverBg = inverted ? 'hover:bg-white/10' : 'hover:bg-navy-100'
+
   return (
     <div className="flex items-center gap-1 shrink-0">
       <button
         type="button"
-        onClick={() => onChange(Math.max(min, value - 1))}
+        onClick={(e) => { e.stopPropagation(); onChange(Math.max(min, value - 1)) }}
         disabled={value <= min}
-        className="w-10 h-10 flex items-center justify-center rounded-lg border border-navy-200 text-navy-600 hover:bg-navy-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className={`w-10 h-10 flex items-center justify-center rounded-lg border ${borderColor} ${textColor} ${hoverBg} disabled:opacity-30 disabled:cursor-not-allowed transition-colors`}
       >
         <Minus className="w-3.5 h-3.5" />
       </button>
-      <span className="w-8 text-center text-sm font-semibold text-navy-900">
-        {value === max && showPlus ? `${value}+` : value}
+      <span className={`w-8 text-center text-sm font-semibold ${inverted ? 'text-white' : 'text-navy-900'}`}>
+        {value}
       </span>
       <button
         type="button"
-        onClick={() => onChange(Math.min(max, value + 1))}
+        onClick={(e) => { e.stopPropagation(); onChange(Math.min(max, value + 1)) }}
         disabled={value >= max}
-        className="w-10 h-10 flex items-center justify-center rounded-lg border border-navy-200 text-navy-600 hover:bg-navy-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className={`w-10 h-10 flex items-center justify-center rounded-lg border ${borderColor} ${textColor} ${hoverBg} disabled:opacity-30 disabled:cursor-not-allowed transition-colors`}
       >
         <Plus className="w-3.5 h-3.5" />
       </button>

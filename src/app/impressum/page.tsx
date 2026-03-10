@@ -98,42 +98,76 @@ export default function ImpressumPage() {
                 : 'Prices are based on the selected service package and are communicated transparently before order placement. Payment is made by credit card (Visa, Mastercard) via Stripe or by bank transfer. Invoices are issued in Swiss QR bill format.'}
             </p>
 
-            <h3>{locale === 'de' ? '5. Steuerrechner' : '5. Tax Calculator'}</h3>
+            <h3>{locale === 'de' ? '5. Jahresabo (Abonnement)' : '5. Annual Subscription'}</h3>
+            <p>
+              {locale === 'de'
+                ? 'Kunden können bei der Beauftragung ein Jahresabo abschliessen, welches einen Rabatt von 10% auf den Gesamtpreis gewährt. Es gelten folgende Bedingungen:'
+                : 'Clients may subscribe to an annual subscription when placing an order, which grants a 10% discount on the total price. The following conditions apply:'}
+            </p>
+            <ul>
+              <li>
+                {locale === 'de'
+                  ? 'Mindestlaufzeit: 2 Jahre (aktuelles Steuerjahr + folgendes Steuerjahr). Während der Mindestlaufzeit ist keine Kündigung möglich.'
+                  : 'Minimum term: 2 years (current tax year + following tax year). Cancellation is not possible during the minimum term.'}
+              </li>
+              <li>
+                {locale === 'de'
+                  ? 'Bezahlung: Es wird nur das aktuelle Steuerjahr sofort in Rechnung gestellt. Die Verlängerung für das Folgejahr wird jeweils am 15. Februar automatisch abgebucht.'
+                  : 'Payment: Only the current tax year is invoiced immediately. The renewal for the following year is automatically charged on February 15 each year.'}
+              </li>
+              <li>
+                {locale === 'de'
+                  ? 'Ab dem 3. Jahr verlängert sich das Abo automatisch um jeweils ein weiteres Steuerjahr. Die Kündigung ist bis spätestens 10. Februar möglich.'
+                  : 'From the 3rd year, the subscription automatically renews for one additional tax year. Cancellation is possible until February 10.'}
+              </li>
+              <li>
+                {locale === 'de'
+                  ? 'Der Abo-Rabatt gilt ausschliesslich bei Vorab-Abschluss des Abonnements. Kunden, die im Folgejahr ohne bestehendes Abo eine Steuererklärung beauftragen, haben keinen Anspruch auf den Abo-Rabatt.'
+                  : 'The subscription discount applies exclusively when the subscription is taken out in advance. Clients who commission a tax declaration in the following year without an existing subscription are not entitled to the subscription discount.'}
+              </li>
+              <li>
+                {locale === 'de'
+                  ? 'Der Preis des Abos basiert auf dem zum Zeitpunkt des Abschlusses berechneten Leistungspaket. Preisanpassungen für Folgejahre werden mindestens 30 Tage vor der Abbuchung kommuniziert.'
+                  : 'The subscription price is based on the service package calculated at the time of subscription. Price adjustments for subsequent years are communicated at least 30 days before charging.'}
+              </li>
+            </ul>
+
+            <h3>{locale === 'de' ? '6. Steuerrechner' : '6. Tax Calculator'}</h3>
             <p>
               {locale === 'de'
                 ? 'Der Steuerrechner liefert unverbindliche Schätzungen auf Basis öffentlich verfügbarer Daten des ESTV-Steuerrechners. Die Ergebnisse sind ohne Gewähr und ersetzen keine professionelle Steuerberatung. Es besteht keine Verbindung zur ESTV oder zur Schweizerischen Eidgenossenschaft. Steuersätze und Abzüge können sich jährlich ändern.'
                 : 'The tax calculator provides non-binding estimates based on publicly available data from the ESTV tax calculator. Results are provided without warranty and do not replace professional tax advice. There is no affiliation with ESTV or the Swiss Confederation. Tax rates and deductions may change annually.'}
             </p>
 
-            <h3>{locale === 'de' ? '6. Mitwirkungspflicht' : '6. Client Obligations'}</h3>
+            <h3>{locale === 'de' ? '7. Mitwirkungspflicht' : '7. Client Obligations'}</h3>
             <p>
               {locale === 'de'
                 ? 'Der Kunde ist verpflichtet, alle für die Steuererklärung relevanten Unterlagen vollständig und wahrheitsgemäss zur Verfügung zu stellen. Für Schäden, die durch unvollständige oder fehlerhafte Angaben entstehen, übernehmen wir keine Haftung.'
                 : 'The client is obligated to provide all documents relevant to the tax declaration completely and truthfully. We assume no liability for damages resulting from incomplete or incorrect information.'}
             </p>
 
-            <h3>{locale === 'de' ? '7. Haftung' : '7. Liability'}</h3>
+            <h3>{locale === 'de' ? '8. Haftung' : '8. Liability'}</h3>
             <p>
               {locale === 'de'
                 ? 'Unsere Haftung beschränkt sich auf Vorsatz und grobe Fahrlässigkeit. Die Haftung für leichte Fahrlässigkeit ist im gesetzlich zulässigen Rahmen ausgeschlossen. Für die Ergebnisse des Steuerrechners wird keinerlei Haftung übernommen.'
                 : 'Our liability is limited to intent and gross negligence. Liability for slight negligence is excluded to the extent permitted by law. No liability is assumed for the results of the tax calculator.'}
             </p>
 
-            <h3>{locale === 'de' ? '8. Datenschutz' : '8. Data Protection'}</h3>
+            <h3>{locale === 'de' ? '9. Datenschutz' : '9. Data Protection'}</h3>
             <p>
               {locale === 'de'
                 ? <>Es gilt unsere <Link href="/privacy" className="text-navy-600 underline">Datenschutzerklärung</Link>. Sämtliche Daten werden auf Servern in Westeuropa verarbeitet und gemäss dem schweizerischen Datenschutzgesetz (DSG) behandelt.</>
                 : <>Our <Link href="/privacy" className="text-navy-600 underline">Privacy Policy</Link> applies. All data is processed on servers in Western Europe and handled in accordance with the Swiss Federal Act on Data Protection (FADP).</>}
             </p>
 
-            <h3>{locale === 'de' ? '9. Geistiges Eigentum' : '9. Intellectual Property'}</h3>
+            <h3>{locale === 'de' ? '10. Geistiges Eigentum' : '10. Intellectual Property'}</h3>
             <p>
               {locale === 'de'
                 ? 'Alle Inhalte der Website (Texte, Grafiken, Software) sind urheberrechtlich geschützt. Eine Vervielfältigung oder Verwendung ohne schriftliche Zustimmung ist untersagt.'
                 : 'All content on the website (texts, graphics, software) is protected by copyright. Reproduction or use without written consent is prohibited.'}
             </p>
 
-            <h3>{locale === 'de' ? '10. Anwendbares Recht und Gerichtsstand' : '10. Applicable Law and Jurisdiction'}</h3>
+            <h3>{locale === 'de' ? '11. Anwendbares Recht und Gerichtsstand' : '11. Applicable Law and Jurisdiction'}</h3>
             <p>
               {locale === 'de'
                 ? 'Es gilt ausschliesslich schweizerisches Recht. Gerichtsstand ist der Sitz von Petertil Tax in der Schweiz.'

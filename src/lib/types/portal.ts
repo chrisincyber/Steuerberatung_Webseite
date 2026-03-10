@@ -144,6 +144,7 @@ export interface TaxYear {
   p2_company: string | null
   p2_job_title: string | null
   admin_notes: string | null
+  is_abo: boolean | null
   created_at: string
   updated_at: string
 }

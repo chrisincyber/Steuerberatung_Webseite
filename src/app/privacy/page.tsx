@@ -128,7 +128,14 @@ export default function PrivacyPage() {
                 : 'The tax calculator uses publicly available data from the ESTV tax calculator. Input data (income, residence, marital status, etc.) is not permanently stored unless you are logged in. For logged-in users, calculations can optionally be saved to their account and deleted at any time.'}
             </p>
 
-            <h2>{locale === 'de' ? '11. Ihre Rechte' : '11. Your Rights'}</h2>
+            <h2>{locale === 'de' ? '11. Jahresabo (Abonnement)' : '11. Annual Subscription'}</h2>
+            <p>
+              {locale === 'de'
+                ? 'Bei Abschluss eines Jahresabos speichern wir zusätzlich den Abo-Status, die Mindestlaufzeit sowie das Datum der nächsten Verlängerung. Diese Daten werden zur Vertragserfüllung und Rechnungsstellung benötigt. Im Falle einer Kündigung werden die Abo-Daten nach Ablauf der letzten bezahlten Periode gelöscht, sofern keine gesetzliche Aufbewahrungspflicht besteht.'
+                : 'When subscribing to an annual subscription, we additionally store the subscription status, minimum term, and the date of the next renewal. This data is required for contract performance and invoicing. In the event of cancellation, subscription data is deleted after the end of the last paid period, unless a statutory retention obligation applies.'}
+            </p>
+
+            <h2>{locale === 'de' ? '12. Ihre Rechte' : '12. Your Rights'}</h2>
             <p>
               {locale === 'de'
                 ? 'Gemäss dem revidierten DSG haben Sie folgende Rechte:'
@@ -148,7 +155,7 @@ export default function PrivacyPage() {
                 : 'To exercise your rights, contact us at info@petertiltax.ch. We will respond within 30 days. You also have the right to lodge a complaint with the Federal Data Protection and Information Commissioner (FDPIC).'}
             </p>
 
-            <h2>{locale === 'de' ? '12. Kontakt' : '12. Contact'}</h2>
+            <h2>{locale === 'de' ? '13. Kontakt' : '13. Contact'}</h2>
             <p>
               Petertil Tax<br />
               E-Mail: info@petertiltax.ch

@@ -61,56 +61,90 @@ function DashboardContent() {
     setLoading(false)
   }, [])
 
-  // Pricing callback integration
+  // Stripe payment callback (session_id)
   useEffect(() => {
-    const tierParam = searchParams.get('tier')
-    const priceParam = searchParams.get('price')
-    const yearParam = searchParams.get('year')
+    const sessionId = searchParams.get('session_id')
+    if (!sessionId) return
 
-    if (!tierParam || !yearParam) return
-
-    const tier = parseInt(tierParam, 10) as 1 | 2 | 3
-    const price = priceParam ? parseFloat(priceParam) : null
-    const year = parseInt(yearParam, 10)
-
-    if (isNaN(tier) || isNaN(year)) return
-
-    const processPricingCallback = async () => {
+    const processStripeCallback = async () => {
       const supabase = createClient()
       if (!supabase) return
 
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      let status: TaxYearStatus
-      if (tier === 1 || tier === 2) {
-        status = 'dokumente_hochladen'
-      } else {
-        status = 'angebot_ausstehend'
+      try {
+        const res = await fetch(`/api/stripe/verify-session?session_id=${encodeURIComponent(sessionId)}`)
+        const data = await res.json()
+
+        if (!data.paid) return
+
+        const year = parseInt(data.metadata.year, 10)
+        const price = parseFloat(data.metadata.price)
+        const isAbo = data.metadata.abo === 'true'
+
+        if (isNaN(year) || isNaN(price)) return
+
+        await supabase
+          .from('tax_years')
+          .upsert({
+            user_id: user.id,
+            year,
+            tier: 1 as const,
+            price,
+            status: 'dokumente_hochladen' as TaxYearStatus,
+            is_abo: isAbo || null,
+            stripe_session_id: sessionId,
+          }, { onConflict: 'user_id,year' })
+
+        const msg = t.dashboard.paymentSuccess.replace('{year}', String(year))
+        setToast(isAbo ? `${msg} ${t.dashboard.paymentSuccessAbo}` : msg)
+      } catch (error) {
+        console.error('Failed to verify Stripe session:', error)
       }
+
+      router.replace('/dashboard')
+      fetchData()
+    }
+
+    processStripeCallback()
+  }, [searchParams, router, fetchData, t])
+
+  // Selbständige callback (no Stripe)
+  useEffect(() => {
+    const yearParam = searchParams.get('year')
+    const selbstaendigParam = searchParams.get('selbstaendig')
+
+    if (!yearParam || selbstaendigParam !== 'true') return
+    // Don't process if this is a Stripe callback
+    if (searchParams.get('session_id')) return
+
+    const year = parseInt(yearParam, 10)
+    if (isNaN(year)) return
+
+    const processSelbstaendigCallback = async () => {
+      const supabase = createClient()
+      if (!supabase) return
+
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
       await supabase
         .from('tax_years')
         .upsert({
           user_id: user.id,
           year,
-          tier,
-          price: (tier === 1 || tier === 2) ? price : null,
-          status,
+          tier: 1 as const,
+          price: 0,
+          status: 'angebot_ausstehend' as TaxYearStatus,
         }, { onConflict: 'user_id,year' })
 
-      if (tier === 1 || tier === 2) {
-        setToast(t.dashboard.pricingCallbackSuccess.replace('{price}', String(price)))
-      } else {
-        setToast(t.dashboard.pricingCallbackTier3)
-      }
-
-      // Clean URL params
+      setToast(t.dashboard.pricingCallbackTier3)
       router.replace('/dashboard')
       fetchData()
     }
 
-    processPricingCallback()
+    processSelbstaendigCallback()
   }, [searchParams, router, fetchData, t])
 
   useEffect(() => {

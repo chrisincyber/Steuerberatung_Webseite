@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/context'
@@ -18,11 +18,15 @@ export default function RegisterPage() {
 function RegisterForm() {
   const { t, locale } = useI18n()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') || '/dashboard'
+  const sessionId = searchParams.get('session_id')
+  const redirect = sessionId
+    ? `/dashboard?session_id=${sessionId}`
+    : searchParams.get('redirect') || '/dashboard'
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
+  const [emailReadonly, setEmailReadonly] = useState(false)
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -30,6 +34,24 @@ function RegisterForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [paymentVerified, setPaymentVerified] = useState(false)
+
+  // Prefill email from Stripe session
+  useEffect(() => {
+    if (!sessionId) return
+    fetch(`/api/stripe/verify-session?session_id=${encodeURIComponent(sessionId)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.paid && data.email) {
+          setEmail(data.email)
+          setEmailReadonly(true)
+          setPaymentVerified(true)
+        }
+      })
+      .catch(() => {
+        // Ignore errors, user can still fill in email manually
+      })
+  }, [sessionId])
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -114,6 +136,13 @@ function RegisterForm() {
 
         <div className="card p-8">
           <form onSubmit={handleRegister} className="space-y-5">
+            {paymentVerified && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-trust-50 border border-trust-200 text-trust-700 text-sm">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                {t.auth.paymentReceived}
+              </div>
+            )}
+
             {error && (
               <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
                 <AlertCircle className="w-4 h-4 shrink-0" />
@@ -162,7 +191,8 @@ function RegisterForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+                  readOnly={emailReadonly}
+                  className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none ${emailReadonly ? 'bg-navy-50 cursor-not-allowed' : ''}`}
                   placeholder="name@example.com"
                 />
               </div>
