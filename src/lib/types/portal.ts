@@ -163,6 +163,18 @@ export interface Document {
   uploaded_at: string
 }
 
+export interface TaxCalculation {
+  id: string
+  user_id: string
+  name: string
+  form_data: Record<string, unknown>
+  result_data: Record<string, unknown>
+  mode: 'simple' | 'complex'
+  locale: 'de' | 'en'
+  created_at: string
+  updated_at: string
+}
+
 // ============ STATUS HELPERS ============
 
 export const STATUS_ORDER: TaxYearStatus[] = [

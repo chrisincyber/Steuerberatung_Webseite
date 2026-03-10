@@ -48,15 +48,15 @@ export default function Header() {
 
   const navLinks = [
     { href: '/', label: t.nav.home },
-    { href: '/about', label: t.nav.about },
+    { href: '/tax-calculator', label: t.nav.taxCalculator },
     { href: '/pricing', label: t.nav.pricing },
   ]
 
   const resourceLinks = [
-    { href: '/tax-calculator', label: t.nav.taxCalculator },
     { href: '/kanton/zuerich', label: t.nav.cantons },
     { href: '/deadlines', label: t.nav.deadlines },
     { href: '/faq', label: t.nav.faq },
+    { href: '/about', label: t.nav.about },
   ]
 
   // Pages with a dark hero background where we need white text/logo
