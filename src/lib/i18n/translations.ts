@@ -412,6 +412,14 @@ export const translations = {
       ctaTitle: 'Lassen Sie uns das für Sie erledigen',
       ctaDescription: 'Ein persönlicher Steuerberater erstellt Ihre Steuererklärung und holt das Maximum heraus.',
       ctaButton: 'Jetzt beauftragen',
+      disclaimer: {
+        title: 'Rechtlicher Hinweis',
+        notBinding: 'Die Ergebnisse sind unverbindliche Schätzungen ohne Gewähr auf Richtigkeit oder Vollständigkeit.',
+        noLiability: 'Es wird keine Haftung für die Korrektheit der Ergebnisse übernommen. Die Nutzung erfolgt auf eigenes Risiko.',
+        notAdvice: 'Die Berechnung stellt keine Steuerberatung dar und ersetzt keine professionelle Steuerberatung.',
+        estvSource: 'Die Berechnungsdaten stammen aus dem ESTV-Steuerrechner. Es besteht keine Verbindung zur ESTV oder zur Schweizerischen Eidgenossenschaft.',
+        dataNote: 'Steuersätze und Abzüge können sich jährlich ändern. Die Ergebnisse basieren auf den aktuell verfügbaren Daten.',
+      },
     },
 
     // FAQ
@@ -1231,6 +1239,14 @@ export const translations = {
       ctaTitle: 'Let us handle it for you',
       ctaDescription: 'A personal tax advisor prepares your declaration and maximizes your returns.',
       ctaButton: 'Order now',
+      disclaimer: {
+        title: 'Legal Notice',
+        notBinding: 'Results are non-binding estimates with no guarantee of accuracy or completeness.',
+        noLiability: 'No liability is accepted for the correctness of the results. Use at your own risk.',
+        notAdvice: 'This does not constitute tax advice and does not replace professional tax consultation.',
+        estvSource: 'Calculation data is sourced from the ESTV tax calculator. There is no affiliation with ESTV or the Swiss Confederation.',
+        dataNote: 'Tax rates and deductions may change annually. Results are based on currently available data.',
+      },
     },
 
     faq: {

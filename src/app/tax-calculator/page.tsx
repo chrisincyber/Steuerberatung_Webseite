@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { cantons, cantonCapitals, calculateSwissTax } from '@/lib/swiss-data'
 import { searchCities, calculateTaxESTV, type TaxCity, type EstvTaxResult } from '@/lib/estv-tax'
-import { Calculator, ArrowRight, ChevronDown, TrendingUp, Search, Loader2, GitCompareArrows, X, Plus, Trash2, Info, SlidersHorizontal } from 'lucide-react'
+import { Calculator, ArrowRight, ChevronDown, TrendingUp, Search, Loader2, GitCompareArrows, X, Plus, Trash2, Info, SlidersHorizontal, ShieldAlert } from 'lucide-react'
 
 type FallbackResult = ReturnType<typeof calculateSwissTax>
 type TaxResult = (EstvTaxResult | NonNullable<FallbackResult>) & { source: 'estv' | 'fallback' }
@@ -1037,6 +1037,40 @@ export default function TaxCalculatorPage() {
               </div>
             </div>
           )}
+
+          {/* Legal Disclaimer */}
+          <div className="mt-8 rounded-xl border border-navy-200 bg-navy-50/50 p-6">
+            <div className="flex items-start gap-3">
+              <ShieldAlert className="w-5 h-5 text-navy-400 mt-0.5 shrink-0" />
+              <div>
+                <h4 className="text-sm font-semibold text-navy-600 mb-2">
+                  {t.taxCalc.disclaimer.title}
+                </h4>
+                <ul className="space-y-1 text-xs text-navy-400">
+                  <li className="flex items-start gap-1.5">
+                    <span className="mt-0.5 shrink-0">&bull;</span>
+                    {t.taxCalc.disclaimer.notBinding}
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="mt-0.5 shrink-0">&bull;</span>
+                    {t.taxCalc.disclaimer.noLiability}
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="mt-0.5 shrink-0">&bull;</span>
+                    {t.taxCalc.disclaimer.notAdvice}
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="mt-0.5 shrink-0">&bull;</span>
+                    {t.taxCalc.disclaimer.estvSource}
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="mt-0.5 shrink-0">&bull;</span>
+                    {t.taxCalc.disclaimer.dataNote}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </>
