@@ -5,7 +5,9 @@ import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { cantons, cantonCapitals, calculateSwissTax } from '@/lib/swiss-data'
 import { searchCities, calculateTaxESTV, type TaxCity, type EstvTaxResult } from '@/lib/estv-tax'
-import { Calculator, ArrowRight, ChevronDown, TrendingUp, Search, Loader2, GitCompareArrows, X, Plus, Trash2, Info, SlidersHorizontal, ShieldAlert } from 'lucide-react'
+import { Calculator, ArrowRight, ChevronDown, TrendingUp, Search, Loader2, GitCompareArrows, X, Plus, Trash2, Info, SlidersHorizontal, ShieldAlert, Download, Mail } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import type { User } from '@supabase/supabase-js'
 
 type FallbackResult = ReturnType<typeof calculateSwissTax>
 type TaxResult = (EstvTaxResult | NonNullable<FallbackResult>) & { source: 'estv' | 'fallback' }
@@ -14,6 +16,7 @@ type MaritalStatus = 'single' | 'married' | 'divorced' | 'widowed'
 type CalcMode = 'simple' | 'complex'
 
 interface FormState {
+  taxYear: number
   grossIncome: string
   canton: string
   maritalStatus: MaritalStatus
@@ -35,6 +38,8 @@ interface FormState {
   childAges: string[]
 }
 
+const TAX_YEARS = [2025, 2024, 2023, 2022, 2021]
+
 const CONFESSION_MAP: Record<string, number> = {
   none: 5,
   protestant: 1,
@@ -51,6 +56,7 @@ const INCOME_TYPE_MAP: Record<number, string> = {
 function createDefaultForm(cantonCode = 'ZH'): FormState {
   const capital = cantonCapitals[cantonCode]
   return {
+    taxYear: 2025,
     grossIncome: '',
     canton: cantonCode,
     maritalStatus: 'single',
@@ -82,7 +88,7 @@ function useMunicipalitySearch() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const handleSearch = useCallback((term: string) => {
+  const handleSearch = useCallback((term: string, year?: number) => {
     setShowDropdown(true)
     if (debounceRef.current) clearTimeout(debounceRef.current)
 
@@ -94,7 +100,7 @@ function useMunicipalitySearch() {
 
     setSearchLoading(true)
     debounceRef.current = setTimeout(async () => {
-      const results = await searchCities(term)
+      const results = await searchCities(term, year)
       setMunicipalities(results)
       setSearchLoading(false)
     }, 300)
@@ -119,6 +125,7 @@ async function computeTax(form: FormState, mode: CalcMode): Promise<TaxResult | 
 
   if (form.selectedCity) {
     const params: Parameters<typeof calculateTaxESTV>[0] = {
+      taxYear: form.taxYear,
       taxLocationId: form.selectedCity.id,
       grossIncome: income,
       maritalStatus: form.maritalStatus,
@@ -219,7 +226,7 @@ function TaxForm({
 
   const handleMunicipalityInput = (term: string) => {
     updateField('municipalitySearch', term)
-    muni.handleSearch(term)
+    muni.handleSearch(term, form.taxYear)
   }
 
   const selectCity = (city: TaxCity) => {
@@ -421,6 +428,21 @@ function TaxForm({
             <div className="border-t border-navy-100 pt-4" />
           </div>
         )}
+
+        {/* Tax Year */}
+        <div>
+          <label className="block text-sm font-semibold text-navy-900 mb-2">
+            {t.taxCalc.taxYear}
+          </label>
+          <SelectField
+            value={form.taxYear}
+            onChange={(v) => updateField('taxYear', parseInt(v))}
+          >
+            {TAX_YEARS.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </SelectField>
+        </div>
 
         {/* Canton */}
         <div>
@@ -721,6 +743,138 @@ function ResultColumn({
   )
 }
 
+function buildPdfData(form: FormState, result: TaxResult, locale: 'de' | 'en', mode: CalcMode) {
+  return {
+    locale,
+    calculatedAt: new Date().toLocaleDateString(locale === 'de' ? 'de-CH' : 'en-CH'),
+    mode,
+    form: {
+      taxYear: form.taxYear,
+      grossIncome: form.grossIncome,
+      canton: form.canton,
+      maritalStatus: form.maritalStatus,
+      children: mode === 'complex' ? form.childAges.length : form.children,
+      municipalityName: form.selectedCity?.name,
+      confession: form.confession,
+      income2: form.income2,
+      fortune: form.fortune,
+    },
+    result: {
+      source: result.source,
+      federalTax: result.federalTax,
+      cantonalTax: result.cantonalTax,
+      municipalTax: result.municipalTax,
+      churchTax: 'churchTax' in result ? result.churchTax : undefined,
+      fortuneTax: 'fortuneTax' in result ? result.fortuneTax : undefined,
+      totalTax: result.totalTax,
+      effectiveRate: result.effectiveRate,
+      taxableIncome: 'taxableIncome' in result ? result.taxableIncome : undefined,
+    },
+  }
+}
+
+function GuestPdfModal({
+  onClose,
+  onSend,
+  sending,
+  sent,
+  error,
+  t,
+}: {
+  onClose: () => void
+  onSend: (data: { fullName: string; email: string; phone: string }) => void
+  sending: boolean
+  sent: boolean
+  error: boolean
+  t: ReturnType<typeof useI18n>['t']
+}) {
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8">
+        <button onClick={onClose} className="absolute top-4 right-4 text-navy-400 hover:text-navy-600">
+          <X className="w-5 h-5" />
+        </button>
+
+        <h3 className="font-heading text-xl font-bold text-navy-900 mb-4">
+          {t.taxCalc.pdf.guestTitle}
+        </h3>
+
+        {sent ? (
+          <div className="py-8 text-center">
+            <Mail className="w-12 h-12 text-trust-500 mx-auto mb-3" />
+            <p className="text-navy-700 font-medium">{t.taxCalc.pdf.success}</p>
+          </div>
+        ) : (
+          <>
+            <Link
+              href="/auth/register?redirect=/tax-calculator"
+              className="btn-primary w-full !py-3 flex items-center justify-center gap-2 mb-2"
+            >
+              {t.taxCalc.pdf.createAccount}
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <p className="text-xs text-navy-400 text-center mb-4">{t.taxCalc.pdf.createAccountHint}</p>
+
+            <div className="flex items-center gap-3 my-5">
+              <div className="flex-1 h-px bg-navy-200" />
+              <span className="text-sm text-navy-400">{t.taxCalc.pdf.or}</span>
+              <div className="flex-1 h-px bg-navy-200" />
+            </div>
+
+            <p className="text-sm font-semibold text-navy-700 mb-3">{t.taxCalc.pdf.sendByEmail}</p>
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder={t.taxCalc.pdf.fullName}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              />
+              <input
+                type="email"
+                placeholder={t.taxCalc.pdf.email}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              />
+              <input
+                type="tel"
+                placeholder={t.taxCalc.pdf.phone}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              />
+            </div>
+            {error && <p className="text-sm text-red-600 mt-2">{t.taxCalc.pdf.error}</p>}
+            <button
+              onClick={() => onSend({ fullName, email, phone })}
+              disabled={sending || !fullName.trim() || !email.trim()}
+              className="btn-primary w-full !py-3 mt-4 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {sending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t.taxCalc.pdf.sending}
+                </>
+              ) : (
+                <>
+                  <Mail className="w-4 h-4 mr-2" />
+                  {t.taxCalc.pdf.send}
+                </>
+              )}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function TaxCalculatorPage() {
   const { t, locale } = useI18n()
 
@@ -732,6 +886,26 @@ export default function TaxCalculatorPage() {
   const [resultA, setResultA] = useState<TaxResult | null>(null)
   const [resultB, setResultB] = useState<TaxResult | null>(null)
   const [calculating, setCalculating] = useState(false)
+
+  const [user, setUser] = useState<User | null>(null)
+  const [pdfLoading, setPdfLoading] = useState(false)
+  const [showGuestModal, setShowGuestModal] = useState(false)
+  const [guestSending, setGuestSending] = useState(false)
+  const [guestSent, setGuestSent] = useState(false)
+  const [guestError, setGuestError] = useState(false)
+  const [pdfToast, setPdfToast] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    if (!supabase) return
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
+  }, [])
+
+  useEffect(() => {
+    if (!pdfToast) return
+    const timer = setTimeout(() => setPdfToast(null), 4000)
+    return () => clearTimeout(timer)
+  }, [pdfToast])
 
   const handleCalculate = async () => {
     setCalculating(true)
@@ -777,6 +951,67 @@ export default function TaxCalculatorPage() {
   }
 
   const diff = resultA && resultB ? resultA.totalTax - resultB.totalTax : null
+
+  const handleDownloadPdf = async () => {
+    if (!resultA) return
+
+    if (!user) {
+      setShowGuestModal(true)
+      setGuestSent(false)
+      setGuestError(false)
+      return
+    }
+
+    setPdfLoading(true)
+    try {
+      const pdfData = buildPdfData(formA, resultA, locale, mode)
+      const res = await fetch('/api/tax-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pdfData,
+          saveToAccount: true,
+          formState: formA,
+          resultData: resultA,
+          mode,
+        }),
+      })
+      if (!res.ok) throw new Error('PDF generation failed')
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `steuerberechnung-${formA.taxYear}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+      setPdfToast(t.taxCalc.pdf.savedToAccount)
+    } catch {
+      console.error('PDF download failed')
+    } finally {
+      setPdfLoading(false)
+    }
+  }
+
+  const handleGuestSend = async (data: { fullName: string; email: string; phone: string }) => {
+    if (!resultA) return
+    setGuestSending(true)
+    setGuestError(false)
+    try {
+      const pdfData = buildPdfData(formA, resultA, locale, mode)
+      const res = await fetch('/api/tax-pdf/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, pdfData }),
+      })
+      if (!res.ok) throw new Error()
+      setGuestSent(true)
+    } catch {
+      setGuestError(true)
+    } finally {
+      setGuestSending(false)
+    }
+  }
 
   return (
     <>
@@ -931,6 +1166,24 @@ export default function TaxCalculatorPage() {
                 </h2>
               </div>
               <ResultColumn result={resultA} t={t} formatCHF={formatCHF} />
+
+              <button
+                onClick={handleDownloadPdf}
+                disabled={pdfLoading}
+                className="btn-secondary w-full !py-3 mt-6 flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {pdfLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t.taxCalc.pdf.downloading}
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    {t.taxCalc.pdf.download}
+                  </>
+                )}
+              </button>
             </div>
           )}
 
@@ -1014,6 +1267,24 @@ export default function TaxCalculatorPage() {
                   </div>
                 </div>
               )}
+
+              <button
+                onClick={handleDownloadPdf}
+                disabled={pdfLoading}
+                className="btn-secondary w-full !py-3 mt-6 flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {pdfLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t.taxCalc.pdf.downloading}
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    {t.taxCalc.pdf.download}
+                  </>
+                )}
+              </button>
             </div>
           )}
 
@@ -1028,7 +1299,7 @@ export default function TaxCalculatorPage() {
                   {t.taxCalc.ctaDescription}
                 </p>
                 <Link
-                  href="/auth/register"
+                  href="/pricing"
                   className="btn-white !px-8 !py-4 group inline-flex"
                 >
                   {t.taxCalc.ctaButton}
@@ -1073,6 +1344,25 @@ export default function TaxCalculatorPage() {
           </div>
         </div>
       </section>
+
+      {/* PDF toast */}
+      {pdfToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-trust-50 border border-trust-200 text-trust-700 px-5 py-3 rounded-xl shadow-lg text-sm font-medium animate-in slide-in-from-bottom-2">
+          {pdfToast}
+        </div>
+      )}
+
+      {/* Guest PDF modal */}
+      {showGuestModal && resultA && (
+        <GuestPdfModal
+          onClose={() => setShowGuestModal(false)}
+          onSend={handleGuestSend}
+          sending={guestSending}
+          sent={guestSent}
+          error={guestError}
+          t={t}
+        />
+      )}
     </>
   )
 }
