@@ -19,6 +19,14 @@ interface TaxRequest {
   children: number
   confession?: number // 1=Protestant, 2=Roman Catholic, 3=Christian Catholic, 5=None
   fortune?: number
+  // Extended fields for complex mode
+  incomeType1?: number // 1=Gross, 2=Net, 3=Pension
+  income2?: number
+  incomeType2?: number
+  confession2?: number
+  age1?: number
+  age2?: number
+  childAges?: number[]
 }
 
 export async function POST(request: NextRequest) {
@@ -37,6 +45,13 @@ export async function POST(request: NextRequest) {
     children,
     confession = 5, // default: no church tax
     fortune = 0,
+    incomeType1 = 1,
+    income2 = 0,
+    incomeType2 = 0,
+    confession2,
+    age1 = 40,
+    age2,
+    childAges,
   } = body
 
   if (!taxLocationId || !grossIncome || grossIncome <= 0) {
@@ -47,23 +62,26 @@ export async function POST(request: NextRequest) {
   }
 
   const relationshipId = RELATIONSHIP_MAP[maritalStatus] ?? 1
+  const isCouple = relationshipId === 2
 
-  // Build children array with default age
-  const childrenArray = Array.from({ length: children }, () => ({ Age: 10 }))
+  // Build children array - use provided ages or default to 10
+  const childrenArray = childAges && childAges.length > 0
+    ? childAges.map((age) => ({ Age: age }))
+    : Array.from({ length: children }, () => ({ Age: 10 }))
 
   const estvPayload = {
     TaxYear: taxYear,
     TaxLocationID: taxLocationId,
     Relationship: relationshipId,
     Confession1: confession,
-    Confession2: relationshipId === 2 ? confession : 0,
+    Confession2: isCouple ? (confession2 ?? confession) : 0,
     Children: childrenArray,
-    Age1: 40,
-    Age2: relationshipId === 2 ? 40 : 0,
-    RevenueType1: 1, // Gross income
+    Age1: age1,
+    Age2: isCouple ? (age2 ?? 40) : 0,
+    RevenueType1: incomeType1,
     Revenue1: Math.round(grossIncome),
-    RevenueType2: 0,
-    Revenue2: 0,
+    RevenueType2: isCouple && income2 > 0 ? (incomeType2 || 1) : 0,
+    Revenue2: isCouple ? Math.round(income2) : 0,
     Fortune: Math.round(fortune),
   }
 

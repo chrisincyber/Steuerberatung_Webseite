@@ -29,6 +29,14 @@ export interface TaxCalculateParams {
   children: number
   confession?: number
   fortune?: number
+  // Extended fields for complex mode
+  incomeType1?: number // 1=Gross, 2=Net, 3=Pension
+  income2?: number
+  incomeType2?: number
+  confession2?: number
+  age1?: number
+  age2?: number
+  childAges?: number[]
 }
 
 export async function searchCities(

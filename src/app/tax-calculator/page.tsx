@@ -5,12 +5,13 @@ import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { cantons, cantonCapitals, calculateSwissTax } from '@/lib/swiss-data'
 import { searchCities, calculateTaxESTV, type TaxCity, type EstvTaxResult } from '@/lib/estv-tax'
-import { Calculator, ArrowRight, ChevronDown, TrendingUp, Search, Loader2, GitCompareArrows, X } from 'lucide-react'
+import { Calculator, ArrowRight, ChevronDown, TrendingUp, Search, Loader2, GitCompareArrows, X, Plus, Trash2, Info, SlidersHorizontal } from 'lucide-react'
 
 type FallbackResult = ReturnType<typeof calculateSwissTax>
 type TaxResult = (EstvTaxResult | NonNullable<FallbackResult>) & { source: 'estv' | 'fallback' }
 
 type MaritalStatus = 'single' | 'married' | 'divorced' | 'widowed'
+type CalcMode = 'simple' | 'complex'
 
 interface FormState {
   grossIncome: string
@@ -23,6 +24,15 @@ interface FormState {
   confession: string
   municipalitySearch: string
   selectedCity: TaxCity | null
+  // Complex mode fields
+  incomeType1: number // 1=Gross, 2=Net, 3=Pension
+  age1: string
+  income2: string
+  incomeType2: number
+  age2: string
+  confession2: string
+  fortune: string
+  childAges: string[]
 }
 
 const CONFESSION_MAP: Record<string, number> = {
@@ -30,6 +40,12 @@ const CONFESSION_MAP: Record<string, number> = {
   protestant: 1,
   catholic: 2,
   christCatholic: 3,
+}
+
+const INCOME_TYPE_MAP: Record<number, string> = {
+  1: 'gross',
+  2: 'net',
+  3: 'pension',
 }
 
 function createDefaultForm(cantonCode = 'ZH'): FormState {
@@ -47,6 +63,14 @@ function createDefaultForm(cantonCode = 'ZH'): FormState {
     selectedCity: capital
       ? { id: capital.taxLocationId, zipCode: capital.zipCode, name: capital.name, cantonCode, bfsId: 0 }
       : null,
+    incomeType1: 1,
+    age1: '',
+    income2: '',
+    incomeType2: 1,
+    age2: '',
+    confession2: 'none',
+    fortune: '',
+    childAges: [],
   }
 }
 
@@ -89,18 +113,35 @@ function useMunicipalitySearch() {
   return { municipalities, showDropdown, setShowDropdown, searchLoading, dropdownRef, handleSearch }
 }
 
-async function computeTax(form: FormState): Promise<TaxResult | null> {
+async function computeTax(form: FormState, mode: CalcMode): Promise<TaxResult | null> {
   const income = parseFloat(form.grossIncome) || 0
   if (income <= 0) return null
 
   if (form.selectedCity) {
-    const estvResult = await calculateTaxESTV({
+    const params: Parameters<typeof calculateTaxESTV>[0] = {
       taxLocationId: form.selectedCity.id,
       grossIncome: income,
       maritalStatus: form.maritalStatus,
-      children: form.children,
+      children: mode === 'complex' ? form.childAges.length : form.children,
       confession: CONFESSION_MAP[form.confession] ?? 5,
-    })
+    }
+
+    if (mode === 'complex') {
+      params.incomeType1 = form.incomeType1
+      params.age1 = parseInt(form.age1) || 40
+      params.fortune = parseFloat(form.fortune) || 0
+      if (form.childAges.length > 0) {
+        params.childAges = form.childAges.map((a) => parseInt(a) || 10)
+      }
+      if (form.maritalStatus === 'married') {
+        params.income2 = parseFloat(form.income2) || 0
+        params.incomeType2 = form.incomeType2
+        params.age2 = parseInt(form.age2) || 40
+        params.confession2 = CONFESSION_MAP[form.confession2] ?? 5
+      }
+    }
+
+    const estvResult = await calculateTaxESTV(params)
     if (estvResult) return estvResult
   }
 
@@ -108,13 +149,37 @@ async function computeTax(form: FormState): Promise<TaxResult | null> {
     grossIncome: income,
     cantonCode: form.canton,
     maritalStatus: form.maritalStatus,
-    children: form.children,
+    children: mode === 'complex' ? form.childAges.length : form.children,
     deductions3a: parseFloat(form.deductions3a) || 0,
     commuting: parseFloat(form.commuting) || 0,
     otherDeductions: parseFloat(form.otherDeductions) || 0,
   })
 
   return fallbackResult ? { ...fallbackResult, source: 'fallback' as const } : null
+}
+
+// Shared select wrapper
+function SelectField({
+  value,
+  onChange,
+  children,
+}: {
+  value: string | number
+  onChange: (v: string) => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-700 bg-white focus:border-navy-500 focus:ring-0 outline-none appearance-none"
+      >
+        {children}
+      </select>
+      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-navy-400 pointer-events-none" />
+    </div>
+  )
 }
 
 // Tax form component used for both scenarios
@@ -124,14 +189,17 @@ function TaxForm({
   label,
   locale,
   t,
+  mode,
 }: {
   form: FormState
   setForm: (f: FormState | ((prev: FormState) => FormState)) => void
   label?: string
   locale: 'de' | 'en'
   t: ReturnType<typeof useI18n>['t']
+  mode: CalcMode
 }) {
   const muni = useMunicipalitySearch()
+  const [showDeductions, setShowDeductions] = useState(false)
 
   const updateField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -164,6 +232,29 @@ function TaxForm({
     muni.setShowDropdown(false)
   }
 
+  const addChild = () => {
+    setForm((prev) => ({
+      ...prev,
+      childAges: [...prev.childAges, ''],
+    }))
+  }
+
+  const removeChild = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      childAges: prev.childAges.filter((_, i) => i !== index),
+    }))
+  }
+
+  const updateChildAge = (index: number, value: string) => {
+    setForm((prev) => ({
+      ...prev,
+      childAges: prev.childAges.map((a, i) => (i === index ? value : a)),
+    }))
+  }
+
+  const isCouple = form.maritalStatus === 'married'
+
   return (
     <div>
       {label && (
@@ -175,39 +266,177 @@ function TaxForm({
         </h3>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Gross Income */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-semibold text-navy-900 mb-2">
-            {t.taxCalc.grossIncome}
-          </label>
-          <input
-            type="number"
-            value={form.grossIncome}
-            onChange={(e) => updateField('grossIncome', e.target.value)}
-            placeholder="80000"
-            className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
-          />
-        </div>
+
+        {/* === SIMPLE MODE: single income field === */}
+        {mode === 'simple' && (
+          <div className="md:col-span-2">
+            <label className="block text-sm font-semibold text-navy-900 mb-2">
+              {t.taxCalc.grossIncome}
+            </label>
+            <input
+              type="number"
+              value={form.grossIncome}
+              onChange={(e) => updateField('grossIncome', e.target.value)}
+              placeholder="80000"
+              className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+            />
+          </div>
+        )}
+
+        {/* === COMPLEX MODE: Person 1 === */}
+        {mode === 'complex' && (
+          <>
+            <div className="md:col-span-2">
+              <p className="text-sm font-bold text-navy-700 mb-3 uppercase tracking-wide">
+                {isCouple ? t.taxCalc.person1 : ''}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-navy-900 mb-2">
+                {t.taxCalc.income}
+              </label>
+              <input
+                type="number"
+                value={form.grossIncome}
+                onChange={(e) => updateField('grossIncome', e.target.value)}
+                placeholder="100000"
+                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-navy-900 mb-2">
+                {t.taxCalc.incomeType}
+              </label>
+              <SelectField
+                value={form.incomeType1}
+                onChange={(v) => updateField('incomeType1', parseInt(v))}
+              >
+                {Object.entries(INCOME_TYPE_MAP).map(([id, key]) => (
+                  <option key={id} value={id}>
+                    {t.taxCalc.incomeTypes[key as keyof typeof t.taxCalc.incomeTypes]}
+                  </option>
+                ))}
+              </SelectField>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-navy-900 mb-2">
+                {t.taxCalc.age}
+              </label>
+              <input
+                type="number"
+                min="18"
+                max="100"
+                value={form.age1}
+                onChange={(e) => updateField('age1', e.target.value)}
+                placeholder="40"
+                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-navy-900 mb-2">
+                {t.taxCalc.confession}
+              </label>
+              <SelectField
+                value={form.confession}
+                onChange={(v) => updateField('confession', v)}
+              >
+                {Object.entries(t.taxCalc.confessionOptions).map(([key, lbl]) => (
+                  <option key={key} value={key}>{lbl}</option>
+                ))}
+              </SelectField>
+            </div>
+          </>
+        )}
+
+        {/* === COMPLEX MODE: Person 2 (married only) === */}
+        {mode === 'complex' && isCouple && (
+          <>
+            <div className="md:col-span-2 mt-2">
+              <div className="border-t border-navy-100 pt-4">
+                <p className="text-sm font-bold text-navy-700 uppercase tracking-wide">
+                  {t.taxCalc.person2}
+                </p>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-navy-900 mb-2">
+                {t.taxCalc.income}
+              </label>
+              <input
+                type="number"
+                value={form.income2}
+                onChange={(e) => updateField('income2', e.target.value)}
+                placeholder="60000"
+                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-navy-900 mb-2">
+                {t.taxCalc.incomeType}
+              </label>
+              <SelectField
+                value={form.incomeType2}
+                onChange={(v) => updateField('incomeType2', parseInt(v))}
+              >
+                {Object.entries(INCOME_TYPE_MAP).map(([id, key]) => (
+                  <option key={id} value={id}>
+                    {t.taxCalc.incomeTypes[key as keyof typeof t.taxCalc.incomeTypes]}
+                  </option>
+                ))}
+              </SelectField>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-navy-900 mb-2">
+                {t.taxCalc.age}
+              </label>
+              <input
+                type="number"
+                min="18"
+                max="100"
+                value={form.age2}
+                onChange={(e) => updateField('age2', e.target.value)}
+                placeholder="38"
+                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-navy-900 mb-2">
+                {t.taxCalc.confession}
+              </label>
+              <SelectField
+                value={form.confession2}
+                onChange={(v) => updateField('confession2', v)}
+              >
+                {Object.entries(t.taxCalc.confessionOptions).map(([key, lbl]) => (
+                  <option key={key} value={key}>{lbl}</option>
+                ))}
+              </SelectField>
+            </div>
+          </>
+        )}
+
+        {/* Separator after persons in complex mode */}
+        {mode === 'complex' && (
+          <div className="md:col-span-2 mt-2">
+            <div className="border-t border-navy-100 pt-4" />
+          </div>
+        )}
 
         {/* Canton */}
         <div>
           <label className="block text-sm font-semibold text-navy-900 mb-2">
             {t.taxCalc.canton}
           </label>
-          <div className="relative">
-            <select
-              value={form.canton}
-              onChange={(e) => handleCantonChange(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-700 bg-white focus:border-navy-500 focus:ring-0 outline-none appearance-none"
-            >
-              {cantons.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name[locale]}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-navy-400 pointer-events-none" />
-          </div>
+          <SelectField
+            value={form.canton}
+            onChange={handleCantonChange}
+          >
+            {cantons.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name[locale]}
+              </option>
+            ))}
+          </SelectField>
         </div>
 
         {/* Municipality */}
@@ -253,95 +482,181 @@ function TaxForm({
           <label className="block text-sm font-semibold text-navy-900 mb-2">
             {t.taxCalc.maritalStatus}
           </label>
-          <div className="relative">
-            <select
-              value={form.maritalStatus}
-              onChange={(e) => updateField('maritalStatus', e.target.value as MaritalStatus)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-700 bg-white focus:border-navy-500 focus:ring-0 outline-none appearance-none"
-            >
-              {Object.entries(t.taxCalc.maritalOptions).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-navy-400 pointer-events-none" />
-          </div>
+          <SelectField
+            value={form.maritalStatus}
+            onChange={(v) => updateField('maritalStatus', v as MaritalStatus)}
+          >
+            {Object.entries(t.taxCalc.maritalOptions).map(([key, lbl]) => (
+              <option key={key} value={key}>{lbl}</option>
+            ))}
+          </SelectField>
         </div>
 
-        {/* Confession */}
-        <div>
-          <label className="block text-sm font-semibold text-navy-900 mb-2">
-            {t.taxCalc.confession}
-          </label>
-          <div className="relative">
-            <select
+        {/* Confession - only in simple mode (complex has it per-person) */}
+        {mode === 'simple' && (
+          <div>
+            <label className="block text-sm font-semibold text-navy-900 mb-2">
+              {t.taxCalc.confession}
+            </label>
+            <SelectField
               value={form.confession}
-              onChange={(e) => updateField('confession', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-700 bg-white focus:border-navy-500 focus:ring-0 outline-none appearance-none"
+              onChange={(v) => updateField('confession', v)}
             >
-              {Object.entries(t.taxCalc.confessionOptions).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
+              {Object.entries(t.taxCalc.confessionOptions).map(([key, lbl]) => (
+                <option key={key} value={key}>{lbl}</option>
               ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-navy-400 pointer-events-none" />
+            </SelectField>
           </div>
-        </div>
+        )}
 
-        {/* Children */}
-        <div>
-          <label className="block text-sm font-semibold text-navy-900 mb-2">
-            {t.taxCalc.children}
-          </label>
-          <input
-            type="number"
-            min="0"
-            max="10"
-            value={form.children}
-            onChange={(e) => updateField('children', parseInt(e.target.value) || 0)}
-            className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
-          />
-        </div>
+        {/* Children - simple mode: just a number */}
+        {mode === 'simple' && (
+          <div>
+            <label className="block text-sm font-semibold text-navy-900 mb-2">
+              {t.taxCalc.children}
+            </label>
+            <input
+              type="number"
+              min="0"
+              max="10"
+              value={form.children}
+              onChange={(e) => updateField('children', parseInt(e.target.value) || 0)}
+              className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+            />
+          </div>
+        )}
 
-        {/* 3a */}
-        <div>
-          <label className="block text-sm font-semibold text-navy-900 mb-2">
-            {t.taxCalc.deductions3a}
-          </label>
-          <input
-            type="number"
-            value={form.deductions3a}
-            onChange={(e) => updateField('deductions3a', e.target.value)}
-            placeholder="7056"
-            className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
-          />
-        </div>
+        {/* Children - complex mode: individual ages */}
+        {mode === 'complex' && (
+          <div className="md:col-span-2">
+            <label className="block text-sm font-semibold text-navy-900 mb-2">
+              {t.taxCalc.children}
+            </label>
+            {form.childAges.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {form.childAges.map((age, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-sm text-navy-500 w-20 shrink-0">
+                      {t.taxCalc.childAge} {i + 1}
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="25"
+                      value={age}
+                      onChange={(e) => updateChildAge(i, e.target.value)}
+                      placeholder="5"
+                      className="flex-1 px-4 py-2.5 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeChild(i)}
+                      className="p-2 text-navy-400 hover:text-red-500 transition-colors"
+                      title={t.taxCalc.removeChild}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={addChild}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-600 hover:text-navy-800 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              {t.taxCalc.addChild}
+            </button>
+          </div>
+        )}
 
-        {/* Commuting */}
-        <div>
-          <label className="block text-sm font-semibold text-navy-900 mb-2">
-            {t.taxCalc.commuting}
-          </label>
-          <input
-            type="number"
-            value={form.commuting}
-            onChange={(e) => updateField('commuting', e.target.value)}
-            placeholder="3000"
-            className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
-          />
-        </div>
+        {/* Fortune - complex mode only */}
+        {mode === 'complex' && (
+          <div className="md:col-span-2">
+            <label className="block text-sm font-semibold text-navy-900 mb-2">
+              {t.taxCalc.fortune}
+            </label>
+            <input
+              type="number"
+              value={form.fortune}
+              onChange={(e) => updateField('fortune', e.target.value)}
+              placeholder="250000"
+              className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+            />
+            <p className="text-xs text-navy-400 mt-1.5">{t.taxCalc.fortuneHint}</p>
+          </div>
+        )}
 
-        {/* Other deductions */}
-        <div>
-          <label className="block text-sm font-semibold text-navy-900 mb-2">
-            {t.taxCalc.otherDeductions}
-          </label>
-          <input
-            type="number"
-            value={form.otherDeductions}
-            onChange={(e) => updateField('otherDeductions', e.target.value)}
-            placeholder="0"
-            className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
-          />
-        </div>
+        {/* Simple mode deduction fields */}
+        {mode === 'simple' && (
+          <>
+            <div>
+              <label className="block text-sm font-semibold text-navy-900 mb-2">
+                {t.taxCalc.deductions3a}
+              </label>
+              <input
+                type="number"
+                value={form.deductions3a}
+                onChange={(e) => updateField('deductions3a', e.target.value)}
+                placeholder="7056"
+                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-navy-900 mb-2">
+                {t.taxCalc.commuting}
+              </label>
+              <input
+                type="number"
+                value={form.commuting}
+                onChange={(e) => updateField('commuting', e.target.value)}
+                placeholder="3000"
+                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-navy-900 mb-2">
+                {t.taxCalc.otherDeductions}
+              </label>
+              <input
+                type="number"
+                value={form.otherDeductions}
+                onChange={(e) => updateField('otherDeductions', e.target.value)}
+                placeholder="0"
+                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              />
+            </div>
+          </>
+        )}
+
+        {/* Deductions guide - complex mode */}
+        {mode === 'complex' && (
+          <div className="md:col-span-2">
+            <button
+              type="button"
+              onClick={() => setShowDeductions(!showDeductions)}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-navy-600 hover:text-navy-800 transition-colors"
+            >
+              <Info className="w-4 h-4" />
+              {t.taxCalc.deductionsTitle}
+              <ChevronDown className={`w-4 h-4 transition-transform ${showDeductions ? 'rotate-180' : ''}`} />
+            </button>
+            {showDeductions && (
+              <div className="mt-3 p-4 bg-navy-50 rounded-xl">
+                <p className="text-sm text-navy-600 mb-3">{t.taxCalc.deductionsHint}</p>
+                <ul className="space-y-1.5">
+                  {t.taxCalc.deductionsList.map((item, i) => (
+                    <li key={i} className="text-sm text-navy-500 flex items-start gap-2">
+                      <span className="text-navy-300 mt-0.5 shrink-0">&bull;</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -383,6 +698,12 @@ function ResultColumn({
           <span className="font-semibold text-navy-900">{formatCHF(result.churchTax)}</span>
         </div>
       )}
+      {result.source === 'estv' && 'fortuneTax' in result && result.fortuneTax > 0 && (
+        <div className="flex justify-between items-center py-3 border-b border-navy-100">
+          <span className="text-navy-600">{t.taxCalc.fortune}</span>
+          <span className="font-semibold text-navy-900">{formatCHF(result.fortuneTax)}</span>
+        </div>
+      )}
       <div className="flex justify-between items-center py-4 bg-navy-50 rounded-xl px-4 -mx-4">
         <span className="font-bold text-navy-900">{t.taxCalc.results.total}</span>
         <span className="text-2xl font-bold text-navy-900">{formatCHF(result.totalTax)}</span>
@@ -403,6 +724,7 @@ function ResultColumn({
 export default function TaxCalculatorPage() {
   const { t, locale } = useI18n()
 
+  const [mode, setMode] = useState<CalcMode>('simple')
   const [formA, setFormA] = useState<FormState>(() => createDefaultForm('ZH'))
   const [formB, setFormB] = useState<FormState>(() => createDefaultForm('ZH'))
   const [comparing, setComparing] = useState(false)
@@ -415,11 +737,11 @@ export default function TaxCalculatorPage() {
     setCalculating(true)
 
     if (comparing) {
-      const [resA, resB] = await Promise.all([computeTax(formA), computeTax(formB)])
+      const [resA, resB] = await Promise.all([computeTax(formA, mode), computeTax(formB, mode)])
       setResultA(resA)
       setResultB(resB)
     } else {
-      const resA = await computeTax(formA)
+      const resA = await computeTax(formA, mode)
       setResultA(resA)
       setResultB(null)
     }
@@ -429,10 +751,15 @@ export default function TaxCalculatorPage() {
 
   const toggleCompare = () => {
     if (!comparing) {
-      // Copy formA values to formB as starting point
       setFormB({ ...formA })
     }
     setComparing(!comparing)
+    setResultB(null)
+  }
+
+  const switchMode = (newMode: CalcMode) => {
+    setMode(newMode)
+    setResultA(null)
     setResultB(null)
   }
 
@@ -471,8 +798,36 @@ export default function TaxCalculatorPage() {
       {/* Calculator */}
       <section className="section-padding -mt-10">
         <div className={comparing ? 'max-w-6xl mx-auto px-4 sm:px-6 lg:px-8' : 'container-narrow'}>
-          {/* Compare toggle */}
-          <div className="flex justify-end mb-4">
+          {/* Mode toggle + compare button */}
+          <div className="flex items-center justify-between mb-4 gap-3">
+            {/* Simple / Detailed toggle */}
+            <div className="inline-flex rounded-xl border-2 border-navy-200 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => switchMode('simple')}
+                className={`px-4 py-2 text-sm font-semibold transition-colors ${
+                  mode === 'simple'
+                    ? 'bg-navy-900 text-white'
+                    : 'bg-white text-navy-600 hover:bg-navy-50'
+                }`}
+              >
+                {t.taxCalc.modeSimple}
+              </button>
+              <button
+                type="button"
+                onClick={() => switchMode('complex')}
+                className={`px-4 py-2 text-sm font-semibold transition-colors inline-flex items-center gap-1.5 ${
+                  mode === 'complex'
+                    ? 'bg-navy-900 text-white'
+                    : 'bg-white text-navy-600 hover:bg-navy-50'
+                }`}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                {t.taxCalc.modeComplex}
+              </button>
+            </div>
+
+            {/* Compare toggle */}
             <button
               type="button"
               onClick={toggleCompare}
@@ -505,6 +860,7 @@ export default function TaxCalculatorPage() {
                 label={comparing ? 'A' : undefined}
                 locale={locale}
                 t={t}
+                mode={mode}
               />
 
               {!comparing && (
@@ -536,6 +892,7 @@ export default function TaxCalculatorPage() {
                   label="B"
                   locale={locale}
                   t={t}
+                  mode={mode}
                 />
               </div>
             )}
