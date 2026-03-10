@@ -101,7 +101,12 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header + Breadcrumbs */}
         <div className="mb-8">
-          <h1 className="font-heading text-3xl font-bold text-navy-900 mb-3">{t.admin.title}</h1>
+          <h1 className="font-heading text-3xl font-bold text-navy-900 mb-3 flex items-center gap-3">
+            {t.admin.title}
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gold-100 text-gold-800 border border-gold-300 uppercase tracking-wide">
+              Admin
+            </span>
+          </h1>
           <nav className="flex items-center gap-1 text-sm">
             {breadcrumbs.map((crumb, i) => (
               <span key={i} className="flex items-center gap-1">

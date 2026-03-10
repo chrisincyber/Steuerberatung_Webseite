@@ -15,6 +15,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [user, setUser] = useState<SupabaseUser | null>(null)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -27,10 +28,24 @@ export default function Header() {
     const supabase = createClient()
     if (!supabase) return
 
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
+    const fetchUserAndRole = async (userId: string) => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single()
+      setUserRole(profile?.role ?? null)
+    }
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+      if (user) fetchUserAndRole(user.id)
+    })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+      if (session?.user) fetchUserAndRole(session.user.id)
+      else setUserRole(null)
     })
 
     return () => subscription.unsubscribe()
@@ -188,6 +203,16 @@ export default function Header() {
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-navy-100 py-2 z-50">
+                      {userRole === 'admin' && (
+                        <Link
+                          href="/admin"
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-navy-700 hover:bg-navy-50 font-medium"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <LayoutDashboard className="w-4 h-4" />
+                          Admin Dashboard
+                        </Link>
+                      )}
                       <Link
                         href="/dashboard"
                         className="flex items-center gap-2 px-4 py-2 text-sm text-navy-700 hover:bg-navy-50"
