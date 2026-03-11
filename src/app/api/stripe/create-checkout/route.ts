@@ -38,7 +38,6 @@ export async function POST(request: Request) {
     const stripe = getStripe()
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
-      payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
