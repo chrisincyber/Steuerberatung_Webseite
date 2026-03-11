@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { BookOpen, ArrowRight, Shield, Tag } from 'lucide-react'
+import { InlineToolCta } from '@/components/InlineToolCta'
 
 export default function SteuertippsPage() {
   const { t } = useI18n()
@@ -100,6 +101,11 @@ export default function SteuertippsPage() {
               )
             })}
           </div>
+
+          {/* Inline CTA */}
+          <div className="mt-8">
+            <InlineToolCta toolKey="steuertipps" />
+          </div>
         </div>
       </section>
 
@@ -121,6 +127,7 @@ export default function SteuertippsPage() {
                 {t.hero.cta}
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
+              <p className="text-white/60 text-sm mt-4">{t.bottomCta.socialProof}</p>
             </div>
           </div>
         </div>

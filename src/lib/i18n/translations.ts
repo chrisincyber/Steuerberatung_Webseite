@@ -983,6 +983,10 @@ export const translations = {
       subtitle: 'Berechnen Sie, wie viel Steuern Sie mit Ihrer 3a-Einzahlung sparen',
       badge: 'Kostenlos',
       grossIncome: 'Bruttoeinkommen (CHF)',
+      netIncome: 'Nettoeinkommen (CHF)',
+      incomeMode: 'Brutto',
+      incomeModeNet: 'Netto',
+      netHint: 'Netto → Brutto geschätzt (×1.15)',
       canton: 'Kanton',
       maritalStatus: 'Zivilstand',
       single: 'Ledig',
@@ -1010,6 +1014,10 @@ export const translations = {
       subtitle: 'Berechnen Sie Ihre Quellensteuer und ob sich eine Steuererklärung lohnt',
       badge: 'Kostenlos',
       grossIncome: 'Bruttoeinkommen (CHF)',
+      netIncome: 'Nettoeinkommen (CHF)',
+      incomeMode: 'Brutto',
+      incomeModeNet: 'Netto',
+      netHint: 'Netto → Brutto geschätzt (×1.15)',
       canton: 'Kanton',
       permitType: 'Aufenthaltsbewilligung',
       permits: {
@@ -1103,6 +1111,10 @@ export const translations = {
       badge: 'Kostenlos',
       formIntro: 'Geben Sie Ihr Bruttoeinkommen, Ihren Zivilstand und die Anzahl Kinder ein — der Vergleich aktualisiert sich automatisch.',
       grossIncome: 'Bruttoeinkommen (CHF)',
+      netIncome: 'Nettoeinkommen (CHF)',
+      incomeMode: 'Brutto',
+      incomeModeNet: 'Netto',
+      netHint: 'Netto → Brutto geschätzt (×1.15)',
       grossIncomePlaceholder: 'z.B. 100000',
       maritalStatus: 'Zivilstand',
       single: 'Ledig',
@@ -1153,6 +1165,90 @@ export const translations = {
         noData: 'Keine Daten',
         clickForDetails: 'Klicken für Details',
       },
+    },
+
+    // Shared PDF download keys
+    toolPdf: {
+      download: 'PDF herunterladen',
+      downloading: 'PDF wird erstellt...',
+      savedToAccount: 'Berechnung gespeichert & PDF heruntergeladen',
+      guestTitle: 'PDF herunterladen',
+      createAccount: 'Konto erstellen',
+      createAccountHint: 'Speichern Sie Berechnungen und laden Sie PDFs jederzeit herunter.',
+      or: 'oder',
+      sendByEmail: 'PDF per E-Mail erhalten',
+      fullName: 'Vollständiger Name',
+      email: 'E-Mail-Adresse',
+      phone: 'Telefon (optional)',
+      send: 'PDF senden',
+      sending: 'Wird gesendet...',
+      success: 'PDF wurde an Ihre E-Mail gesendet!',
+      error: 'Fehler beim Senden. Bitte versuchen Sie es erneut.',
+    },
+
+    // Inline CTA keys
+    inlineCta: {
+      pillar3a: {
+        title: 'Mehr als nur Säule 3a',
+        text: 'Wir optimieren nicht nur 3a, sondern Ihre gesamte Steuererklärung.',
+      },
+      quellensteuer: {
+        title: 'Quellensteuer zurückholen',
+        text: 'Wir erstellen Ihre Steuererklärung und holen die Differenz zurück.',
+      },
+      checkliste: {
+        title: 'Unterlagen bereit?',
+        text: 'Laden Sie sie hoch — wir erledigen den Rest.',
+      },
+      steuervergleich: {
+        title: 'Egal welcher Kanton',
+        text: 'Wir finden alle Sparmöglichkeiten für Sie.',
+      },
+      steuerkarte: {
+        title: 'Umzug geplant?',
+        text: 'Wir berechnen Ihr Sparpotenzial.',
+      },
+      abzugsrechner: {
+        title: 'Abzüge maximieren',
+        text: 'Maximieren Sie Ihre Abzüge mit professioneller Hilfe.',
+      },
+      steuertipps: {
+        title: 'Tipps umsetzen',
+        text: 'Unsere Experten helfen Ihnen bei der Umsetzung.',
+      },
+      button1: 'Steuererklärung erstellen',
+      button2: 'Steuerberatung anfragen',
+    },
+
+    // Contact/Advisory modal
+    contactModal: {
+      title: 'Steuerberatung anfragen',
+      subtitle: 'Füllen Sie das Formular aus und wir melden uns bei Ihnen.',
+      name: 'Name',
+      email: 'E-Mail',
+      phone: 'Telefon',
+      message: 'Ihre Nachricht',
+      messagePlaceholder: 'Wie können wir Ihnen helfen?',
+      send: 'Anfrage senden',
+      sending: 'Wird gesendet...',
+      success: 'Vielen Dank! Wir melden uns in Kürze bei Ihnen.',
+      error: 'Fehler beim Senden. Bitte versuchen Sie es erneut.',
+      source: 'Anfrage von',
+    },
+
+    // Dashboard tool type labels
+    toolTypes: {
+      steuerrechner: 'Steuerrechner',
+      '3a-rechner': '3a-Rechner',
+      quellensteuer: 'Quellensteuer',
+      checkliste: 'Checkliste',
+      steuervergleich: 'Steuervergleich',
+    },
+
+    // Bottom CTA upgrade
+    bottomCta: {
+      socialProof: '500+ Steuererklärungen erstellt',
+      beratung: 'Steuerberatung anfragen',
     },
 
     // Shared legal disclaimer for all tools
@@ -2130,6 +2226,10 @@ export const translations = {
       subtitle: 'Calculate how much tax you save with your 3a contribution',
       badge: 'Free',
       grossIncome: 'Gross Income (CHF)',
+      netIncome: 'Net Income (CHF)',
+      incomeMode: 'Gross',
+      incomeModeNet: 'Net',
+      netHint: 'Net → Gross estimated (×1.15)',
       canton: 'Canton',
       maritalStatus: 'Marital Status',
       single: 'Single',
@@ -2156,6 +2256,10 @@ export const translations = {
       subtitle: 'Calculate your withholding tax and whether filing a tax return is worthwhile',
       badge: 'Free',
       grossIncome: 'Gross Income (CHF)',
+      netIncome: 'Net Income (CHF)',
+      incomeMode: 'Gross',
+      incomeModeNet: 'Net',
+      netHint: 'Net → Gross estimated (×1.15)',
       canton: 'Canton',
       permitType: 'Residence Permit',
       permits: {
@@ -2247,6 +2351,10 @@ export const translations = {
       badge: 'Free',
       formIntro: 'Enter your gross income, marital status, and number of children — the comparison updates automatically.',
       grossIncome: 'Gross Income (CHF)',
+      netIncome: 'Net Income (CHF)',
+      incomeMode: 'Gross',
+      incomeModeNet: 'Net',
+      netHint: 'Net → Gross estimated (×1.15)',
       grossIncomePlaceholder: 'e.g. 100000',
       maritalStatus: 'Marital Status',
       single: 'Single',
@@ -2297,6 +2405,85 @@ export const translations = {
         noData: 'No data',
         clickForDetails: 'Click for details',
       },
+    },
+
+    toolPdf: {
+      download: 'Download PDF',
+      downloading: 'Generating PDF...',
+      savedToAccount: 'Calculation saved & PDF downloaded',
+      guestTitle: 'Download PDF',
+      createAccount: 'Create account',
+      createAccountHint: 'Save calculations and download PDFs anytime.',
+      or: 'or',
+      sendByEmail: 'Receive PDF by email',
+      fullName: 'Full name',
+      email: 'Email address',
+      phone: 'Phone (optional)',
+      send: 'Send PDF',
+      sending: 'Sending...',
+      success: 'PDF has been sent to your email!',
+      error: 'Error sending. Please try again.',
+    },
+
+    inlineCta: {
+      pillar3a: {
+        title: 'More than just Pillar 3a',
+        text: 'We optimize not just 3a, but your entire tax declaration.',
+      },
+      quellensteuer: {
+        title: 'Get your withholding tax back',
+        text: 'We prepare your tax declaration and recover the difference.',
+      },
+      checkliste: {
+        title: 'Documents ready?',
+        text: 'Upload them — we take care of the rest.',
+      },
+      steuervergleich: {
+        title: 'Any canton',
+        text: 'We find all savings opportunities for you.',
+      },
+      steuerkarte: {
+        title: 'Planning to move?',
+        text: 'We calculate your savings potential.',
+      },
+      abzugsrechner: {
+        title: 'Maximize deductions',
+        text: 'Maximize your deductions with professional help.',
+      },
+      steuertipps: {
+        title: 'Put tips into action',
+        text: 'Our experts help you implement them.',
+      },
+      button1: 'Create tax declaration',
+      button2: 'Request tax advisory',
+    },
+
+    contactModal: {
+      title: 'Request Tax Advisory',
+      subtitle: 'Fill out the form and we will get back to you.',
+      name: 'Name',
+      email: 'Email',
+      phone: 'Phone',
+      message: 'Your message',
+      messagePlaceholder: 'How can we help you?',
+      send: 'Send request',
+      sending: 'Sending...',
+      success: 'Thank you! We will get back to you shortly.',
+      error: 'Error sending. Please try again.',
+      source: 'Request from',
+    },
+
+    toolTypes: {
+      steuerrechner: 'Tax Calculator',
+      '3a-rechner': 'Pillar 3a Calculator',
+      quellensteuer: 'Withholding Tax',
+      checkliste: 'Checklist',
+      steuervergleich: 'Tax Comparison',
+    },
+
+    bottomCta: {
+      socialProof: '500+ tax declarations completed',
+      beratung: 'Request tax advisory',
     },
 
     toolDisclaimer: {

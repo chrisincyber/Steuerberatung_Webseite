@@ -7,6 +7,7 @@ import { useI18n } from '@/lib/i18n/context'
 import { cantons, calculateSwissTax } from '@/lib/swiss-data'
 import type { TaxCity } from '@/lib/estv-tax'
 import { ArrowLeft, ArrowRight, Map, Loader2, Shield } from 'lucide-react'
+import { InlineToolCta } from '@/components/InlineToolCta'
 
 const TaxMap = dynamic(() => import('@/components/maps/TaxMap'), { ssr: false })
 
@@ -398,6 +399,13 @@ export default function SteuerkartePage() {
               {t.taxCompare.gemeinde.noResults}
             </p>
           )}
+        </div>
+      </section>
+
+      {/* Inline CTA */}
+      <section className="bg-white border-t border-navy-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <InlineToolCta toolKey="steuerkarte" />
         </div>
       </section>
 

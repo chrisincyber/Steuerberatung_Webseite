@@ -7,7 +7,10 @@ import { useI18n } from '@/lib/i18n/context'
 import { cantons, calculateSwissTax } from '@/lib/swiss-data'
 import { useMunicipalitySearch } from '@/hooks/useMunicipalitySearch'
 import type { TaxCity } from '@/lib/estv-tax'
-import { BarChart3, ArrowRight, Shield, TrendingDown, TrendingUp, MapPin, Loader2, X, Search, Plus, AlertCircle, Map, ChevronDown } from 'lucide-react'
+import { BarChart3, ArrowRight, Shield, TrendingDown, TrendingUp, MapPin, Loader2, X, Search, Plus, AlertCircle, Map, ChevronDown, Download } from 'lucide-react'
+import { useToolPdfDownload } from '@/hooks/useToolPdfDownload'
+import GuestPdfModal from '@/components/GuestPdfModal'
+import { InlineToolCta } from '@/components/InlineToolCta'
 
 const TaxMap = dynamic(() => import('@/components/maps/TaxMap'), {
   ssr: false,
@@ -229,40 +232,40 @@ function SummaryCards({
   grossIncome: number
 }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-      <div className="card p-5 border-l-4 border-l-trust-500">
-        <div className="flex items-center gap-2 mb-2">
-          <TrendingDown className="w-5 h-5 text-trust-500" />
-          <span className="text-sm font-medium dark-text-secondary">{cheapestLabel}</span>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+      <div className="card p-3 border-l-4 border-l-trust-500">
+        <div className="flex items-center gap-1.5 mb-1">
+          <TrendingDown className="w-4 h-4 text-trust-500" />
+          <span className="text-xs font-medium dark-text-secondary">{cheapestLabel}</span>
         </div>
         {cheapest && (
           <>
-            <p className="text-xl font-bold">{cheapest.name}</p>
-            <p className="text-lg font-semibold text-trust-600">{formatCHF(cheapest.totalTax)}</p>
+            <p className="text-base font-bold">{cheapest.name}</p>
+            <p className="text-sm font-semibold text-trust-600">{formatCHF(cheapest.totalTax)}</p>
           </>
         )}
       </div>
 
-      <div className="card p-5 border-l-4 border-l-gold-600">
-        <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-5 h-5 text-gold-600" />
-          <span className="text-sm font-medium dark-text-secondary">{mostExpensiveLabel}</span>
+      <div className="card p-3 border-l-4 border-l-gold-600">
+        <div className="flex items-center gap-1.5 mb-1">
+          <TrendingUp className="w-4 h-4 text-gold-600" />
+          <span className="text-xs font-medium dark-text-secondary">{mostExpensiveLabel}</span>
         </div>
         {mostExpensive && (
           <>
-            <p className="text-xl font-bold">{mostExpensive.name}</p>
-            <p className="text-lg font-semibold text-gold-700">{formatCHF(mostExpensive.totalTax)}</p>
+            <p className="text-base font-bold">{mostExpensive.name}</p>
+            <p className="text-sm font-semibold text-gold-700">{formatCHF(mostExpensive.totalTax)}</p>
           </>
         )}
       </div>
 
-      <div className="card p-5 border-l-4 border-l-navy-500">
-        <div className="flex items-center gap-2 mb-2">
-          <Shield className="w-5 h-5 text-navy-500" />
-          <span className="text-sm font-medium dark-text-secondary">{savingsLabel}</span>
+      <div className="card p-3 border-l-4 border-l-navy-500">
+        <div className="flex items-center gap-1.5 mb-1">
+          <Shield className="w-4 h-4 text-navy-500" />
+          <span className="text-xs font-medium dark-text-secondary">{savingsLabel}</span>
         </div>
-        <p className="text-xl font-bold">{formatCHF(savings)}</p>
-        <p className="text-navy-700">
+        <p className="text-base font-bold">{formatCHF(savings)}</p>
+        <p className="text-sm text-navy-700">
           {grossIncome > 0 ? ((savings / grossIncome) * 100).toFixed(1) + '%' : '0%'}
         </p>
       </div>
@@ -272,9 +275,12 @@ function SummaryCards({
 
 export default function SteuervergleichPage() {
   const { t, locale } = useI18n()
+  const { handleDownload, handleGuestSend, pdfLoading, pdfToast, setPdfToast, showGuestModal, setShowGuestModal, guestSending, guestSent, guestError, redirectPath } = useToolPdfDownload({ toolType: 'steuervergleich', redirectPath: '/steuervergleich' })
 
   // Shared inputs
-  const [grossIncome, setGrossIncome] = useState(100000)
+  const [incomeMode, setIncomeMode] = useState<'brutto' | 'netto'>('brutto')
+  const [incomeInput, setIncomeInput] = useState(100000)
+  const grossIncome = incomeMode === 'netto' ? Math.round(incomeInput * 1.15) : incomeInput
   const [maritalStatus, setMaritalStatus] = useState<MaritalStatus>('single')
   const [children, setChildren] = useState(0)
 
@@ -581,6 +587,40 @@ export default function SteuervergleichPage() {
   const compareMostExpensive = successfulCompareResults[successfulCompareResults.length - 1] ?? null
   const compareSavings = compareCheapest && compareMostExpensive ? compareMostExpensive.totalTax - compareCheapest.totalTax : 0
 
+  const onDownloadPdf = async () => {
+    if (cantonResults.length === 0) return
+    const cheapest = cantonResults[0]
+    const mostExpensive = cantonResults[cantonResults.length - 1]
+    const pdfData = {
+      locale,
+      calculatedAt: new Date().toLocaleDateString(locale === 'de' ? 'de-CH' : 'en-CH'),
+      inputs: {
+        grossIncome,
+        maritalStatus: maritalStatus === 'single' ? (locale === 'de' ? 'Ledig' : 'Single') : (locale === 'de' ? 'Verheiratet' : 'Married'),
+        children,
+      },
+      summary: {
+        cheapest: { name: cheapest.name, totalTax: cheapest.totalTax },
+        mostExpensive: { name: mostExpensive.name, totalTax: mostExpensive.totalTax },
+        savings: mostExpensive.totalTax - cheapest.totalTax,
+      },
+      cantonResults: cantonResults.map((r, i) => ({
+        rank: i + 1,
+        name: r.name,
+        code: r.code,
+        totalTax: r.totalTax,
+        effectiveRate: r.effectiveRate,
+      })),
+    }
+    const success = await handleDownload(
+      pdfData,
+      { grossIncome, maritalStatus, children },
+      { cantonResults },
+      'steuervergleich.pdf',
+    )
+    if (success) setPdfToast(t.toolPdf.savedToAccount)
+  }
+
   return (
     <main className="min-h-screen">
       {/* Hero */}
@@ -603,41 +643,62 @@ export default function SteuervergleichPage() {
       </section>
 
       {/* Input Form */}
-      <section className="container-narrow py-10 lg:py-14">
-        <div className="card p-6 -mt-12 relative z-10">
-          <p className="text-sm text-navy-500 mb-5 text-center">
+      <section className="container-narrow py-8 lg:py-10">
+        <div className="card p-4 lg:p-5 -mt-12 relative z-10">
+          <p className="text-sm text-navy-500 mb-4 text-center">
             {t.taxCompare.formIntro}
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-            {/* Gross Income */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            {/* Income with brutto/netto toggle */}
             <div>
-              <label className="block text-sm font-medium text-navy-700 mb-1.5">
-                {t.taxCompare.grossIncome}
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium text-navy-700">
+                  {incomeMode === 'brutto' ? t.taxCompare.grossIncome : t.taxCompare.netIncome}
+                </label>
+                <div className="flex rounded-md border border-navy-200 overflow-hidden text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setIncomeMode('brutto')}
+                    className={`px-2 py-0.5 font-medium transition-colors ${incomeMode === 'brutto' ? 'bg-navy-800 text-white' : 'bg-white text-navy-600 hover:bg-navy-50'}`}
+                  >
+                    {t.taxCompare.incomeMode}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIncomeMode('netto')}
+                    className={`px-2 py-0.5 font-medium transition-colors ${incomeMode === 'netto' ? 'bg-navy-800 text-white' : 'bg-white text-navy-600 hover:bg-navy-50'}`}
+                  >
+                    {t.taxCompare.incomeModeNet}
+                  </button>
+                </div>
+              </div>
               <input
                 type="number"
                 min={0}
                 step={10000}
-                value={grossIncome}
-                onChange={(e) => setGrossIncome(Math.max(0, Number(e.target.value)))}
+                value={incomeInput}
+                onChange={(e) => setIncomeInput(Math.max(0, Number(e.target.value)))}
                 placeholder={t.taxCompare.grossIncomePlaceholder}
-                className="w-full px-4 py-3 rounded-xl border border-navy-200 bg-white text-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 rounded-xl border border-navy-200 bg-white text-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent"
               />
+              {incomeMode === 'netto' && (
+                <p className="text-xs text-navy-400 mt-1">{t.taxCompare.netHint} — Brutto: CHF {grossIncome.toLocaleString('de-CH')}</p>
+              )}
             </div>
 
             {/* Marital Status Toggle */}
             <div>
-              <label className="block text-sm font-medium text-navy-700 mb-1.5">
+              <label className="block text-sm font-medium text-navy-700 mb-1">
                 {t.taxCompare.maritalStatus}
               </label>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <button
                   type="button"
                   onClick={() => setMaritalStatus('single')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
                     maritalStatus === 'single'
                       ? 'bg-navy-800 text-white border-navy-800'
-                      : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50 hover:border-navy-300'
+                      : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50'
                   }`}
                 >
                   {t.taxCompare.single}
@@ -645,10 +706,10 @@ export default function SteuervergleichPage() {
                 <button
                   type="button"
                   onClick={() => setMaritalStatus('married')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
                     maritalStatus === 'married'
                       ? 'bg-navy-800 text-white border-navy-800'
-                      : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50 hover:border-navy-300'
+                      : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50'
                   }`}
                 >
                   {t.taxCompare.married}
@@ -658,7 +719,7 @@ export default function SteuervergleichPage() {
 
             {/* Children */}
             <div>
-              <label className="block text-sm font-medium text-navy-700 mb-1.5">
+              <label className="block text-sm font-medium text-navy-700 mb-1">
                 {t.taxCompare.children}
               </label>
               <input
@@ -668,7 +729,7 @@ export default function SteuervergleichPage() {
                 value={children}
                 onChange={(e) => setChildren(Math.min(5, Math.max(0, Number(e.target.value))))}
                 placeholder={t.taxCompare.childrenPlaceholder}
-                className="w-full px-4 py-3 rounded-xl border border-navy-200 bg-white text-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 rounded-xl border border-navy-200 bg-white text-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -716,6 +777,17 @@ export default function SteuervergleichPage() {
             />
           </section>
 
+          <section className="container-narrow py-4">
+            <button
+              onClick={onDownloadPdf}
+              disabled={pdfLoading}
+              className="mb-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-navy-800 text-white text-sm font-medium hover:bg-navy-900 transition-colors disabled:opacity-60"
+            >
+              {pdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {pdfLoading ? t.toolPdf.downloading : t.toolPdf.download}
+            </button>
+          </section>
+
           <section className="container-wide py-4">
             <button
               type="button"
@@ -753,6 +825,12 @@ export default function SteuervergleichPage() {
               effectiveRateLabel={t.taxCompare.effectiveRate}
               searchPlaceholder={t.taxCompare.searchCanton}
             />
+          </section>
+
+          <section className="container-narrow py-4">
+            <div className="mt-6">
+              <InlineToolCta toolKey="steuervergleich" />
+            </div>
           </section>
 
           <section className="container-narrow py-4">
@@ -1107,6 +1185,47 @@ export default function SteuervergleichPage() {
           </div>
         </div>
       </section>
+
+      {pdfToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-trust-50 border border-trust-200 text-trust-700 px-5 py-3 rounded-xl shadow-lg text-sm font-medium">
+          {pdfToast}
+        </div>
+      )}
+
+      <GuestPdfModal
+        isOpen={showGuestModal}
+        onClose={() => setShowGuestModal(false)}
+        onSend={(data) => {
+          const cheapest = cantonResults[0]
+          const mostExpensive = cantonResults[cantonResults.length - 1]
+          const pdfData = {
+            locale,
+            calculatedAt: new Date().toLocaleDateString(locale === 'de' ? 'de-CH' : 'en-CH'),
+            inputs: {
+              grossIncome,
+              maritalStatus: maritalStatus === 'single' ? (locale === 'de' ? 'Ledig' : 'Single') : (locale === 'de' ? 'Verheiratet' : 'Married'),
+              children,
+            },
+            summary: cheapest && mostExpensive ? {
+              cheapest: { name: cheapest.name, totalTax: cheapest.totalTax },
+              mostExpensive: { name: mostExpensive.name, totalTax: mostExpensive.totalTax },
+              savings: mostExpensive.totalTax - cheapest.totalTax,
+            } : undefined,
+            cantonResults: cantonResults.map((r, i) => ({
+              rank: i + 1,
+              name: r.name,
+              code: r.code,
+              totalTax: r.totalTax,
+              effectiveRate: r.effectiveRate,
+            })),
+          }
+          handleGuestSend(data, pdfData)
+        }}
+        sending={guestSending}
+        sent={guestSent}
+        error={guestError}
+        redirectPath={redirectPath}
+      />
 
       {/* Legal disclaimer */}
       <section className="bg-navy-50 border-t border-navy-100">

@@ -170,6 +170,7 @@ export interface TaxCalculation {
   name: string
   form_data: Record<string, unknown>
   result_data: Record<string, unknown>
+  tool_type?: 'steuerrechner' | '3a-rechner' | 'quellensteuer' | 'checkliste' | 'steuervergleich'
   mode: 'simple' | 'complex'
   locale: 'de' | 'en'
   created_at: string

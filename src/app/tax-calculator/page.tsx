@@ -6,8 +6,9 @@ import { useI18n } from '@/lib/i18n/context'
 import { cantons, cantonCapitals, calculateSwissTax } from '@/lib/swiss-data'
 import { calculateTaxESTV, type TaxCity, type EstvTaxResult } from '@/lib/estv-tax'
 import { useMunicipalitySearch } from '@/hooks/useMunicipalitySearch'
-import { Calculator, ArrowRight, ChevronDown, TrendingUp, Search, Loader2, GitCompareArrows, X, Plus, Trash2, Info, SlidersHorizontal, ShieldAlert, Download, Mail, Shield } from 'lucide-react'
+import { Calculator, ArrowRight, ChevronDown, TrendingUp, Search, Loader2, GitCompareArrows, X, Plus, Trash2, Info, SlidersHorizontal, ShieldAlert, Download, Shield } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import GuestPdfModal from '@/components/GuestPdfModal'
 import type { User } from '@supabase/supabase-js'
 
 type FallbackResult = ReturnType<typeof calculateSwissTax>
@@ -737,108 +738,6 @@ function buildPdfData(form: FormState, result: TaxResult, locale: 'de' | 'en', m
   }
 }
 
-function GuestPdfModal({
-  onClose,
-  onSend,
-  sending,
-  sent,
-  error,
-  t,
-}: {
-  onClose: () => void
-  onSend: (data: { fullName: string; email: string; phone: string }) => void
-  sending: boolean
-  sent: boolean
-  error: boolean
-  t: ReturnType<typeof useI18n>['t']
-}) {
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8">
-        <button onClick={onClose} className="absolute top-4 right-4 text-navy-400 hover:text-navy-600">
-          <X className="w-5 h-5" />
-        </button>
-
-        <h3 className="font-heading text-xl font-bold text-navy-900 mb-4">
-          {t.taxCalc.pdf.guestTitle}
-        </h3>
-
-        {sent ? (
-          <div className="py-8 text-center">
-            <Mail className="w-12 h-12 text-trust-500 mx-auto mb-3" />
-            <p className="text-navy-700 font-medium">{t.taxCalc.pdf.success}</p>
-          </div>
-        ) : (
-          <>
-            <Link
-              href="/auth/register?redirect=/tax-calculator"
-              className="btn-primary w-full !py-3 flex items-center justify-center gap-2 mb-2"
-            >
-              {t.taxCalc.pdf.createAccount}
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <p className="text-xs text-navy-400 text-center mb-4">{t.taxCalc.pdf.createAccountHint}</p>
-
-            <div className="flex items-center gap-3 my-5">
-              <div className="flex-1 h-px bg-navy-200" />
-              <span className="text-sm text-navy-400">{t.taxCalc.pdf.or}</span>
-              <div className="flex-1 h-px bg-navy-200" />
-            </div>
-
-            <p className="text-sm font-semibold text-navy-700 mb-3">{t.taxCalc.pdf.sendByEmail}</p>
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder={t.taxCalc.pdf.fullName}
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
-              />
-              <input
-                type="email"
-                placeholder={t.taxCalc.pdf.email}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
-              />
-              <input
-                type="tel"
-                placeholder={t.taxCalc.pdf.phone}
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
-              />
-            </div>
-            {error && <p className="text-sm text-red-600 mt-2">{t.taxCalc.pdf.error}</p>}
-            <button
-              onClick={() => onSend({ fullName, email, phone })}
-              disabled={sending || !fullName.trim() || !email.trim()}
-              className="btn-primary w-full !py-3 mt-4 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {sending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {t.taxCalc.pdf.sending}
-                </>
-              ) : (
-                <>
-                  <Mail className="w-4 h-4 mr-2" />
-                  {t.taxCalc.pdf.send}
-                </>
-              )}
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
 export default function TaxCalculatorPage() {
   const { t, locale } = useI18n()
 
@@ -1273,6 +1172,7 @@ export default function TaxCalculatorPage() {
                   {t.taxCalc.ctaButton}
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
+                <p className="text-white/60 text-sm mt-4">{t.bottomCta.socialProof}</p>
               </div>
             </div>
           )}
@@ -1321,16 +1221,15 @@ export default function TaxCalculatorPage() {
       )}
 
       {/* Guest PDF modal */}
-      {showGuestModal && resultA && (
-        <GuestPdfModal
-          onClose={() => setShowGuestModal(false)}
-          onSend={handleGuestSend}
-          sending={guestSending}
-          sent={guestSent}
-          error={guestError}
-          t={t}
-        />
-      )}
+      <GuestPdfModal
+        isOpen={showGuestModal && !!resultA}
+        onClose={() => setShowGuestModal(false)}
+        onSend={handleGuestSend}
+        sending={guestSending}
+        sent={guestSent}
+        error={guestError}
+        redirectPath="/tax-calculator"
+      />
 
       {/* Legal disclaimer */}
       <section className="bg-navy-50 border-t border-navy-100">

@@ -4,7 +4,10 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { cantons, calculateSwissTax } from '@/lib/swiss-data'
-import { Calculator, ArrowRight, Shield, AlertCircle, CheckCircle, Loader2, Database } from 'lucide-react'
+import { Calculator, ArrowRight, Shield, AlertCircle, CheckCircle, Loader2, Database, Download } from 'lucide-react'
+import { useToolPdfDownload } from '@/hooks/useToolPdfDownload'
+import GuestPdfModal from '@/components/GuestPdfModal'
+import { InlineToolCta } from '@/components/InlineToolCta'
 
 type PermitType = 'B' | 'C' | 'L'
 
@@ -27,7 +30,9 @@ export default function QuellensteuerPage() {
   const { t, locale } = useI18n()
   const w = t.withholding
 
-  const [grossIncome, setGrossIncome] = useState(80000)
+  const [incomeMode, setIncomeMode] = useState<'brutto' | 'netto'>('brutto')
+  const [incomeInput, setIncomeInput] = useState(80000)
+  const grossIncome = incomeMode === 'netto' ? Math.round(incomeInput * 1.15) : incomeInput
   const [cantonCode, setCantonCode] = useState('ZH')
   const [permitType, setPermitType] = useState<PermitType>('B')
   const [married, setMarried] = useState(false)
@@ -36,6 +41,8 @@ export default function QuellensteuerPage() {
   const [results, setResults] = useState<QstResult | null>(null)
   const [loading, setLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const { handleDownload, handleGuestSend, pdfLoading, pdfToast, setPdfToast, showGuestModal, setShowGuestModal, guestSending, guestSent, guestError, redirectPath } = useToolPdfDownload({ toolType: 'quellensteuer', redirectPath: '/quellensteuer' })
 
   // Determine tariff code from inputs
   // A = single no kids, B = married single-earner, C = married dual-earner, H = single parent
@@ -170,6 +177,43 @@ export default function QuellensteuerPage() {
     }
   }, [grossIncome, cantonCode, permitType, married, children, churchTax, getTariffCode])
 
+  const onDownloadPdf = async () => {
+    if (!results) return
+    const cantonName = cantons.find(c => c.code === cantonCode)?.name[locale] || cantonCode
+    const recommendation = results.isCPermit
+      ? w.recommendCPermit
+      : results.worthFiling
+      ? w.recommendFile.replace('{amount}', formatCHF(results.difference).replace('CHF ', ''))
+      : w.recommendNoFile
+    const pdfData = {
+      locale,
+      calculatedAt: new Date().toLocaleDateString(locale === 'de' ? 'de-CH' : 'en-CH'),
+      inputs: {
+        grossIncome,
+        canton: cantonName,
+        permitType,
+        married,
+        children,
+        churchTax,
+      },
+      results: {
+        tariffCode: getTariffCode() + (churchTax ? 'Y' : 'N'),
+        withholdingTax: results.withholdingTax,
+        withholdingRate: results.withholdingRate,
+        ordinaryTax: results.ordinaryTax,
+        difference: results.difference,
+        recommendation,
+      },
+    }
+    const success = await handleDownload(
+      pdfData,
+      { grossIncome, cantonCode, permitType, married, children, churchTax },
+      results,
+      `quellensteuer-${cantonCode}.pdf`,
+    )
+    if (success) setPdfToast(t.toolPdf.savedToAccount)
+  }
+
   return (
     <main className="min-h-screen">
       {/* Hero */}
@@ -192,42 +236,61 @@ export default function QuellensteuerPage() {
       </section>
 
       {/* Calculator */}
-      <section className="py-10 lg:py-14">
+      <section className="py-8 lg:py-10">
         <div className="container-narrow">
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid lg:grid-cols-2 gap-6">
 
             {/* Input Form */}
-            <div className="card p-6 lg:p-8">
-              <h2 className="text-xl font-bold text-navy-900 mb-6 flex items-center gap-2">
-                <Calculator className="w-5 h-5 text-navy-700" />
+            <div className="card p-4 lg:p-5">
+              <h2 className="text-lg font-bold text-navy-900 mb-4 flex items-center gap-2">
+                <Calculator className="w-4 h-4 text-navy-700" />
                 {w.title}
               </h2>
 
-              <div className="space-y-5">
-                {/* Gross Income */}
+              <div className="space-y-3">
+                {/* Income with brutto/netto toggle */}
                 <div>
-                  <label className="block text-sm font-medium text-navy-600 mb-1.5">
-                    {w.grossIncome}
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-sm font-medium text-navy-600">
+                      {incomeMode === 'brutto' ? w.grossIncome : w.netIncome}
+                    </label>
+                    <div className="flex rounded-md border border-navy-200 overflow-hidden text-xs">
+                      <button
+                        onClick={() => setIncomeMode('brutto')}
+                        className={`px-2 py-0.5 font-medium transition-colors ${incomeMode === 'brutto' ? 'bg-navy-800 text-white' : 'bg-white text-navy-600 hover:bg-navy-50'}`}
+                      >
+                        {w.incomeMode}
+                      </button>
+                      <button
+                        onClick={() => setIncomeMode('netto')}
+                        className={`px-2 py-0.5 font-medium transition-colors ${incomeMode === 'netto' ? 'bg-navy-800 text-white' : 'bg-white text-navy-600 hover:bg-navy-50'}`}
+                      >
+                        {w.incomeModeNet}
+                      </button>
+                    </div>
+                  </div>
                   <input
                     type="number"
-                    value={grossIncome}
-                    onChange={(e) => setGrossIncome(Number(e.target.value) || 0)}
+                    value={incomeInput}
+                    onChange={(e) => setIncomeInput(Number(e.target.value) || 0)}
                     min={0}
                     step={1000}
-                    className="w-full px-4 py-3 rounded-xl border border-navy-200 bg-white text-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                    className="w-full px-3 py-2.5 rounded-xl border border-navy-200 bg-white text-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                   />
+                  {incomeMode === 'netto' && (
+                    <p className="text-xs text-navy-400 mt-1">{w.netHint} — Brutto: CHF {grossIncome.toLocaleString('de-CH')}</p>
+                  )}
                 </div>
 
                 {/* Canton */}
                 <div>
-                  <label className="block text-sm font-medium text-navy-600 mb-1.5">
+                  <label className="block text-sm font-medium text-navy-600 mb-1">
                     {w.canton}
                   </label>
                   <select
                     value={cantonCode}
                     onChange={(e) => setCantonCode(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-navy-200 bg-white text-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                    className="w-full px-3 py-2.5 rounded-xl border border-navy-200 bg-white text-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                   >
                     {cantons.map((c) => (
                       <option key={c.code} value={c.code}>
@@ -239,18 +302,18 @@ export default function QuellensteuerPage() {
 
                 {/* Permit Type */}
                 <div>
-                  <label className="block text-sm font-medium text-navy-600 mb-1.5">
+                  <label className="block text-sm font-medium text-navy-600 mb-1">
                     {w.permitType}
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {(['B', 'C', 'L'] as const).map((p) => (
                       <button
                         key={p}
                         onClick={() => setPermitType(p)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                           permitType === p
                             ? 'bg-navy-800 text-white border-navy-800'
-                            : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50 hover:border-navy-300'
+                            : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50'
                         }`}
                       >
                         {w.permits[p.toLowerCase() as 'b' | 'c' | 'l']}
@@ -259,49 +322,78 @@ export default function QuellensteuerPage() {
                   </div>
                 </div>
 
-                {/* Marital Status */}
-                <div>
-                  <label className="block text-sm font-medium text-navy-600 mb-1.5">
-                    {w.maritalStatus}
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setMarried(false)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                        !married
-                          ? 'bg-navy-800 text-white border-navy-800'
-                          : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50 hover:border-navy-300'
-                      }`}
-                    >
-                      {w.single}
-                    </button>
-                    <button
-                      onClick={() => setMarried(true)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                        married
-                          ? 'bg-navy-800 text-white border-navy-800'
-                          : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50 hover:border-navy-300'
-                      }`}
-                    >
-                      {w.married}
-                    </button>
+                {/* Marital Status + Church Tax row */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-navy-600 mb-1">
+                      {w.maritalStatus}
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => setMarried(false)}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                          !married
+                            ? 'bg-navy-800 text-white border-navy-800'
+                            : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50'
+                        }`}
+                      >
+                        {w.single}
+                      </button>
+                      <button
+                        onClick={() => setMarried(true)}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                          married
+                            ? 'bg-navy-800 text-white border-navy-800'
+                            : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50'
+                        }`}
+                      >
+                        {w.married}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-navy-600 mb-1">
+                      {w.churchTax}
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => setChurchTax(true)}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                          churchTax
+                            ? 'bg-navy-800 text-white border-navy-800'
+                            : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50'
+                        }`}
+                      >
+                        {w.yes}
+                      </button>
+                      <button
+                        onClick={() => setChurchTax(false)}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                          !churchTax
+                            ? 'bg-navy-800 text-white border-navy-800'
+                            : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50'
+                        }`}
+                      >
+                        {w.no}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 {/* Children */}
                 <div>
-                  <label className="block text-sm font-medium text-navy-600 mb-1.5">
+                  <label className="block text-sm font-medium text-navy-600 mb-1">
                     {w.children}
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5">
                     {[0, 1, 2, 3, 4, 5].map((n) => (
                       <button
                         key={n}
                         onClick={() => setChildren(n)}
-                        className={`w-10 h-10 rounded-lg text-sm font-medium border transition-colors ${
+                        className={`w-9 h-9 rounded-lg text-xs font-medium border transition-colors ${
                           children === n
                             ? 'bg-navy-800 text-white border-navy-800'
-                            : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50 hover:border-navy-300'
+                            : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50'
                         }`}
                       >
                         {n}
@@ -309,102 +401,65 @@ export default function QuellensteuerPage() {
                     ))}
                   </div>
                 </div>
-
-                {/* Church Tax */}
-                <div>
-                  <label className="block text-sm font-medium text-navy-600 mb-1.5">
-                    {w.churchTax}
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setChurchTax(true)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                        churchTax
-                          ? 'bg-navy-800 text-white border-navy-800'
-                          : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50 hover:border-navy-300'
-                      }`}
-                    >
-                      {w.yes}
-                    </button>
-                    <button
-                      onClick={() => setChurchTax(false)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                        !churchTax
-                          ? 'bg-navy-800 text-white border-navy-800'
-                          : 'bg-white text-navy-700 border-navy-200 hover:bg-navy-50 hover:border-navy-300'
-                      }`}
-                    >
-                      {w.no}
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
 
             {/* Results */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               {loading && (
-                <div className="card p-6 flex items-center justify-center gap-2 text-navy-500">
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                <div className="card p-4 flex items-center justify-center gap-2 text-navy-500">
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   <span className="text-sm">{w.disclaimer}</span>
                 </div>
               )}
 
               {results && !loading && (
                 <>
-                  <div className="card p-6 lg:p-8">
-                    <h2 className="text-xl font-bold text-navy-900 mb-6 flex items-center gap-2">
-                      <Shield className="w-5 h-5 text-navy-700" />
+                  <div className="card p-4 lg:p-5">
+                    <h2 className="text-lg font-bold text-navy-900 mb-3 flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-navy-700" />
                       {w.resultsTitle}
                     </h2>
 
-                    {/* Data source badge */}
                     {results.source === 'estv-2026' && (
-                      <div className="flex items-center gap-2 mb-4 px-3 py-1.5 bg-trust-50 rounded-lg border border-trust-200 w-fit">
-                        <Database className="w-3.5 h-3.5 text-trust-600" />
-                        <span className="text-xs font-medium text-trust-700">
-                          {w.estvSource}
-                        </span>
+                      <div className="flex items-center gap-1.5 mb-3 px-2 py-1 bg-trust-50 rounded-lg border border-trust-200 w-fit">
+                        <Database className="w-3 h-3 text-trust-600" />
+                        <span className="text-xs font-medium text-trust-700">{w.estvSource}</span>
                       </div>
                     )}
 
-                    <div className="space-y-4">
-                      {/* Tariff Code */}
-                      <div className="flex justify-between items-center py-3 border-b border-navy-100">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center py-2 border-b border-navy-100">
                         <span className="text-navy-600 text-sm">{w.tariffCode}</span>
-                        <span className="font-mono font-semibold text-navy-900 bg-navy-100 px-2 py-0.5 rounded">
+                        <span className="font-mono font-semibold text-navy-900 bg-navy-100 px-2 py-0.5 rounded text-sm">
                           {getTariffCode()}{churchTax ? 'Y' : 'N'}
                         </span>
                       </div>
 
-                      {/* Withholding Tax */}
-                      <div className="flex justify-between items-center py-3 border-b border-navy-100">
+                      <div className="flex justify-between items-center py-2 border-b border-navy-100">
                         <span className="text-navy-600 text-sm">{w.withholdingTax}</span>
-                        <span className="font-semibold text-navy-900 text-lg">
+                        <span className="font-semibold text-navy-900">
                           {formatCHF(results.withholdingTax)}
                         </span>
                       </div>
 
-                      {/* Withholding Rate */}
-                      <div className="flex justify-between items-center py-3 border-b border-navy-100">
+                      <div className="flex justify-between items-center py-2 border-b border-navy-100">
                         <span className="text-navy-600 text-sm">{w.withholdingRate}</span>
                         <span className="font-semibold text-navy-900">
                           {results.withholdingRate.toFixed(2)}%
                         </span>
                       </div>
 
-                      {/* Ordinary Tax */}
-                      <div className="flex justify-between items-center py-3 border-b border-navy-100">
+                      <div className="flex justify-between items-center py-2 border-b border-navy-100">
                         <span className="text-navy-600 text-sm">{w.ordinaryTax}</span>
-                        <span className="font-semibold text-navy-900 text-lg">
+                        <span className="font-semibold text-navy-900">
                           {formatCHF(results.ordinaryTax)}
                         </span>
                       </div>
 
-                      {/* Difference */}
-                      <div className="flex justify-between items-center py-3">
+                      <div className="flex justify-between items-center py-2">
                         <span className="text-navy-600 text-sm font-medium">{w.difference}</span>
-                        <span className={`font-bold text-lg ${results.difference > 0 ? 'text-trust-600' : 'text-gold-600'}`}>
+                        <span className={`font-bold ${results.difference > 0 ? 'text-trust-600' : 'text-gold-600'}`}>
                           {results.difference > 0 ? '+' : ''}{formatCHF(results.difference)}
                         </span>
                       </div>
@@ -413,25 +468,21 @@ export default function QuellensteuerPage() {
 
                   {/* Recommendation */}
                   <div
-                    className={`p-4 rounded-xl border-l-4 ${
-                      results.isCPermit
+                    className={`p-3 rounded-xl border-l-4 ${
+                      results.isCPermit || results.isMandatory || !results.worthFiling
                         ? 'border-l-gold-500 bg-gold-50'
-                        : results.isMandatory
-                        ? 'border-l-gold-500 bg-gold-50'
-                        : results.worthFiling
-                        ? 'border-l-trust-500 bg-trust-50'
-                        : 'border-l-gold-500 bg-gold-50'
+                        : 'border-l-trust-500 bg-trust-50'
                     }`}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-2">
                       {results.isCPermit || !results.worthFiling || results.isMandatory ? (
-                        <AlertCircle className="w-5 h-5 text-gold-600 mt-0.5 shrink-0" />
+                        <AlertCircle className="w-4 h-4 text-gold-600 mt-0.5 shrink-0" />
                       ) : (
-                        <CheckCircle className="w-5 h-5 text-trust-600 mt-0.5 shrink-0" />
+                        <CheckCircle className="w-4 h-4 text-trust-600 mt-0.5 shrink-0" />
                       )}
                       <div>
-                        <h3 className="font-semibold text-navy-900 mb-1">{w.recommendation}</h3>
-                        <p className="text-sm text-navy-600">
+                        <h3 className="font-semibold text-navy-900 text-sm mb-0.5">{w.recommendation}</h3>
+                        <p className="text-xs text-navy-600">
                           {results.isCPermit
                             ? w.recommendCPermit
                             : results.worthFiling
@@ -442,18 +493,25 @@ export default function QuellensteuerPage() {
                     </div>
                   </div>
 
-                  {/* Mandatory threshold note */}
                   {results.isMandatory && (
-                    <div className="border-l-4 border-l-navy-500 bg-navy-50 p-4 rounded-xl">
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-navy-600 mt-0.5 shrink-0" />
-                        <p className="text-sm text-navy-600">{w.note}</p>
+                    <div className="border-l-4 border-l-navy-500 bg-navy-50 p-3 rounded-xl">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-navy-600 mt-0.5 shrink-0" />
+                        <p className="text-xs text-navy-600">{w.note}</p>
                       </div>
                     </div>
                   )}
 
-                  {/* Disclaimer */}
                   <p className="text-xs text-navy-500 text-center">{w.disclaimer}</p>
+
+                  <button
+                    onClick={onDownloadPdf}
+                    disabled={pdfLoading}
+                    className="w-full mt-3 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-navy-800 text-white text-sm font-medium hover:bg-navy-900 transition-colors disabled:opacity-60"
+                  >
+                    {pdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    {pdfLoading ? t.toolPdf.downloading : t.toolPdf.download}
+                  </button>
                 </>
               )}
             </div>
@@ -477,12 +535,44 @@ export default function QuellensteuerPage() {
                     {t.hero.cta}
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Link>
+                  <p className="text-white/60 text-sm mt-4">{t.bottomCta.socialProof}</p>
                 </div>
               </div>
             </div>
           </section>
         </div>
       </section>
+
+      <div className="px-4 sm:px-6 lg:px-8 pb-6">
+        <div className="container-narrow">
+          <InlineToolCta toolKey="quellensteuer" />
+        </div>
+      </div>
+
+      {pdfToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-trust-50 border border-trust-200 text-trust-700 px-5 py-3 rounded-xl shadow-lg text-sm font-medium">
+          {pdfToast}
+        </div>
+      )}
+
+      <GuestPdfModal
+        isOpen={showGuestModal}
+        onClose={() => setShowGuestModal(false)}
+        onSend={(data) => {
+          if (!results) return
+          const cantonName = cantons.find(c => c.code === cantonCode)?.name[locale] || cantonCode
+          handleGuestSend(data, {
+            locale,
+            calculatedAt: new Date().toLocaleDateString(locale === 'de' ? 'de-CH' : 'en-CH'),
+            inputs: { grossIncome, canton: cantonName, permitType, married, children, churchTax },
+            results,
+          })
+        }}
+        sending={guestSending}
+        sent={guestSent}
+        error={guestError}
+        redirectPath={redirectPath}
+      />
 
       {/* Legal disclaimer */}
       <section className="bg-navy-50 border-t border-navy-100">

@@ -19,6 +19,7 @@ import {
   Shield,
   MapPin,
 } from 'lucide-react'
+import { InlineToolCta } from '@/components/InlineToolCta'
 import { cantons } from '@/lib/swiss-data'
 
 // Canton-specific deduction amounts — verified from official cantonal sources (2025)
@@ -338,6 +339,11 @@ export default function AbzugsrechnerPage() {
               </p>
             </div>
           </div>
+
+          {/* Inline CTA */}
+          <div className="mt-8">
+            <InlineToolCta toolKey="abzugsrechner" />
+          </div>
         </div>
       </section>
 
@@ -359,6 +365,7 @@ export default function AbzugsrechnerPage() {
                 {t.hero.cta}
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
+              <p className="text-white/60 text-sm mt-4">{t.bottomCta.socialProof}</p>
             </div>
           </div>
         </div>

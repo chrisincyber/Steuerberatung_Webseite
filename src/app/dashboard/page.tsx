@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { TaxYear, Profile, TaxYearStatus, TaxCalculation } from '@/lib/types/portal'
 import { StatusBadge } from '@/components/portal/StatusBadge'
-import { ArrowRight, Calculator, CheckCircle, Download, Trash2, Pencil, Loader2, Check, X } from 'lucide-react'
+import { ArrowRight, Calculator, CheckCircle, Download, Trash2, Pencil, Loader2, Check, X, PiggyBank, BarChart3, CheckSquare } from 'lucide-react'
 
 export default function DashboardPage() {
   return (
@@ -246,6 +246,17 @@ function DashboardContent() {
   )
 }
 
+function getToolIcon(toolType?: string) {
+  switch (toolType) {
+    case '3a-rechner': return <PiggyBank className="w-4 h-4 text-trust-500" />
+    case 'quellensteuer': return <Calculator className="w-4 h-4 text-navy-600" />
+    case 'checkliste': return <CheckSquare className="w-4 h-4 text-trust-500" />
+    case 'steuervergleich': return <BarChart3 className="w-4 h-4 text-navy-600" />
+    default: return <Calculator className="w-4 h-4 text-navy-600" />
+  }
+}
+
+
 function TaxCalcCard({
   calc,
   onDelete,
@@ -266,6 +277,7 @@ function TaxCalcCard({
   const income = formData.grossIncome as string | undefined
   const canton = formData.canton as string | undefined
   const dateStr = new Date(calc.created_at).toLocaleDateString(locale === 'de' ? 'de-CH' : 'en-CH')
+  const toolType = (calc as unknown as Record<string, unknown>).tool_type as string | undefined
 
   const handleRename = async () => {
     if (!editName.trim() || editName === calc.name) {
@@ -291,49 +303,73 @@ function TaxCalcCard({
   const handleDownload = async () => {
     setDownloading(true)
     try {
-      const selectedCity = formData.selectedCity as { name?: string } | null
-      const pdfData = {
-        locale: calc.locale,
-        calculatedAt: dateStr,
-        mode: calc.mode,
-        form: {
-          taxYear: (formData.taxYear as number) || 2025,
-          grossIncome: (formData.grossIncome as string) || '0',
-          canton: (formData.canton as string) || '',
-          maritalStatus: (formData.maritalStatus as string) || 'single',
-          children: (formData.children as number) || 0,
-          municipalityName: selectedCity?.name,
-          confession: formData.confession as string | undefined,
-          income2: formData.income2 as string | undefined,
-          fortune: formData.fortune as string | undefined,
-        },
-        result: {
-          source: (resultData.source as string) || 'estv',
-          federalTax: (resultData.federalTax as number) || 0,
-          cantonalTax: (resultData.cantonalTax as number) || 0,
-          municipalTax: (resultData.municipalTax as number) || 0,
-          churchTax: resultData.churchTax as number | undefined,
-          fortuneTax: resultData.fortuneTax as number | undefined,
-          totalTax: (resultData.totalTax as number) || 0,
-          effectiveRate: (resultData.effectiveRate as number) || 0,
-          taxableIncome: resultData.taxableIncome as number | undefined,
-        },
+      if (toolType && toolType !== 'steuerrechner') {
+        // Tool-specific PDFs
+        const res = await fetch('/api/tool-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            toolType,
+            pdfData: {
+              locale: calc.locale,
+              calculatedAt: dateStr,
+              ...formData,
+              ...resultData,
+            },
+          }),
+        })
+        if (!res.ok) throw new Error()
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${calc.name.replace(/\s+/g, '-')}.pdf`
+        a.click()
+        URL.revokeObjectURL(url)
+      } else {
+        // Original steuerrechner PDF
+        const selectedCity = formData.selectedCity as { name?: string } | null
+        const pdfData = {
+          locale: calc.locale,
+          calculatedAt: dateStr,
+          mode: calc.mode,
+          form: {
+            taxYear: (formData.taxYear as number) || 2025,
+            grossIncome: (formData.grossIncome as string) || '0',
+            canton: (formData.canton as string) || '',
+            maritalStatus: (formData.maritalStatus as string) || 'single',
+            children: (formData.children as number) || 0,
+            municipalityName: selectedCity?.name,
+            confession: formData.confession as string | undefined,
+            income2: formData.income2 as string | undefined,
+            fortune: formData.fortune as string | undefined,
+          },
+          result: {
+            source: (resultData.source as string) || 'estv',
+            federalTax: (resultData.federalTax as number) || 0,
+            cantonalTax: (resultData.cantonalTax as number) || 0,
+            municipalTax: (resultData.municipalTax as number) || 0,
+            churchTax: resultData.churchTax as number | undefined,
+            fortuneTax: resultData.fortuneTax as number | undefined,
+            totalTax: (resultData.totalTax as number) || 0,
+            effectiveRate: (resultData.effectiveRate as number) || 0,
+            taxableIncome: resultData.taxableIncome as number | undefined,
+          },
+        }
+        const res = await fetch('/api/tax-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pdfData }),
+        })
+        if (!res.ok) throw new Error()
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${calc.name.replace(/\s+/g, '-')}.pdf`
+        a.click()
+        URL.revokeObjectURL(url)
       }
-
-      const res = await fetch('/api/tax-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pdfData }),
-      })
-      if (!res.ok) throw new Error()
-
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${calc.name.replace(/\s+/g, '-')}.pdf`
-      a.click()
-      URL.revokeObjectURL(url)
     } catch {
       console.error('PDF download failed')
     } finally {
@@ -362,7 +398,17 @@ function TaxCalcCard({
             </button>
           </div>
         ) : (
-          <p className="font-semibold text-navy-900 truncate">{calc.name}</p>
+          <>
+            {toolType && toolType !== 'steuerrechner' && (
+              <div className="flex items-center gap-1.5 mb-1">
+                {getToolIcon(toolType)}
+                <span className="text-xs font-medium text-navy-500">
+                  {(t.toolTypes as Record<string, string>)[toolType] || toolType}
+                </span>
+              </div>
+            )}
+            <p className="font-semibold text-navy-900 truncate">{calc.name}</p>
+          </>
         )}
         <p className="text-xs text-navy-400 mt-0.5">
           {t.taxCalculations.date}: {dateStr}

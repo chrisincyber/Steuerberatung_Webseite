@@ -3,13 +3,17 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
-import { CheckSquare, FileText, Lightbulb, ArrowRight, Shield } from 'lucide-react'
+import { CheckSquare, FileText, Lightbulb, ArrowRight, Shield, Download, Loader2 } from 'lucide-react'
+import { useToolPdfDownload } from '@/hooks/useToolPdfDownload'
+import GuestPdfModal from '@/components/GuestPdfModal'
+import { InlineToolCta } from '@/components/InlineToolCta'
 
 const SITUATION_KEYS = ['angestellt', 'selbstaendig', 'verheiratet', 'immobilien', 'rentner', 'neuzuzueger'] as const
 
 export default function ChecklistePage() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [selectedSituations, setSelectedSituations] = useState<Set<string>>(new Set())
+  const { handleDownload, handleGuestSend, pdfLoading, pdfToast, setPdfToast, showGuestModal, setShowGuestModal, guestSending, guestSent, guestError, redirectPath } = useToolPdfDownload({ toolType: 'checkliste', redirectPath: '/checkliste' })
 
   const toggleSituation = (key: string) => {
     setSelectedSituations(prev => {
@@ -31,6 +35,25 @@ export default function ChecklistePage() {
   const currentTip = firstSelected
     ? (t.taxChecklist.tips as unknown as Record<string, string>)[firstSelected]
     : null
+
+  const essentialDocs = t.taxChecklist.essential as unknown as string[]
+  const onDownloadPdf = async () => {
+    const pdfData = {
+      locale,
+      calculatedAt: new Date().toLocaleDateString(locale === 'de' ? 'de-CH' : 'en-CH'),
+      situations: Array.from(selectedSituations).map(key => (t.taxChecklist.situations as Record<string, string>)[key] || key),
+      essentialDocs,
+      additionalDocs,
+      tip: currentTip,
+    }
+    const success = await handleDownload(
+      pdfData,
+      { selectedSituations: Array.from(selectedSituations) },
+      { essentialDocs, additionalDocs, tip: currentTip },
+      'steuer-checkliste.pdf',
+    )
+    if (success) setPdfToast(t.toolPdf.savedToAccount)
+  }
 
   return (
     <main>
@@ -130,6 +153,20 @@ export default function ChecklistePage() {
           </section>
         )}
 
+        {/* PDF Download */}
+        <section>
+          <button
+            onClick={onDownloadPdf}
+            disabled={pdfLoading}
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-navy-800 text-white text-sm font-medium hover:bg-navy-900 transition-colors disabled:opacity-60"
+          >
+            {pdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {pdfLoading ? t.toolPdf.downloading : t.toolPdf.download}
+          </button>
+        </section>
+
+        <InlineToolCta toolKey="checkliste" />
+
         {/* CTA */}
       </div>
 
@@ -154,6 +191,32 @@ export default function ChecklistePage() {
           </div>
         </div>
       </section>
+
+      {pdfToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-trust-50 border border-trust-200 text-trust-700 px-5 py-3 rounded-xl shadow-lg text-sm font-medium">
+          {pdfToast}
+        </div>
+      )}
+
+      <GuestPdfModal
+        isOpen={showGuestModal}
+        onClose={() => setShowGuestModal(false)}
+        onSend={(data) => {
+          const pdfData = {
+            locale,
+            calculatedAt: new Date().toLocaleDateString(locale === 'de' ? 'de-CH' : 'en-CH'),
+            situations: Array.from(selectedSituations).map(key => (t.taxChecklist.situations as Record<string, string>)[key] || key),
+            essentialDocs: t.taxChecklist.essential as unknown as string[],
+            additionalDocs,
+            tip: currentTip,
+          }
+          handleGuestSend(data, pdfData)
+        }}
+        sending={guestSending}
+        sent={guestSent}
+        error={guestError}
+        redirectPath={redirectPath}
+      />
 
       {/* Legal disclaimer */}
       <section className="bg-navy-50 border-t border-navy-100">
