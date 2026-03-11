@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { cantons, cantonCapitals, calculateSwissTax } from '@/lib/swiss-data'
-import { searchCities, calculateTaxESTV, type TaxCity, type EstvTaxResult } from '@/lib/estv-tax'
+import { calculateTaxESTV, type TaxCity, type EstvTaxResult } from '@/lib/estv-tax'
 import { useMunicipalitySearch } from '@/hooks/useMunicipalitySearch'
 import { Calculator, ArrowRight, ChevronDown, TrendingUp, Search, Loader2, GitCompareArrows, X, Plus, Trash2, Info, SlidersHorizontal, ShieldAlert, Download, Mail, Shield } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'

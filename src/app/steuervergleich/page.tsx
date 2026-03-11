@@ -153,7 +153,7 @@ function RankingTable({
         </div>
       )}
 
-      {sorted.map((row, index) => {
+      {sorted.map((row) => {
         // Original rank based on totalTax ordering
         const originalRank = results.findIndex((r) => r.key === row.key) + 1
         const barWidth = maxTax > 0 ? (row.totalTax / maxTax) * 100 : 0

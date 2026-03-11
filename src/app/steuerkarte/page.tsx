@@ -73,11 +73,6 @@ export default function SteuerkartePage() {
     return c ? c.name[locale] : selectedCanton
   }, [selectedCanton, locale])
 
-  // Info panel data
-  const selectedCantonResult = useMemo(() => {
-    return cantonResults.find((r) => r.code === selectedCanton)
-  }, [cantonResults, selectedCanton])
-
   const cheapestMunicipality = useMemo(() => {
     if (gemeindeResults.length === 0) return null
     return gemeindeResults.reduce((min, r) => (r.totalTax < min.totalTax ? r : min))
