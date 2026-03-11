@@ -116,6 +116,11 @@ export default function Footer() {
                   {t.footer.privacy}
                 </Link>
               </li>
+              <li>
+                <Link href="/agb" className="dark-text-tertiary hover:text-white transition-colors text-sm">
+                  {t.footer.agb}
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -156,6 +161,10 @@ export default function Footer() {
             <span>|</span>
             <Link href="/privacy" className="hover:text-white transition-colors">
               {t.footer.privacy}
+            </Link>
+            <span>|</span>
+            <Link href="/agb" className="hover:text-white transition-colors">
+              {t.footer.agb}
             </Link>
           </div>
         </div>

@@ -25,7 +25,7 @@ export default function FAQPage() {
   return (
     <>
       {/* Hero */}
-      <section className="gradient-hero pt-24 pb-20 lg:pt-40 lg:pb-28 relative overflow-hidden">
+      <section className="gradient-hero pt-24 pb-16 lg:pt-36 lg:pb-20 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
         </div>
@@ -33,7 +33,7 @@ export default function FAQPage() {
           <h1 className="font-heading text-4xl sm:text-5xl font-bold dark-text-primary">
             {t.faq.title}
           </h1>
-          <p className="mt-4 text-xl dark-text-secondary max-w-2xl mx-auto">
+          <p className="mt-3 text-lg dark-text-secondary max-w-2xl mx-auto">
             {t.faq.subtitle}
           </p>
         </div>

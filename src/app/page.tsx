@@ -20,7 +20,7 @@ import {
   MapPin,
   User,
   ChevronDown,
-  AlertCircle,
+  X,
   Check,
   Quote,
   Server,
@@ -138,7 +138,7 @@ function SectionWrapper({ children, className = '' }: { children: React.ReactNod
 }
 
 export default function HomePage() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
   const { displayText, prefersReducedMotion } = useTypewriter(t.hero.titleRotatingWords)
   const declarations = useCountUp(1000)
@@ -159,7 +159,7 @@ export default function HomePage() {
           />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-24 lg:pt-48 lg:pb-36">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 lg:pt-36 lg:pb-24">
           <div className="max-w-3xl">
             <div className="animate-hero-1 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 mb-8">
               <Shield className="w-4 h-4 text-white/80" />
@@ -193,6 +193,9 @@ export default function HomePage() {
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
+            <p className="animate-hero-3 mt-2 text-sm dark-text-secondary">
+              {t.discount.hint}
+            </p>
 
             {/* Stat counters with badge containers */}
             <div className="animate-hero-4 flex flex-wrap gap-3 mt-12">
@@ -212,16 +215,10 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-            <path d="M0 0H1440V80H0Z" fill="white" />
-          </svg>
-        </div>
       </section>
 
-
       {/* ============ TRUST BADGES ============ */}
-      <section className="section-padding">
+      <section className="py-8 lg:py-10">
         <SectionWrapper>
           <div className="container-wide">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -246,11 +243,114 @@ export default function HomePage() {
       {/* Gradient divider */}
       <div className="h-px bg-gradient-to-r from-transparent via-navy-200 to-transparent" />
 
+      {/* ============ HOW IT WORKS ============ */}
+      <section id="so-gehts" className="py-10 lg:py-14 scroll-mt-20 bg-navy-50/50">
+        <SectionWrapper>
+          <div className="container-wide">
+            <div className="text-center mb-8">
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-navy-900">
+                {t.howItWorks.title}
+              </h2>
+              <p className="mt-3 text-navy-600 max-w-2xl mx-auto">
+                {t.howItWorks.subtitle}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { icon: Upload, step: '01', ...t.howItWorks.step1 },
+                { icon: FileCheck, step: '02', ...t.howItWorks.step2 },
+                { icon: PartyPopper, step: '03', ...t.howItWorks.step3 },
+              ].map((item, i) => (
+                <div key={i} className="relative">
+                  {i < 2 && (
+                    <div className="hidden md:block absolute top-12 left-[60%] right-[-40%] h-[2px] bg-navy-200">
+                      <ChevronRight className="absolute -right-3 -top-[7px] w-4 h-4 text-navy-300" />
+                    </div>
+                  )}
+                  <div className="text-center">
+                    <div className="relative inline-flex">
+                      <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border border-navy-100 flex items-center justify-center mx-auto group hover:shadow-md transition-shadow">
+                        <item.icon className="w-9 h-9 text-navy-700" />
+                      </div>
+                      <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full gradient-navy text-white text-xs font-bold flex items-center justify-center">
+                        {item.step}
+                      </span>
+                    </div>
+                    <h3 className="font-heading text-lg font-bold text-navy-900 mt-3 mb-1">{item.title}</h3>
+                    <p className="text-navy-600 text-sm leading-relaxed max-w-xs mx-auto">{item.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center mt-6">
+              <Link href="/pricing" className="btn-primary !px-8 !py-3 group">
+                {t.howItWorks.cta}
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <p className="mt-2 text-sm text-navy-500">
+                {t.discount.hint}
+              </p>
+            </div>
+          </div>
+        </SectionWrapper>
+      </section>
+
+      {/* ============ FREE TOOLS ============ */}
+      <section className="section-padding">
+        <SectionWrapper>
+          <div className="container-wide">
+            <div className="text-center mb-10">
+              <h2 className="font-heading text-3xl sm:text-4xl font-bold text-navy-900">
+                {locale === 'de' ? 'Kostenlose Steuertools' : 'Free Tax Tools'}
+              </h2>
+              <p className="mt-4 text-navy-600 text-lg max-w-2xl mx-auto">
+                {locale === 'de'
+                  ? 'Planen Sie Ihre Steuern mit unseren kostenlosen Rechnern und Ratgebern.'
+                  : 'Plan your taxes with our free calculators and guides.'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { href: '/tax-calculator', title: locale === 'de' ? 'Steuerrechner' : 'Tax Calculator', description: locale === 'de' ? 'Berechnen Sie Ihre Steuerlast mit offiziellen ESTV-Daten.' : 'Calculate your tax burden with official ESTV data.', icon: CreditCard },
+                { href: '/abzugsrechner', title: locale === 'de' ? 'Abzugsrechner' : 'Deduction Finder', description: locale === 'de' ? 'Finden Sie alle Abzüge für Ihre Situation — kantonsspezifisch.' : 'Find all deductions for your situation — canton-specific.', icon: Check },
+                { href: '/3a-rechner', title: locale === 'de' ? 'Säule 3a Rechner' : 'Pillar 3a Calculator', description: locale === 'de' ? 'Wie viel sparen Sie mit Ihrer 3a-Einzahlung?' : 'How much do you save with your 3a contribution?', icon: ShieldCheck },
+                { href: '/steuervergleich', title: locale === 'de' ? 'Steuervergleich' : 'Tax Comparison', description: locale === 'de' ? 'Vergleichen Sie die Steuerlast in allen 26 Kantonen.' : 'Compare tax burden across all 26 cantons.', icon: MapPin },
+                { href: '/quellensteuer', title: locale === 'de' ? 'Quellensteuer' : 'Withholding Tax', description: locale === 'de' ? 'Lohnt sich eine Steuererklärung für Sie?' : 'Is filing a tax return worthwhile for you?', icon: User },
+                { href: '/checkliste', title: locale === 'de' ? 'Steuer-Checkliste' : 'Tax Checklist', description: locale === 'de' ? 'Welche Unterlagen brauchen Sie? Interaktive Checkliste.' : 'What documents do you need? Interactive checklist.', icon: FileCheck },
+              ].map((tool, i) => (
+                <Link
+                  key={i}
+                  href={tool.href}
+                  className="card p-5 group hover:-translate-y-1 transition-all duration-300 flex items-start gap-4"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-navy-50 flex items-center justify-center shrink-0 group-hover:bg-navy-100 transition-colors">
+                    <tool.icon className="w-5 h-5 text-navy-700" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-bold text-navy-900 mb-1 flex items-center gap-2">
+                      {tool.title}
+                      <ArrowRight className="w-3.5 h-3.5 text-navy-400 group-hover:translate-x-1 transition-transform" />
+                    </h3>
+                    <p className="text-navy-600 text-sm leading-relaxed">{tool.description}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </SectionWrapper>
+      </section>
+
+      {/* Gradient divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-navy-200 to-transparent" />
+
       {/* ============ BENEFITS ============ */}
       <section className="section-padding bg-navy-50/50">
         <SectionWrapper>
           <div className="container-wide">
-            <div className="text-center mb-16">
+            <div className="text-center mb-10">
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-navy-900">
                 {t.benefits.title}
               </h2>
@@ -263,8 +363,8 @@ export default function HomePage() {
                 { icon: UserCheck, ...t.benefits.experts },
                 { icon: CreditCard, ...t.benefits.transparent },
               ].map((item, i) => (
-                <div key={i} className="card p-8 text-center group hover:-translate-y-1 transition-all duration-300">
-                  <div className="w-14 h-14 rounded-2xl bg-navy-50 flex items-center justify-center mx-auto mb-5 group-hover:bg-navy-100 transition-colors">
+                <div key={i} className="card p-6 text-center group hover:-translate-y-1 transition-all duration-300">
+                  <div className="w-14 h-14 rounded-2xl bg-navy-50 flex items-center justify-center mx-auto mb-3 group-hover:bg-navy-100 transition-colors">
                     <item.icon className="w-7 h-7 text-navy-700" />
                   </div>
                   <h3 className="font-heading text-lg font-bold text-navy-900 mb-3">{item.title}</h3>
@@ -276,79 +376,59 @@ export default function HomePage() {
         </SectionWrapper>
       </section>
 
-      {/* ============ HOW IT WORKS ============ */}
-      <section id="so-gehts" className="section-padding scroll-mt-20">
-        <SectionWrapper>
-          <div className="container-wide">
-            <div className="text-center mb-16">
-              <h2 className="font-heading text-3xl sm:text-4xl font-bold text-navy-900">
-                {t.howItWorks.title}
-              </h2>
-              <p className="mt-4 text-navy-600 text-lg max-w-2xl mx-auto">
-                {t.howItWorks.subtitle}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
-              {[
-                { icon: Upload, step: '01', ...t.howItWorks.step1 },
-                { icon: FileCheck, step: '02', ...t.howItWorks.step2 },
-                { icon: PartyPopper, step: '03', ...t.howItWorks.step3 },
-              ].map((item, i) => (
-                <div key={i} className="relative">
-                  {i < 2 && (
-                    <div className="hidden md:block absolute top-14 left-[60%] right-[-40%] h-[2px] bg-navy-200">
-                      <ChevronRight className="absolute -right-3 -top-[7px] w-4 h-4 text-navy-300" />
-                    </div>
-                  )}
-                  <div className="text-center">
-                    <div className="relative inline-flex">
-                      <div className="w-28 h-28 rounded-3xl bg-white shadow-sm border border-navy-100 flex items-center justify-center mx-auto group hover:shadow-md transition-shadow">
-                        <item.icon className="w-12 h-12 text-navy-700" />
-                      </div>
-                      <span className="absolute -top-2 -right-2 w-8 h-8 rounded-full gradient-navy text-white text-sm font-bold flex items-center justify-center">
-                        {item.step}
-                      </span>
-                    </div>
-                    <h3 className="font-heading text-xl font-bold text-navy-900 mt-6 mb-3">{item.title}</h3>
-                    <p className="text-navy-600 text-sm leading-relaxed max-w-xs mx-auto">{item.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="text-center mt-14">
-              <Link href="/pricing" className="btn-primary !px-8 !py-4 group">
-                {t.howItWorks.cta}
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-          </div>
-        </SectionWrapper>
-      </section>
-
       {/* ============ PROBLEM / PAIN SECTION ============ */}
       <section className="section-padding">
         <SectionWrapper>
-          <div className="container-narrow">
-            <div className="text-center mb-12">
+          <div className="container-wide">
+            <div className="text-center mb-10">
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-navy-900">
                 {t.problem.title}
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
-              {t.problem.items.map((item, i) => (
-                <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-navy-50 border border-navy-100">
-                  <AlertCircle className="w-5 h-5 text-navy-400 shrink-0 mt-0.5" />
-                  <span className="text-navy-700 text-sm leading-relaxed">{item}</span>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
+              {/* Pain points */}
+              <div className="space-y-3">
+                <div className="text-xs font-semibold text-navy-400 uppercase tracking-wider mb-4 text-center lg:text-left">
+                  {locale === 'de' ? 'Ohne Petertil' : 'Without Petertil'}
                 </div>
-              ))}
+                {t.problem.items.map((item, i) => (
+                  <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-gold-50/60 border border-gold-200/50">
+                    <X className="w-5 h-5 text-gold-600 shrink-0 mt-0.5" />
+                    <span className="text-navy-700 text-sm leading-relaxed">{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Solutions */}
+              <div className="space-y-3">
+                <div className="text-xs font-semibold text-navy-400 uppercase tracking-wider mb-4 text-center lg:text-left">
+                  {locale === 'de' ? 'Mit Petertil' : 'With Petertil'}
+                </div>
+                {(t.problem as unknown as { solutions: readonly string[] }).solutions.map((item, i) => (
+                  <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-trust-50/60 border border-trust-200/50">
+                    <Check className="w-5 h-5 text-trust-600 shrink-0 mt-0.5" />
+                    <span className="text-navy-700 text-sm leading-relaxed">{item}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <p className="text-center mt-10 text-xl font-heading font-semibold text-navy-900">
-              {t.problem.transition}
-            </p>
+            <div className="text-center mt-10">
+              <p className="text-xl font-heading font-semibold text-navy-900 mb-2">
+                {t.problem.transition}
+              </p>
+              <p className="text-navy-600 text-sm mb-6">
+                {(t.problem as unknown as { transitionSub: string }).transitionSub}
+              </p>
+              <Link href="/pricing" className="btn-primary !px-8 !py-3 group">
+                {t.howItWorks.cta}
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <p className="mt-2 text-sm text-navy-500">
+                {t.discount.hint}
+              </p>
+            </div>
           </div>
         </SectionWrapper>
       </section>
@@ -360,7 +440,7 @@ export default function HomePage() {
       <section className="section-padding bg-navy-50/50">
         <SectionWrapper>
           <div className="container-wide">
-            <div className="text-center mb-12">
+            <div className="text-center mb-8">
               <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-100 text-gold-700 text-sm font-semibold mb-4">
                 {t.dashboardPreview.badge}
               </span>
@@ -450,7 +530,7 @@ export default function HomePage() {
             </div>
 
             {/* Feature bullets */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mt-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mt-6">
               {t.dashboardPreview.features.map((feature, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="w-6 h-6 rounded-full bg-trust-100 flex items-center justify-center shrink-0">
@@ -477,7 +557,7 @@ export default function HomePage() {
                 5.0 von 5.0
               </span>
             </div>
-            <div className="text-center mb-12">
+            <div className="text-center mb-8">
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-navy-900">
                 {t.testimonials.title}
               </h2>
@@ -493,7 +573,7 @@ export default function HomePage() {
                   <Quote className="absolute top-6 right-6 w-8 h-8 text-navy-100" />
 
                   {/* Stars */}
-                  <div className="flex items-center gap-1.5 mb-5">
+                  <div className="flex items-center gap-1.5 mb-4">
                     {[...Array(5)].map((_, j) => (
                       <Star key={j} className="w-5 h-5 fill-gold-400 text-gold-400" />
                     ))}
@@ -501,12 +581,12 @@ export default function HomePage() {
                   </div>
 
                   {/* Review text */}
-                  <p className="text-navy-800 text-base leading-relaxed mb-6 relative z-10">
+                  <p className="text-navy-800 text-base leading-relaxed mb-4 relative z-10">
                     &ldquo;{review.text}&rdquo;
                   </p>
 
                   {/* Divider */}
-                  <div className="border-t border-navy-100 pt-5">
+                  <div className="border-t border-navy-100 pt-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-navy-700 to-navy-900 flex items-center justify-center shrink-0">
                         <span className="text-sm font-bold text-white">
@@ -523,7 +603,7 @@ export default function HomePage() {
               ))}
             </div>
 
-            <div className="text-center mt-12">
+            <div className="text-center mt-8">
               <Link href="/pricing" className="btn-primary !px-8 !py-4 group">
                 {t.hero.cta}
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -537,7 +617,7 @@ export default function HomePage() {
       <section className="section-padding">
         <SectionWrapper>
           <div className="container-wide">
-            <div className="text-center mb-12">
+            <div className="text-center mb-8">
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-navy-900">
                 {t.guarantee.title}
               </h2>
@@ -570,25 +650,23 @@ export default function HomePage() {
       <div className="h-px bg-gradient-to-r from-transparent via-navy-200 to-transparent" />
 
       {/* ============ FAQ PREVIEW ============ */}
-      <section className="section-padding bg-navy-50/50">
+      <section className="py-10 lg:py-14 bg-navy-50/50">
         <SectionWrapper>
           <div className="container-narrow">
-            <div className="text-center mb-12">
-              <h2 className="font-heading text-3xl sm:text-4xl font-bold text-navy-900">
-                {t.faqPreview.title}
-              </h2>
-            </div>
+            <h2 className="font-heading text-xl sm:text-2xl font-bold text-navy-900 text-center mb-5">
+              {t.faqPreview.title}
+            </h2>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               {t.faqPreview.items.map((item, i) => (
                 <div key={i} className="card overflow-hidden">
                   <button
                     onClick={() => setOpenFaqIndex(openFaqIndex === i ? null : i)}
-                    className="w-full flex items-center justify-between p-4 sm:p-6 text-left hover:bg-navy-50/50 transition-colors"
+                    className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-navy-50/50 transition-colors"
                   >
-                    <span className="font-semibold text-navy-900">{item.question}</span>
+                    <span className="font-semibold text-sm text-navy-900">{item.question}</span>
                     <ChevronDown
-                      className={`w-5 h-5 text-navy-400 shrink-0 ml-4 transition-transform duration-300 ${
+                      className={`w-4 h-4 text-navy-400 shrink-0 ml-4 transition-transform duration-300 ${
                         openFaqIndex === i ? 'rotate-180' : ''
                       }`}
                     />
@@ -601,8 +679,8 @@ export default function HomePage() {
                     }}
                   >
                     <div className="overflow-hidden">
-                      <div className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0">
-                        <p className="text-navy-600 leading-relaxed">{item.answer}</p>
+                      <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-0">
+                        <p className="text-navy-600 text-sm leading-relaxed">{item.answer}</p>
                       </div>
                     </div>
                   </div>
@@ -610,8 +688,8 @@ export default function HomePage() {
               ))}
             </div>
 
-            <div className="text-center mt-8">
-              <Link href="/faq" className="text-navy-700 font-medium hover:text-navy-900 transition-colors inline-flex items-center gap-1">
+            <div className="text-center mt-5">
+              <Link href="/faq" className="text-navy-700 text-sm font-medium hover:text-navy-900 transition-colors inline-flex items-center gap-1">
                 {t.faqPreview.linkText}
                 <ArrowRight className="w-4 h-4" />
               </Link>
@@ -621,9 +699,9 @@ export default function HomePage() {
       </section>
 
       {/* ============ FINAL CTA ============ */}
-      <section className="px-4 sm:px-6 lg:px-8 py-20">
+      <section className="px-4 sm:px-6 lg:px-8 py-12">
         <div className="container-wide">
-          <div className="relative overflow-hidden rounded-3xl gradient-navy p-8 sm:p-12 lg:p-16">
+          <div className="relative overflow-hidden rounded-3xl gradient-navy p-8 sm:p-10 lg:p-12">
             <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
             <div className="relative text-center max-w-2xl mx-auto">
@@ -640,6 +718,9 @@ export default function HomePage() {
                 {t.finalCta.cta}
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
+              <p className="mt-2 text-sm dark-text-secondary">
+                {t.discount.hint}
+              </p>
             </div>
           </div>
         </div>

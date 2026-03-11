@@ -15,10 +15,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing session_id' }, { status: 400 })
     }
 
-    const session = await getStripe().checkout.sessions.retrieve(sessionId)
+    const stripe = getStripe()
+    const session = await stripe.checkout.sessions.retrieve(sessionId)
 
     if (session.payment_status !== 'paid') {
-      return NextResponse.json({ paid: false }, { status: 200 })
+      return NextResponse.json({ paid: false })
     }
 
     return NextResponse.json({

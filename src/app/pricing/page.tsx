@@ -2,6 +2,9 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { loadStripe } from '@stripe/stripe-js'
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js'
 import { useI18n } from '@/lib/i18n/context'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -22,6 +25,8 @@ import {
   Minus,
   Plus,
   Repeat,
+  Info,
+  ChevronDown,
 } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
@@ -31,20 +36,24 @@ import {
 type Personentyp = 'lehrling' | 'einzelperson' | 'ehepaar'
 type StepId = 'personentyp' | 'zusatzleistungen' | 'selbstaendig' | 'bearbeitungszeit' | 'result'
 
+type KryptoOption = 'none' | 'basic' | 'komplex'
+
 interface WizardState {
   personentyp: Personentyp | null
   liegenschaften: number
-  krypto: boolean
+  krypto: KryptoOption
   kinder: number
   selbstaendig: boolean | null
   express: boolean | null
   abo: boolean
 }
 
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
 const INITIAL_STATE: WizardState = {
   personentyp: null,
   liegenschaften: 0,
-  krypto: false,
+  krypto: 'none',
   kinder: 0,
   selbstaendig: null,
   express: null,
@@ -65,22 +74,22 @@ function calculatePrice(state: WizardState): {
 
   // Basispreis
   const basePrice = state.personentyp === 'lehrling' ? 89
-    : state.personentyp === 'ehepaar' ? 139 : 119
+    : state.personentyp === 'ehepaar' ? 179 : 149
   breakdown.push({ label: 'Basispreis', amount: basePrice })
 
   // Liegenschaften
   if (state.liegenschaften > 0) {
-    breakdown.push({ label: `${state.liegenschaften}× Liegenschaft`, amount: state.liegenschaften * 35 })
+    breakdown.push({ label: `${state.liegenschaften}× Liegenschaft`, amount: state.liegenschaften * 40 })
   }
 
   // Krypto
-  if (state.krypto) {
-    breakdown.push({ label: 'Krypto-Vermögen', amount: 50 })
+  if (state.krypto === 'basic') {
+    breakdown.push({ label: 'Krypto Basic', amount: 60 })
   }
 
   // Kinder
   if (state.kinder > 0) {
-    breakdown.push({ label: `${state.kinder}× Kind/Unterhalt`, amount: state.kinder * 25 })
+    breakdown.push({ label: `${state.kinder}× Kind/Unterhalt`, amount: state.kinder * 20 })
   }
 
   // Express
@@ -130,7 +139,7 @@ declare global {
 // ---------------------------------------------------------------------------
 
 export default function PricingPage() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   const [state, setState] = useState<WizardState>(INITIAL_STATE)
   const [stepIndex, setStepIndex] = useState(0)
@@ -144,6 +153,8 @@ export default function PricingPage() {
   const { total, aboTotal, aboSavings, breakdown } = useMemo(() => calculatePrice(state), [state])
 
   const [orderLoading, setOrderLoading] = useState(false)
+  const [showCheckout, setShowCheckout] = useState(false)
+  const [clientSecret, setClientSecret] = useState<string | null>(null)
 
   const handleOrderNow = useCallback(async () => {
     const finalPrice = state.abo ? aboTotal : total
@@ -168,7 +179,7 @@ export default function PricingPage() {
       return
     }
 
-    // All others: go through Stripe Checkout
+    // All others: go through embedded Stripe Checkout
     setOrderLoading(true)
     try {
       const res = await fetch('/api/stripe/create-checkout', {
@@ -184,17 +195,23 @@ export default function PricingPage() {
       })
 
       const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret)
+        setShowCheckout(true)
       } else {
-        console.error('No checkout URL returned')
-        setOrderLoading(false)
+        console.error('No client secret returned')
       }
     } catch (error) {
       console.error('Checkout error:', error)
+    } finally {
       setOrderLoading(false)
     }
   }, [total, aboTotal, state.selbstaendig, state.express, state.abo, pricingRouter])
+
+  const handleCancelCheckout = useCallback(() => {
+    setShowCheckout(false)
+    setClientSecret(null)
+  }, [])
 
   // Progress: exclude result step
   const isQuestionnaireStep = currentStep !== 'result'
@@ -304,7 +321,7 @@ export default function PricingPage() {
   return (
     <>
       {/* Hero */}
-      <section className="gradient-hero pt-24 pb-16 lg:pt-40 lg:pb-20 relative overflow-hidden">
+      <section className="gradient-hero pt-24 pb-14 lg:pt-36 lg:pb-18 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
         </div>
@@ -312,12 +329,12 @@ export default function PricingPage() {
           <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
             {t.pricing.title}
           </h1>
-          <p className="mt-4 text-lg text-navy-200 max-w-xl mx-auto">
+          <p className="mt-3 text-lg text-navy-200 max-w-xl mx-auto">
             {t.pricing.subtitle}
           </p>
-          <div className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-full bg-white/10 border border-white/20">
-            <Clock className="w-4 h-4 text-white/80" />
-            <span className="text-sm font-medium text-white/80">{t.pricing.urgency}</span>
+          <div className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl bg-white/15 border border-white/25 backdrop-blur-sm">
+            <Shield className="w-5 h-5 text-trust-400" />
+            <span className="text-sm font-semibold text-white">{t.pricing.transparentBadge}</span>
           </div>
         </div>
       </section>
@@ -371,7 +388,7 @@ export default function PricingPage() {
                         {t.pricing.steps.personentyp.options.lehrlingHint}
                       </p>
                     </div>
-                    <span className={`text-lg font-bold shrink-0 ${state.personentyp === 'lehrling' ? 'text-white' : 'text-navy-900'}`}>
+                    <span className={`text-sm font-medium shrink-0 ${state.personentyp === 'lehrling' ? 'text-white' : 'text-navy-500'}`}>
                       CHF 89.-
                     </span>
                   </OptionButton>
@@ -387,8 +404,8 @@ export default function PricingPage() {
                         {t.pricing.steps.personentyp.options.einzelpersonHint}
                       </p>
                     </div>
-                    <span className={`text-lg font-bold shrink-0 ${state.personentyp === 'einzelperson' ? 'text-white' : 'text-navy-900'}`}>
-                      CHF 119.-
+                    <span className={`text-sm font-medium shrink-0 ${state.personentyp === 'einzelperson' ? 'text-white' : 'text-navy-500'}`}>
+                      CHF 149.-
                     </span>
                   </OptionButton>
                   <OptionButton
@@ -403,8 +420,8 @@ export default function PricingPage() {
                         {t.pricing.steps.personentyp.options.ehepaarHint}
                       </p>
                     </div>
-                    <span className={`text-lg font-bold shrink-0 ${state.personentyp === 'ehepaar' ? 'text-white' : 'text-navy-900'}`}>
-                      CHF 139.-
+                    <span className={`text-sm font-medium shrink-0 ${state.personentyp === 'ehepaar' ? 'text-white' : 'text-navy-500'}`}>
+                      CHF 179.-
                     </span>
                   </OptionButton>
                 </div>
@@ -429,7 +446,7 @@ export default function PricingPage() {
                     <div className="flex-1 min-w-0">
                       <span className="text-lg font-medium">{t.pricing.steps.zusatzleistungen.options.liegenschaften}</span>
                       <p className={`text-sm mt-0.5 ${state.liegenschaften > 0 ? 'text-white/70' : 'text-navy-500'}`}>
-                        CHF 35.- {t.pricing.steps.zusatzleistungen.perUnit}
+                        CHF 40.- {t.pricing.steps.zusatzleistungen.perUnit}
                       </p>
                     </div>
                     <NumberStepper
@@ -441,22 +458,44 @@ export default function PricingPage() {
                     />
                   </div>
 
-                  {/* Krypto */}
-                  <OptionButton
-                    selected={state.krypto}
-                    onClick={() => setState((prev) => ({ ...prev, krypto: !prev.krypto }))}
-                    aria-label={t.pricing.steps.zusatzleistungen.options.krypto}
-                    aria-pressed={state.krypto}
+                  {/* Krypto Dropdown */}
+                  <div
+                    className={`flex items-center gap-4 w-full px-6 py-5 rounded-xl border-2 transition-all duration-200 ${
+                      state.krypto !== 'none'
+                        ? 'border-navy-800 bg-navy-800 text-white'
+                        : 'border-navy-200 text-navy-700'
+                    }`}
                   >
                     <Bitcoin className="w-6 h-6 shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <span className="text-lg font-medium">{t.pricing.steps.zusatzleistungen.options.krypto}</span>
-                      <p className={`text-sm mt-0.5 ${state.krypto ? 'text-white/70' : 'text-navy-500'}`}>
-                        CHF 50.- {t.pricing.steps.zusatzleistungen.flat}
-                      </p>
+                      <span className="text-lg font-medium">{t.pricing.steps.zusatzleistungen.options.kryptoLabel}</span>
+                      {state.krypto !== 'none' && (
+                        <p className="text-sm mt-0.5 text-white/70">
+                          {state.krypto === 'basic'
+                            ? t.pricing.steps.zusatzleistungen.options.kryptoBasicHint
+                            : t.pricing.steps.zusatzleistungen.options.kryptoKomplexHint}
+                        </p>
+                      )}
                     </div>
-                    {state.krypto && <Check className="w-5 h-5 shrink-0" />}
-                  </OptionButton>
+                    <div className="relative shrink-0">
+                      <select
+                        value={state.krypto}
+                        onChange={(e) => setState((prev) => ({ ...prev, krypto: e.target.value as KryptoOption }))}
+                        className={`appearance-none pr-7 pl-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/30 ${
+                          state.krypto !== 'none'
+                            ? 'bg-white/20 text-white border border-white/20'
+                            : 'bg-navy-50 text-navy-700 border border-navy-200'
+                        }`}
+                      >
+                        <option value="none">{t.pricing.steps.zusatzleistungen.options.kryptoNone}</option>
+                        <option value="basic">{t.pricing.steps.zusatzleistungen.options.kryptoBasic} – CHF 60.-</option>
+                        <option value="komplex">{t.pricing.steps.zusatzleistungen.options.kryptoKomplex} – {t.pricing.steps.zusatzleistungen.nachAufwand}</option>
+                      </select>
+                      <ChevronDown className={`absolute right-1.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
+                        state.krypto !== 'none' ? 'text-white/70' : 'text-navy-400'
+                      }`} />
+                    </div>
+                  </div>
 
                   {/* Kinder */}
                   <div
@@ -470,7 +509,7 @@ export default function PricingPage() {
                     <div className="flex-1 min-w-0">
                       <span className="text-lg font-medium">{t.pricing.steps.zusatzleistungen.options.kinder}</span>
                       <p className={`text-sm mt-0.5 ${state.kinder > 0 ? 'text-white/70' : 'text-navy-500'}`}>
-                        CHF 25.- {t.pricing.steps.zusatzleistungen.perChild}
+                        CHF 20.- {t.pricing.steps.zusatzleistungen.perChild}
                       </p>
                     </div>
                     <NumberStepper
@@ -489,7 +528,7 @@ export default function PricingPage() {
                   className="btn-white w-full mt-8 group"
                   aria-label={t.common.next}
                 >
-                  {state.liegenschaften === 0 && !state.krypto && state.kinder === 0
+                  {state.liegenschaften === 0 && state.krypto === 'none' && state.kinder === 0
                     ? t.pricing.steps.zusatzleistungen.noneButton
                     : t.common.next}
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -545,7 +584,7 @@ export default function PricingPage() {
                         {t.pricing.steps.bearbeitungszeit.standardHint}
                       </p>
                     </div>
-                    <span className={`text-lg font-bold shrink-0 ${state.express === false ? 'text-white' : 'text-navy-900'}`}>
+                    <span className={`text-lg font-bold shrink-0 ${state.express === false ? 'text-white' : 'text-navy-500'}`}>
                       CHF 0.-
                     </span>
                   </OptionButton>
@@ -599,6 +638,12 @@ export default function PricingPage() {
                           <span className="text-navy-900 font-medium text-sm">CHF {item.amount}.-</span>
                         </div>
                       ))}
+                      {state.krypto === 'komplex' && (
+                        <div className="flex items-center justify-between py-2 border-b border-navy-100">
+                          <span className="text-navy-700 text-sm">{t.pricing.result.kryptoKomplexLine}</span>
+                          <span className="text-navy-500 font-medium text-sm italic">{t.pricing.result.nachAufwand}</span>
+                        </div>
+                      )}
                       {state.selbstaendig && (
                         <div className="flex items-center justify-between py-2 border-b border-navy-100">
                           <span className="text-navy-700 text-sm">{t.pricing.result.selbstaendigLine}</span>
@@ -622,8 +667,8 @@ export default function PricingPage() {
                     </div>
                   </div>
 
-                  {/* Abo Toggle (hidden for Lehrling) */}
-                  {state.personentyp !== 'lehrling' && <div className="mt-8 max-w-md mx-auto">
+                  {/* Abo Toggle */}
+                  <div className="mt-8 max-w-md mx-auto">
                     <div className="flex rounded-xl border-2 border-navy-200 overflow-hidden">
                       <button
                         type="button"
@@ -658,12 +703,21 @@ export default function PricingPage() {
                     {/* Abo note */}
                     {state.abo && (
                       <div className="mt-4 p-4 rounded-xl bg-trust-50 border border-trust-200">
-                        <p className="text-sm text-trust-700 text-center">
-                          {t.pricing.result.aboNote}
-                        </p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Info className="w-4 h-4 text-trust-500 shrink-0" />
+                          <span className="text-sm font-medium text-trust-700">{t.pricing.result.aboNote.title}</span>
+                        </div>
+                        <ul className="space-y-1 text-sm text-trust-600 ml-6">
+                          {t.pricing.result.aboNote.items.map((item: string, i: number) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="shrink-0">·</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     )}
-                  </div>}
+                  </div>
 
                   {/* Fixed price badge */}
                   <div className="mt-6 flex justify-center">
@@ -694,29 +748,53 @@ export default function PricingPage() {
                     </div>
                   )}
 
-                  {/* CTA */}
-                  <div className="mt-10 flex justify-center">
-                    <button
-                      onClick={handleOrderNow}
-                      disabled={orderLoading}
-                      className="btn-white group text-base !px-8 !py-4 disabled:opacity-50"
-                    >
-                      {orderLoading ? (
-                        <span className="flex items-center gap-2">
-                          <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                          </svg>
-                          {t.pricing.paymentLoading}
-                        </span>
-                      ) : (
-                        <>
-                          {t.pricing.cta}
-                          <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </>
-                      )}
-                    </button>
-                  </div>
+                  {/* Krypto komplex disclaimer */}
+                  {state.krypto === 'komplex' && (
+                    <div className="mt-6 p-4 rounded-xl bg-navy-50 border border-navy-200 max-w-md mx-auto">
+                      <p className="text-sm text-navy-600 text-center">
+                        {t.pricing.result.kryptoKomplexNote}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* CTA / Embedded Checkout */}
+                  {showCheckout && clientSecret ? (
+                    <div className="mt-10">
+                      <button
+                        onClick={handleCancelCheckout}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-500 hover:text-navy-700 transition-colors mb-4"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        {t.common.back}
+                      </button>
+                      <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
+                        <EmbeddedCheckout />
+                      </EmbeddedCheckoutProvider>
+                    </div>
+                  ) : (
+                    <div className="mt-10 flex justify-center">
+                      <button
+                        onClick={handleOrderNow}
+                        disabled={orderLoading}
+                        className="btn-white group text-base !px-8 !py-4 disabled:opacity-50"
+                      >
+                        {orderLoading ? (
+                          <span className="flex items-center gap-2">
+                            <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            {t.pricing.paymentLoading}
+                          </span>
+                        ) : (
+                          <>
+                            {t.pricing.cta}
+                            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
 
                   {/* Restart */}
                   <div className="mt-6 text-center">
@@ -729,6 +807,16 @@ export default function PricingPage() {
                       {t.pricing.result.restart}
                     </button>
                   </div>
+                  <p className="mt-3 text-xs text-navy-300 text-center">
+                    {locale === 'de' ? 'Mit Abschluss durch Zahlung akzeptieren Sie unsere ' : 'By completing payment you accept our '}
+                    <Link href="/privacy" className="underline hover:text-navy-500">
+                      {locale === 'de' ? 'Datenschutzerklärung' : 'Privacy Policy'}
+                    </Link>
+                    {' & '}
+                    <Link href="/agb" className="underline hover:text-navy-500">
+                      {locale === 'de' ? 'AGB' : 'Terms of Service'}
+                    </Link>.
+                  </p>
                 </div>
               </div>
             )}

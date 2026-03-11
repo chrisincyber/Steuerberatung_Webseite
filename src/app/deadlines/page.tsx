@@ -31,7 +31,7 @@ export default function DeadlinesPage() {
   return (
     <>
       {/* Hero */}
-      <section className="gradient-hero pt-24 pb-20 lg:pt-40 lg:pb-28 relative overflow-hidden">
+      <section className="gradient-hero pt-24 pb-16 lg:pt-36 lg:pb-20 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
         </div>
@@ -39,19 +39,21 @@ export default function DeadlinesPage() {
           <h1 className="font-heading text-4xl sm:text-5xl font-bold dark-text-primary">
             {t.deadlines.title}
           </h1>
-          <p className="mt-4 text-xl dark-text-secondary max-w-2xl mx-auto">
+          <p className="mt-3 text-lg dark-text-secondary max-w-2xl mx-auto">
             {t.deadlines.subtitle}
           </p>
         </div>
       </section>
 
       {/* Urgency banner */}
-      <section className="px-4 sm:px-6 lg:px-8 -mt-6">
+      <section className="px-4 sm:px-6 lg:px-8 -mt-6 relative z-10">
         <div className="container-wide">
-          <div className="flex items-center gap-3 p-4 bg-gold-50 rounded-xl border border-gold-200">
-            <Clock className="w-5 h-5 text-gold-600 shrink-0" />
-            <p className="text-sm font-medium text-gold-800">{t.deadlines.urgency}</p>
-            <Link href="/pricing" className="ml-auto text-sm font-semibold text-gold-700 hover:text-gold-800 whitespace-nowrap inline-flex items-center gap-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-gold-50 rounded-xl border border-gold-200">
+            <div className="flex items-start sm:items-center gap-3">
+              <Clock className="w-5 h-5 text-gold-600 shrink-0 mt-0.5 sm:mt-0" />
+              <p className="text-sm font-medium text-gold-800">{t.deadlines.urgency}</p>
+            </div>
+            <Link href="/pricing" className="sm:ml-auto text-sm font-semibold text-gold-700 hover:text-gold-800 whitespace-nowrap inline-flex items-center gap-1 pl-8 sm:pl-0">
               {t.deadlines.cta}
               <ArrowRight className="w-4 h-4" />
             </Link>

@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/context'
 import { Menu, X, Globe, ChevronDown, User, LogOut, LayoutDashboard } from 'lucide-react'
+import DeadlineBanner from '@/components/DeadlineBanner'
 import { createClient } from '@/lib/supabase/client'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
@@ -60,22 +61,32 @@ export default function Header() {
   }
 
   const [resourcesOpen, setResourcesOpen] = useState(false)
+  const [toolsOpen, setToolsOpen] = useState(false)
 
   const navLinks = [
     { href: '/', label: t.nav.home },
-    { href: '/tax-calculator', label: t.nav.taxCalculator },
     { href: '/pricing', label: t.nav.pricing },
   ]
 
   const resourceLinks = [
-    { href: '/kanton/zuerich', label: t.nav.cantons },
+    { href: '/kanton', label: t.nav.cantons },
     { href: '/deadlines', label: t.nav.deadlines },
     { href: '/faq', label: t.nav.faq },
     { href: '/about', label: t.nav.about },
   ]
 
+  const toolLinks = [
+    { href: '/tax-calculator', label: t.nav.taxCalculator },
+    { href: '/abzugsrechner', label: t.nav.deductionFinder },
+    { href: '/3a-rechner', label: t.nav.pillar3a },
+    { href: '/quellensteuer', label: t.nav.withholding },
+    { href: '/steuervergleich', label: t.nav.taxCompare },
+    { href: '/checkliste', label: t.nav.taxChecklist },
+    { href: '/steuertipps', label: t.nav.taxTips },
+  ]
+
   // Pages with a dark hero background where we need white text/logo
-  const darkHeroPages = ['/', '/about', '/pricing', '/faq', '/tax-calculator', '/deadlines', '/impressum', '/privacy', '/kanton']
+  const darkHeroPages = ['/', '/about', '/pricing', '/faq', '/tax-calculator', '/deadlines', '/impressum', '/privacy', '/agb', '/kanton', '/abzugsrechner', '/3a-rechner', '/quellensteuer', '/steuervergleich', '/checkliste', '/steuertipps']
   const hasDarkHero = darkHeroPages.some(p => p === '/' ? pathname === '/' : pathname.startsWith(p))
   const useDarkStyle = scrolled || !hasDarkHero
 
@@ -85,6 +96,7 @@ export default function Header() {
   }
 
   const isResourceActive = resourceLinks.some((link) => isActive(link.href)) || pathname.startsWith('/kanton')
+  const isToolActive = toolLinks.some((link) => isActive(link.href))
 
   return (
     <header
@@ -94,6 +106,7 @@ export default function Header() {
           : 'bg-transparent'
       }`}
     >
+      <DeadlineBanner />
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
@@ -128,10 +141,50 @@ export default function Header() {
               </Link>
             ))}
 
+            {/* Tools dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => { setToolsOpen(!toolsOpen); setResourcesOpen(false) }}
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  useDarkStyle
+                    ? isToolActive
+                      ? 'text-navy-900 bg-navy-100'
+                      : 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
+                    : isToolActive
+                      ? 'text-white bg-white/15'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {t.nav.tools}
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${toolsOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {toolsOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setToolsOpen(false)} />
+                  <div className="absolute left-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-navy-100 py-2 z-50">
+                    {toolLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setToolsOpen(false)}
+                        className={`flex items-center px-4 py-2.5 text-sm transition-colors ${
+                          isActive(link.href)
+                            ? 'text-navy-900 bg-navy-50 font-medium'
+                            : 'text-navy-700 hover:bg-navy-50'
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
             {/* Resources dropdown */}
             <div className="relative">
               <button
-                onClick={() => setResourcesOpen(!resourcesOpen)}
+                onClick={() => { setResourcesOpen(!resourcesOpen); setToolsOpen(false) }}
                 className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   useDarkStyle
                     ? isResourceActive
@@ -267,6 +320,24 @@ export default function Header() {
           <div className="lg:hidden bg-white border-t border-navy-100 pb-4 animate-in slide-in-from-top-2">
             <div className="flex flex-col gap-1 pt-4">
               {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                    isActive(link.href)
+                      ? 'text-navy-900 bg-navy-100'
+                      : 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {/* Tools group */}
+              <div className="px-4 pt-3 pb-1 text-xs font-semibold text-navy-400 uppercase">
+                {t.nav.tools}
+              </div>
+              {toolLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}

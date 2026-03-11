@@ -180,11 +180,11 @@ function SelectField({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-700 bg-white focus:border-navy-500 focus:ring-0 outline-none appearance-none"
+        className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-700 text-sm bg-white focus:border-navy-500 focus:ring-0 outline-none appearance-none"
       >
         {children}
       </select>
-      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-navy-400 pointer-events-none" />
+      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400 pointer-events-none" />
     </div>
   )
 }
@@ -272,12 +272,12 @@ function TaxForm({
           {label === 'A' ? t.taxCalc.scenarioA : t.taxCalc.scenarioB}
         </h3>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
 
         {/* === SIMPLE MODE: single income field === */}
         {mode === 'simple' && (
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-navy-900 mb-2">
+            <label className="block text-sm font-semibold text-navy-900 mb-1">
               {t.taxCalc.grossIncome}
             </label>
             <input
@@ -285,7 +285,7 @@ function TaxForm({
               value={form.grossIncome}
               onChange={(e) => updateField('grossIncome', e.target.value)}
               placeholder="80000"
-              className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
             />
           </div>
         )}
@@ -299,7 +299,7 @@ function TaxForm({
               </p>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-navy-900 mb-2">
+              <label className="block text-sm font-semibold text-navy-900 mb-1">
                 {t.taxCalc.income}
               </label>
               <input
@@ -307,11 +307,11 @@ function TaxForm({
                 value={form.grossIncome}
                 onChange={(e) => updateField('grossIncome', e.target.value)}
                 placeholder="100000"
-                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-navy-900 mb-2">
+              <label className="block text-sm font-semibold text-navy-900 mb-1">
                 {t.taxCalc.incomeType}
               </label>
               <SelectField
@@ -326,7 +326,7 @@ function TaxForm({
               </SelectField>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-navy-900 mb-2">
+              <label className="block text-sm font-semibold text-navy-900 mb-1">
                 {t.taxCalc.age}
               </label>
               <input
@@ -336,11 +336,11 @@ function TaxForm({
                 value={form.age1}
                 onChange={(e) => updateField('age1', e.target.value)}
                 placeholder="40"
-                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-navy-900 mb-2">
+              <label className="block text-sm font-semibold text-navy-900 mb-1">
                 {t.taxCalc.confession}
               </label>
               <SelectField
@@ -366,7 +366,7 @@ function TaxForm({
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-navy-900 mb-2">
+              <label className="block text-sm font-semibold text-navy-900 mb-1">
                 {t.taxCalc.income}
               </label>
               <input
@@ -374,11 +374,11 @@ function TaxForm({
                 value={form.income2}
                 onChange={(e) => updateField('income2', e.target.value)}
                 placeholder="60000"
-                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-navy-900 mb-2">
+              <label className="block text-sm font-semibold text-navy-900 mb-1">
                 {t.taxCalc.incomeType}
               </label>
               <SelectField
@@ -393,7 +393,7 @@ function TaxForm({
               </SelectField>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-navy-900 mb-2">
+              <label className="block text-sm font-semibold text-navy-900 mb-1">
                 {t.taxCalc.age}
               </label>
               <input
@@ -403,11 +403,11 @@ function TaxForm({
                 value={form.age2}
                 onChange={(e) => updateField('age2', e.target.value)}
                 placeholder="38"
-                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-navy-900 mb-2">
+              <label className="block text-sm font-semibold text-navy-900 mb-1">
                 {t.taxCalc.confession}
               </label>
               <SelectField
@@ -431,7 +431,7 @@ function TaxForm({
 
         {/* Tax Year */}
         <div>
-          <label className="block text-sm font-semibold text-navy-900 mb-2">
+          <label className="block text-sm font-semibold text-navy-900 mb-1">
             {t.taxCalc.taxYear}
           </label>
           <SelectField
@@ -446,7 +446,7 @@ function TaxForm({
 
         {/* Canton */}
         <div>
-          <label className="block text-sm font-semibold text-navy-900 mb-2">
+          <label className="block text-sm font-semibold text-navy-900 mb-1">
             {t.taxCalc.canton}
           </label>
           <SelectField
@@ -463,7 +463,7 @@ function TaxForm({
 
         {/* Municipality */}
         <div ref={muni.dropdownRef} className="relative">
-          <label className="block text-sm font-semibold text-navy-900 mb-2">
+          <label className="block text-sm font-semibold text-navy-900 mb-1">
             {t.taxCalc.municipality}
           </label>
           <div className="relative">
@@ -473,7 +473,7 @@ function TaxForm({
               onChange={(e) => handleMunicipalityInput(e.target.value)}
               onFocus={() => form.municipalitySearch.length >= 2 && muni.setShowDropdown(true)}
               placeholder={t.taxCalc.municipalityPlaceholder}
-              className="w-full px-4 py-3 pl-10 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              className="w-full px-3 py-2 pl-9 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
             />
             {muni.searchLoading ? (
               <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400 animate-spin" />
@@ -501,7 +501,7 @@ function TaxForm({
 
         {/* Marital Status */}
         <div>
-          <label className="block text-sm font-semibold text-navy-900 mb-2">
+          <label className="block text-sm font-semibold text-navy-900 mb-1">
             {t.taxCalc.maritalStatus}
           </label>
           <SelectField
@@ -517,7 +517,7 @@ function TaxForm({
         {/* Confession - only in simple mode (complex has it per-person) */}
         {mode === 'simple' && (
           <div>
-            <label className="block text-sm font-semibold text-navy-900 mb-2">
+            <label className="block text-sm font-semibold text-navy-900 mb-1">
               {t.taxCalc.confession}
             </label>
             <SelectField
@@ -534,7 +534,7 @@ function TaxForm({
         {/* Children - simple mode: just a number */}
         {mode === 'simple' && (
           <div>
-            <label className="block text-sm font-semibold text-navy-900 mb-2">
+            <label className="block text-sm font-semibold text-navy-900 mb-1">
               {t.taxCalc.children}
             </label>
             <input
@@ -543,7 +543,7 @@ function TaxForm({
               max="10"
               value={form.children}
               onChange={(e) => updateField('children', parseInt(e.target.value) || 0)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
             />
           </div>
         )}
@@ -551,7 +551,7 @@ function TaxForm({
         {/* Children - complex mode: individual ages */}
         {mode === 'complex' && (
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-navy-900 mb-2">
+            <label className="block text-sm font-semibold text-navy-900 mb-1">
               {t.taxCalc.children}
             </label>
             {form.childAges.length > 0 && (
@@ -596,7 +596,7 @@ function TaxForm({
         {/* Fortune - complex mode only */}
         {mode === 'complex' && (
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-navy-900 mb-2">
+            <label className="block text-sm font-semibold text-navy-900 mb-1">
               {t.taxCalc.fortune}
             </label>
             <input
@@ -604,7 +604,7 @@ function TaxForm({
               value={form.fortune}
               onChange={(e) => updateField('fortune', e.target.value)}
               placeholder="250000"
-              className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+              className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
             />
             <p className="text-xs text-navy-400 mt-1.5">{t.taxCalc.fortuneHint}</p>
           </div>
@@ -614,7 +614,7 @@ function TaxForm({
         {mode === 'simple' && (
           <>
             <div>
-              <label className="block text-sm font-semibold text-navy-900 mb-2">
+              <label className="block text-sm font-semibold text-navy-900 mb-1">
                 {t.taxCalc.deductions3a}
               </label>
               <input
@@ -622,11 +622,11 @@ function TaxForm({
                 value={form.deductions3a}
                 onChange={(e) => updateField('deductions3a', e.target.value)}
                 placeholder="7056"
-                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-navy-900 mb-2">
+              <label className="block text-sm font-semibold text-navy-900 mb-1">
                 {t.taxCalc.commuting}
               </label>
               <input
@@ -634,11 +634,11 @@ function TaxForm({
                 value={form.commuting}
                 onChange={(e) => updateField('commuting', e.target.value)}
                 placeholder="3000"
-                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-navy-900 mb-2">
+              <label className="block text-sm font-semibold text-navy-900 mb-1">
                 {t.taxCalc.otherDeductions}
               </label>
               <input
@@ -646,7 +646,7 @@ function TaxForm({
                 value={form.otherDeductions}
                 onChange={(e) => updateField('otherDeductions', e.target.value)}
                 placeholder="0"
-                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
               />
             </div>
           </>
@@ -695,46 +695,46 @@ function ResultColumn({
   formatCHF: (n: number) => string
 }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-1">
       {result.source === 'estv' && (
-        <div className="flex justify-between items-center py-3 border-b border-navy-100">
-          <span className="text-navy-600">{t.taxCalc.results.taxableIncome}</span>
-          <span className="font-semibold text-navy-900">{formatCHF(result.taxableIncome)}</span>
+        <div className="flex justify-between items-center py-1.5 border-b border-navy-100">
+          <span className="text-sm text-navy-600">{t.taxCalc.results.taxableIncome}</span>
+          <span className="text-sm font-semibold text-navy-900">{formatCHF(result.taxableIncome)}</span>
         </div>
       )}
-      <div className="flex justify-between items-center py-3 border-b border-navy-100">
-        <span className="text-navy-600">{t.taxCalc.results.federal}</span>
-        <span className="font-semibold text-navy-900">{formatCHF(result.federalTax)}</span>
+      <div className="flex justify-between items-center py-1.5 border-b border-navy-100">
+        <span className="text-sm text-navy-600">{t.taxCalc.results.federal}</span>
+        <span className="text-sm font-semibold text-navy-900">{formatCHF(result.federalTax)}</span>
       </div>
-      <div className="flex justify-between items-center py-3 border-b border-navy-100">
-        <span className="text-navy-600">{t.taxCalc.results.cantonal}</span>
-        <span className="font-semibold text-navy-900">{formatCHF(result.cantonalTax)}</span>
+      <div className="flex justify-between items-center py-1.5 border-b border-navy-100">
+        <span className="text-sm text-navy-600">{t.taxCalc.results.cantonal}</span>
+        <span className="text-sm font-semibold text-navy-900">{formatCHF(result.cantonalTax)}</span>
       </div>
-      <div className="flex justify-between items-center py-3 border-b border-navy-100">
-        <span className="text-navy-600">{t.taxCalc.results.municipal}</span>
-        <span className="font-semibold text-navy-900">{formatCHF(result.municipalTax)}</span>
+      <div className="flex justify-between items-center py-1.5 border-b border-navy-100">
+        <span className="text-sm text-navy-600">{t.taxCalc.results.municipal}</span>
+        <span className="text-sm font-semibold text-navy-900">{formatCHF(result.municipalTax)}</span>
       </div>
       {result.source === 'estv' && 'churchTax' in result && result.churchTax > 0 && (
-        <div className="flex justify-between items-center py-3 border-b border-navy-100">
-          <span className="text-navy-600">{t.taxCalc.results.churchTax}</span>
-          <span className="font-semibold text-navy-900">{formatCHF(result.churchTax)}</span>
+        <div className="flex justify-between items-center py-1.5 border-b border-navy-100">
+          <span className="text-sm text-navy-600">{t.taxCalc.results.churchTax}</span>
+          <span className="text-sm font-semibold text-navy-900">{formatCHF(result.churchTax)}</span>
         </div>
       )}
       {result.source === 'estv' && 'fortuneTax' in result && result.fortuneTax > 0 && (
-        <div className="flex justify-between items-center py-3 border-b border-navy-100">
-          <span className="text-navy-600">{t.taxCalc.fortune}</span>
-          <span className="font-semibold text-navy-900">{formatCHF(result.fortuneTax)}</span>
+        <div className="flex justify-between items-center py-1.5 border-b border-navy-100">
+          <span className="text-sm text-navy-600">{t.taxCalc.fortune}</span>
+          <span className="text-sm font-semibold text-navy-900">{formatCHF(result.fortuneTax)}</span>
         </div>
       )}
-      <div className="flex justify-between items-center py-4 bg-navy-50 rounded-xl px-4 -mx-4">
+      <div className="flex justify-between items-center py-2.5 bg-navy-50 rounded-lg px-3 -mx-3 mt-2">
         <span className="font-bold text-navy-900">{t.taxCalc.results.total}</span>
-        <span className="text-2xl font-bold text-navy-900">{formatCHF(result.totalTax)}</span>
+        <span className="text-xl font-bold text-navy-900">{formatCHF(result.totalTax)}</span>
       </div>
-      <div className="flex justify-between items-center py-3">
-        <span className="text-navy-600">{t.taxCalc.results.effective}</span>
-        <span className="font-semibold text-navy-700">{result.effectiveRate}%</span>
+      <div className="flex justify-between items-center py-1.5">
+        <span className="text-sm text-navy-600">{t.taxCalc.results.effective}</span>
+        <span className="text-sm font-semibold text-navy-700">{result.effectiveRate}%</span>
       </div>
-      <p className="text-xs text-navy-400 mt-2 italic">
+      <p className="text-xs text-navy-400 mt-1 italic">
         {result.source === 'estv'
           ? t.taxCalc.results.disclaimerEstv
           : t.taxCalc.results.disclaimerFallback}
@@ -833,21 +833,21 @@ function GuestPdfModal({
                 placeholder={t.taxCalc.pdf.fullName}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
               />
               <input
                 type="email"
                 placeholder={t.taxCalc.pdf.email}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
               />
               <input
                 type="tel"
                 placeholder={t.taxCalc.pdf.phone}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-navy-200 text-navy-900 focus:border-navy-500 focus:ring-0 outline-none"
+                className="w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none"
               />
             </div>
             {error && <p className="text-sm text-red-600 mt-2">{t.taxCalc.pdf.error}</p>}
@@ -1016,7 +1016,7 @@ export default function TaxCalculatorPage() {
   return (
     <>
       {/* Hero */}
-      <section className="gradient-hero pt-24 pb-20 lg:pt-40 lg:pb-28 relative overflow-hidden">
+      <section className="gradient-hero pt-24 pb-16 lg:pt-36 lg:pb-20 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-navy-700/20 blur-3xl" />
         </div>
@@ -1024,7 +1024,7 @@ export default function TaxCalculatorPage() {
           <h1 className="font-heading text-4xl sm:text-5xl font-bold dark-text-primary">
             {t.taxCalc.title}
           </h1>
-          <p className="mt-4 text-xl dark-text-secondary max-w-2xl mx-auto">
+          <p className="mt-3 text-lg dark-text-secondary max-w-2xl mx-auto">
             {t.taxCalc.subtitle}
           </p>
         </div>
@@ -1088,7 +1088,7 @@ export default function TaxCalculatorPage() {
 
           {/* Forms */}
           <div className={comparing ? 'grid grid-cols-1 lg:grid-cols-2 gap-6' : ''}>
-            <div className="card p-8 sm:p-10">
+            <div className="card p-6 sm:p-8">
               <TaxForm
                 form={formA}
                 setForm={setFormA}
@@ -1102,7 +1102,7 @@ export default function TaxCalculatorPage() {
                 <button
                   onClick={handleCalculate}
                   disabled={calculating}
-                  className="btn-primary !px-8 !py-4 w-full mt-8 group disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="btn-primary !px-6 !py-3 w-full mt-6 group disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {calculating ? (
                     <>
@@ -1120,7 +1120,7 @@ export default function TaxCalculatorPage() {
             </div>
 
             {comparing && (
-              <div className="card p-8 sm:p-10">
+              <div className="card p-6 sm:p-8">
                 <TaxForm
                   form={formB}
                   setForm={setFormB}
@@ -1138,7 +1138,7 @@ export default function TaxCalculatorPage() {
             <button
               onClick={handleCalculate}
               disabled={calculating}
-              className="btn-primary !px-8 !py-4 w-full mt-6 group disabled:opacity-70 disabled:cursor-not-allowed"
+              className="btn-primary !px-6 !py-3 w-full mt-6 group disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {calculating ? (
                 <>
@@ -1156,12 +1156,12 @@ export default function TaxCalculatorPage() {
 
           {/* Results - single mode */}
           {!comparing && resultA && (
-            <div className="card p-8 sm:p-10 mt-8">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-12 h-12 rounded-xl bg-trust-100 flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-trust-600" />
+            <div className="card p-6 sm:p-8 mt-8">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-trust-100 flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-trust-600" />
                 </div>
-                <h2 className="font-heading text-2xl font-bold text-navy-900">
+                <h2 className="font-heading text-xl font-bold text-navy-900">
                   {t.taxCalc.results.title}
                 </h2>
               </div>
@@ -1189,12 +1189,12 @@ export default function TaxCalculatorPage() {
 
           {/* Results - compare mode */}
           {comparing && (resultA || resultB) && (
-            <div className="card p-8 sm:p-10 mt-8">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-12 h-12 rounded-xl bg-trust-100 flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-trust-600" />
+            <div className="card p-6 sm:p-8 mt-8">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-trust-100 flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-trust-600" />
                 </div>
-                <h2 className="font-heading text-2xl font-bold text-navy-900">
+                <h2 className="font-heading text-xl font-bold text-navy-900">
                   {t.taxCalc.results.title}
                 </h2>
               </div>
@@ -1298,6 +1298,10 @@ export default function TaxCalculatorPage() {
                 <p className="dark-text-secondary mb-6 max-w-lg mx-auto">
                   {t.taxCalc.ctaDescription}
                 </p>
+                <span className="inline-block px-3 py-1 rounded-full bg-white/10 text-white/90 text-sm font-medium border border-white/10 mb-4">
+                  {t.discount.hint}
+                </span>
+                <br />
                 <Link
                   href="/pricing"
                   className="btn-white !px-8 !py-4 group inline-flex"

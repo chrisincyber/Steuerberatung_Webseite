@@ -17,7 +17,7 @@ export async function generateMetadata({
 
   return {
     title: `Steuererklärung ${data.name.de} | Petertil Tax`,
-    description: `Professionelle Steuererklärung im Kanton ${data.name.de} — persönlich, digital und zum Fixpreis ab CHF 149. Frist: ${data.deadline}. Jetzt starten.`,
+    description: `Professionelle Steuererklärung im Kanton ${data.name.de} — persönlich, digital und zum Fixpreis ab CHF 89. Frist: ${data.deadline}. Jetzt starten.`,
   }
 }
 

@@ -9,9 +9,9 @@ function getStripe() {
 }
 
 const PRICES: Record<string, number> = {
-  basic: 9900,    // CHF 99.00 in cents
+  basic: 8900,    // CHF 89.00 in cents
   standard: 14900, // CHF 149.00
-  premium: 22400,  // CHF 224.00 (midpoint of 199-249)
+  premium: 17900,  // CHF 179.00
 }
 
 export async function POST(request: Request) {

@@ -81,7 +81,7 @@
   }
 
   .section-padding {
-    @apply px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24;
+    @apply px-4 sm:px-6 lg:px-8 py-12 sm:py-14 lg:py-16;
   }
 
   .container-narrow {
@@ -125,7 +125,7 @@
 
 /* Review card */
 .review-card {
-  @apply bg-white rounded-2xl border border-navy-100 p-8;
+  @apply bg-white rounded-2xl border border-navy-100 p-6;
   box-shadow: 0 1px 3px rgba(15, 15, 35, 0.04);
   transition: box-shadow 0.3s ease, transform 0.3s ease;
 }

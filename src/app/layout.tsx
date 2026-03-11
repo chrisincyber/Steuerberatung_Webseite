@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     default: 'Steuererklärung online einreichen | Petertil Tax',
     template: '%s | Petertil Tax',
   },
-  description: 'Steuererklärung online abgeben ab CHF 149. Persönlicher Steuerexperte für alle 26 Kantone. Fixpreis, keine versteckten Kosten.',
+  description: 'Steuererklärung online abgeben ab CHF 89. Persönlicher Steuerexperte für alle 26 Kantone. Fixpreis, keine versteckten Kosten.',
   keywords: ['Steuererklärung', 'Schweiz', 'Steuerberatung', 'digital', 'online', 'Steuerberater', 'Tax declaration', 'Switzerland'],
   authors: [{ name: 'Petertil Tax' }],
   openGraph: {
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     alternateLocale: 'en_US',
     siteName: 'Petertil Tax',
     title: 'Steuererklärung online einreichen | Petertil Tax',
-    description: 'Steuererklärung online abgeben ab CHF 149. Persönlicher Steuerexperte für alle 26 Kantone. Fixpreis, keine versteckten Kosten.',
+    description: 'Steuererklärung online abgeben ab CHF 89. Persönlicher Steuerexperte für alle 26 Kantone. Fixpreis, keine versteckten Kosten.',
   },
   icons: {
     icon: [
