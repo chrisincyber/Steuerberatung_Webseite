@@ -363,6 +363,19 @@ export default function AbzugsrechnerPage() {
           </div>
         </div>
       </section>
+
+      {/* Legal disclaimer */}
+      <section className="bg-navy-50 border-t border-navy-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-start gap-3">
+            <Shield className="w-5 h-5 text-navy-400 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-semibold text-navy-700 mb-1">{t.toolDisclaimer.title}</h3>
+              <p className="text-xs text-navy-500 leading-relaxed">{t.toolDisclaimer.text}</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   )
 }

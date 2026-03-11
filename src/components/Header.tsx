@@ -69,24 +69,25 @@ export default function Header() {
   ]
 
   const resourceLinks = [
-    { href: '/kanton', label: t.nav.cantons },
     { href: '/deadlines', label: t.nav.deadlines },
     { href: '/faq', label: t.nav.faq },
+    { href: '/kanton', label: t.nav.cantons },
+    { href: '/steuertipps', label: t.nav.taxTips },
     { href: '/about', label: t.nav.about },
   ]
 
   const toolLinks = [
-    { href: '/tax-calculator', label: t.nav.taxCalculator },
-    { href: '/abzugsrechner', label: t.nav.deductionFinder },
     { href: '/3a-rechner', label: t.nav.pillar3a },
+    { href: '/abzugsrechner', label: t.nav.deductionFinder },
     { href: '/quellensteuer', label: t.nav.withholding },
-    { href: '/steuervergleich', label: t.nav.taxCompare },
     { href: '/checkliste', label: t.nav.taxChecklist },
-    { href: '/steuertipps', label: t.nav.taxTips },
+    { href: '/steuerkarte', label: t.nav.taxMap },
+    { href: '/steuervergleich', label: t.nav.taxCompare },
+    { href: '/tax-calculator', label: t.nav.taxCalculator },
   ]
 
   // Pages with a dark hero background where we need white text/logo
-  const darkHeroPages = ['/', '/about', '/pricing', '/faq', '/tax-calculator', '/deadlines', '/impressum', '/privacy', '/agb', '/kanton', '/abzugsrechner', '/3a-rechner', '/quellensteuer', '/steuervergleich', '/checkliste', '/steuertipps']
+  const darkHeroPages = ['/', '/about', '/pricing', '/faq', '/tax-calculator', '/deadlines', '/impressum', '/privacy', '/agb', '/kanton', '/abzugsrechner', '/3a-rechner', '/quellensteuer', '/steuervergleich', '/steuerkarte', '/checkliste', '/steuertipps']
   const hasDarkHero = darkHeroPages.some(p => p === '/' ? pathname === '/' : pathname.startsWith(p))
   const useDarkStyle = scrolled || !hasDarkHero
 

@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { cantons, cantonCapitals, calculateSwissTax } from '@/lib/swiss-data'
 import { searchCities, calculateTaxESTV, type TaxCity, type EstvTaxResult } from '@/lib/estv-tax'
-import { Calculator, ArrowRight, ChevronDown, TrendingUp, Search, Loader2, GitCompareArrows, X, Plus, Trash2, Info, SlidersHorizontal, ShieldAlert, Download, Mail } from 'lucide-react'
+import { useMunicipalitySearch } from '@/hooks/useMunicipalitySearch'
+import { Calculator, ArrowRight, ChevronDown, TrendingUp, Search, Loader2, GitCompareArrows, X, Plus, Trash2, Info, SlidersHorizontal, ShieldAlert, Download, Mail, Shield } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 
@@ -80,44 +81,7 @@ function createDefaultForm(cantonCode = 'ZH'): FormState {
   }
 }
 
-// Municipality search hook
-function useMunicipalitySearch() {
-  const [municipalities, setMunicipalities] = useState<TaxCity[]>([])
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [searchLoading, setSearchLoading] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const handleSearch = useCallback((term: string, year?: number) => {
-    setShowDropdown(true)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-
-    if (term.length < 2) {
-      setMunicipalities([])
-      setSearchLoading(false)
-      return
-    }
-
-    setSearchLoading(true)
-    debounceRef.current = setTimeout(async () => {
-      const results = await searchCities(term, year)
-      setMunicipalities(results)
-      setSearchLoading(false)
-    }, 300)
-  }, [])
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowDropdown(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
-
-  return { municipalities, showDropdown, setShowDropdown, searchLoading, dropdownRef, handleSearch }
-}
+// Municipality search hook - imported from @/hooks/useMunicipalitySearch
 
 async function computeTax(form: FormState, mode: CalcMode): Promise<TaxResult | null> {
   const income = parseFloat(form.grossIncome) || 0
@@ -1367,6 +1331,19 @@ export default function TaxCalculatorPage() {
           t={t}
         />
       )}
+
+      {/* Legal disclaimer */}
+      <section className="bg-navy-50 border-t border-navy-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-start gap-3">
+            <Shield className="w-5 h-5 text-navy-400 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-semibold text-navy-700 mb-1">{t.toolDisclaimer.title}</h3>
+              <p className="text-xs text-navy-500 leading-relaxed">{t.toolDisclaimer.text}</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </>
   )
 }

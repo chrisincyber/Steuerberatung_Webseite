@@ -1,15 +1,26 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { cantons, calculateSwissTax } from '@/lib/swiss-data'
-import { Calculator, ArrowRight, Shield, AlertCircle, CheckCircle } from 'lucide-react'
+import { Calculator, ArrowRight, Shield, AlertCircle, CheckCircle, Loader2, Database } from 'lucide-react'
 
 type PermitType = 'B' | 'C' | 'L'
 
 function formatCHF(amount: number): string {
   return 'CHF ' + new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0 }).format(Math.round(amount))
+}
+
+interface QstResult {
+  withholdingTax: number
+  withholdingRate: number
+  ordinaryTax: number
+  difference: number
+  isMandatory: boolean
+  isCPermit: boolean
+  worthFiling: boolean
+  source: string
 }
 
 export default function QuellensteuerPage() {
@@ -22,46 +33,142 @@ export default function QuellensteuerPage() {
   const [married, setMarried] = useState(false)
   const [children, setChildren] = useState(0)
   const [churchTax, setChurchTax] = useState(false)
+  const [results, setResults] = useState<QstResult | null>(null)
+  const [loading, setLoading] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const results = useMemo(() => {
-    const canton = cantons.find(c => c.code === cantonCode)
-    if (!canton || grossIncome <= 0) return null
-
-    // Withholding tax calculation (simplified tariff)
-    let withholdingRate = canton.taxMultiplier * 0.12
-    if (married) withholdingRate -= 0.02
-    withholdingRate -= children * 0.01
-    if (churchTax) withholdingRate += 0.005
-    withholdingRate = Math.max(withholdingRate, 0.01)
-
-    const withholdingTax = Math.round(grossIncome * withholdingRate)
-
-    // Ordinary tax via calculateSwissTax
-    const ordinaryResult = calculateSwissTax({
-      grossIncome,
-      cantonCode,
-      maritalStatus: married ? 'married' : 'single',
-      children,
-      deductions3a: 0,
-      commuting: 0,
-      otherDeductions: 0,
-    })
-
-    const ordinaryTax = ordinaryResult?.totalTax ?? 0
-    const difference = withholdingTax - ordinaryTax
-    const isMandatory = grossIncome > 120000
-    const isCPermit = permitType === 'C'
-
-    return {
-      withholdingTax,
-      withholdingRate: withholdingRate * 100,
-      ordinaryTax,
-      difference,
-      isMandatory,
-      isCPermit,
-      worthFiling: difference > 500,
+  // Determine tariff code from inputs
+  // A = single no kids, B = married single-earner, C = married dual-earner, H = single parent
+  const getTariffCode = useCallback(() => {
+    if (married) {
+      // B = single earner (default for married), number = children count
+      return `B${Math.min(children, 5)}`
     }
-  }, [grossIncome, cantonCode, permitType, married, children, churchTax])
+    if (children > 0) {
+      // H = single parent with children
+      return `H${Math.min(children, 5)}`
+    }
+    // A = single, no children
+    return 'A0'
+  }, [married, children])
+
+  // Fetch withholding tax from API
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    debounceRef.current = setTimeout(async () => {
+      if (grossIncome <= 0) {
+        setResults(null)
+        return
+      }
+
+      setLoading(true)
+      const monthlyIncome = Math.round(grossIncome / 12)
+      const tariffCode = getTariffCode()
+
+      try {
+        const res = await fetch('/api/quellensteuer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            canton: cantonCode,
+            grossMonthlyIncome: monthlyIncome,
+            tariffCode,
+            churchMember: churchTax,
+          }),
+        })
+
+        let withholdingTax = 0
+        let withholdingRate = 0
+        let source = 'estv-2026'
+
+        if (res.ok) {
+          const data = await res.json()
+          withholdingTax = data.annualTax
+          withholdingRate = data.withholdingRate
+          source = data.source
+        } else {
+          // Fallback to simplified calculation
+          const canton = cantons.find(c => c.code === cantonCode)
+          if (canton) {
+            let rate = canton.taxMultiplier * 0.12
+            if (married) rate -= 0.02
+            rate -= children * 0.01
+            if (churchTax) rate += 0.005
+            rate = Math.max(rate, 0.01)
+            withholdingTax = Math.round(grossIncome * rate)
+            withholdingRate = rate * 100
+            source = 'fallback'
+          }
+        }
+
+        // Ordinary tax for comparison
+        const ordinaryResult = calculateSwissTax({
+          grossIncome,
+          cantonCode,
+          maritalStatus: married ? 'married' : 'single',
+          children,
+          deductions3a: 0,
+          commuting: 0,
+          otherDeductions: 0,
+        })
+
+        const ordinaryTax = ordinaryResult?.totalTax ?? 0
+        const difference = withholdingTax - ordinaryTax
+
+        setResults({
+          withholdingTax,
+          withholdingRate,
+          ordinaryTax,
+          difference,
+          isMandatory: grossIncome > 120000,
+          isCPermit: permitType === 'C',
+          worthFiling: difference > 500,
+          source,
+        })
+      } catch {
+        // Fallback on network error
+        const canton = cantons.find(c => c.code === cantonCode)
+        if (canton) {
+          let rate = canton.taxMultiplier * 0.12
+          if (married) rate -= 0.02
+          rate -= children * 0.01
+          if (churchTax) rate += 0.005
+          rate = Math.max(rate, 0.01)
+          const withholdingTax = Math.round(grossIncome * rate)
+
+          const ordinaryResult = calculateSwissTax({
+            grossIncome,
+            cantonCode,
+            maritalStatus: married ? 'married' : 'single',
+            children,
+            deductions3a: 0,
+            commuting: 0,
+            otherDeductions: 0,
+          })
+
+          const ordinaryTax = ordinaryResult?.totalTax ?? 0
+
+          setResults({
+            withholdingTax,
+            withholdingRate: rate * 100,
+            ordinaryTax,
+            difference: withholdingTax - ordinaryTax,
+            isMandatory: grossIncome > 120000,
+            isCPermit: permitType === 'C',
+            worthFiling: withholdingTax - ordinaryTax > 500,
+            source: 'fallback',
+          })
+        }
+      } finally {
+        setLoading(false)
+      }
+    }, 300)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [grossIncome, cantonCode, permitType, married, children, churchTax, getTariffCode])
 
   return (
     <main className="min-h-screen">
@@ -236,7 +343,14 @@ export default function QuellensteuerPage() {
 
             {/* Results */}
             <div className="space-y-6">
-              {results && (
+              {loading && (
+                <div className="card p-6 flex items-center justify-center gap-2 text-navy-500">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span className="text-sm">{w.disclaimer}</span>
+                </div>
+              )}
+
+              {results && !loading && (
                 <>
                   <div className="card p-6 lg:p-8">
                     <h2 className="text-xl font-bold text-navy-900 mb-6 flex items-center gap-2">
@@ -244,7 +358,25 @@ export default function QuellensteuerPage() {
                       {w.resultsTitle}
                     </h2>
 
+                    {/* Data source badge */}
+                    {results.source === 'estv-2026' && (
+                      <div className="flex items-center gap-2 mb-4 px-3 py-1.5 bg-trust-50 rounded-lg border border-trust-200 w-fit">
+                        <Database className="w-3.5 h-3.5 text-trust-600" />
+                        <span className="text-xs font-medium text-trust-700">
+                          {w.estvSource}
+                        </span>
+                      </div>
+                    )}
+
                     <div className="space-y-4">
+                      {/* Tariff Code */}
+                      <div className="flex justify-between items-center py-3 border-b border-navy-100">
+                        <span className="text-navy-600 text-sm">{w.tariffCode}</span>
+                        <span className="font-mono font-semibold text-navy-900 bg-navy-100 px-2 py-0.5 rounded">
+                          {getTariffCode()}{churchTax ? 'Y' : 'N'}
+                        </span>
+                      </div>
+
                       {/* Withholding Tax */}
                       <div className="flex justify-between items-center py-3 border-b border-navy-100">
                         <span className="text-navy-600 text-sm">{w.withholdingTax}</span>
@@ -257,7 +389,7 @@ export default function QuellensteuerPage() {
                       <div className="flex justify-between items-center py-3 border-b border-navy-100">
                         <span className="text-navy-600 text-sm">{w.withholdingRate}</span>
                         <span className="font-semibold text-navy-900">
-                          {results.withholdingRate.toFixed(1)}%
+                          {results.withholdingRate.toFixed(2)}%
                         </span>
                       </div>
 
@@ -349,6 +481,19 @@ export default function QuellensteuerPage() {
               </div>
             </div>
           </section>
+        </div>
+      </section>
+
+      {/* Legal disclaimer */}
+      <section className="bg-navy-50 border-t border-navy-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-start gap-3">
+            <Shield className="w-5 h-5 text-navy-400 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-semibold text-navy-700 mb-1">{t.toolDisclaimer.title}</h3>
+              <p className="text-xs text-navy-500 leading-relaxed">{t.toolDisclaimer.text}</p>
+            </div>
+          </div>
         </div>
       </section>
     </main>
