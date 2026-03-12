@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/context'
-import { Menu, X, Globe, ChevronDown, User, LogOut, LayoutDashboard } from 'lucide-react'
+import { Menu, X, Globe, ChevronDown, User, LogOut, LayoutDashboard, Settings } from 'lucide-react'
 import DeadlineBanner from '@/components/DeadlineBanner'
 import { createClient } from '@/lib/supabase/client'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
@@ -274,6 +274,14 @@ export default function Header() {
                       >
                         <LayoutDashboard className="w-4 h-4" />
                         {t.nav.dashboard}
+                      </Link>
+                      <Link
+                        href="/dashboard/account"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-navy-700 hover:bg-navy-50"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <Settings className="w-4 h-4" />
+                        {t.nav.account}
                       </Link>
                       <button
                         onClick={handleLogout}

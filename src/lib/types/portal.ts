@@ -109,6 +109,8 @@ export interface Profile {
   last_name: string
   email: string
   phone: string | null
+  birthday: string | null
+  zivilstand: Zivilstand | null
   role: 'client' | 'admin'
   address_street: string | null
   address_zip: string | null
