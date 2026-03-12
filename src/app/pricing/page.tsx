@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useMemo, useCallback, useEffect, useRef, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { loadStripe } from '@stripe/stripe-js'
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js'
@@ -138,7 +138,17 @@ declare global {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function PricingPage() {
+function PricingPageWrapper() {
+  return (
+    <Suspense>
+      <PricingPage />
+    </Suspense>
+  )
+}
+
+export default PricingPageWrapper
+
+function PricingPage() {
   const { t, locale } = useI18n()
 
   const [state, setState] = useState<WizardState>(INITIAL_STATE)
@@ -148,6 +158,9 @@ export default function PricingPage() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const pricingRouter = useRouter()
+  const pricingSearchParams = useSearchParams()
+  const partnerIdParam = pricingSearchParams.get('partner_id') || null
+  const yearParam = pricingSearchParams.get('year') || '2025'
   const steps = useMemo(() => getSteps(), [])
   const currentStep = steps[stepIndex]
   const { total, aboTotal, aboSavings, breakdown } = useMemo(() => calculatePrice(state), [state])
@@ -162,8 +175,9 @@ export default function PricingPage() {
     // Selbständige: no Stripe, go to registration/dashboard directly
     if (state.selbstaendig) {
       const params = new URLSearchParams({
-        year: '2025',
+        year: yearParam,
         selbstaendig: 'true',
+        ...(partnerIdParam ? { partner_id: partnerIdParam } : {}),
       })
 
       const supabase = createClient()
@@ -187,10 +201,11 @@ export default function PricingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           price: finalPrice,
-          year: 2025,
+          year: parseInt(yearParam, 10),
           selbstaendig: false,
           express: state.express === true,
           abo: state.abo,
+          ...(partnerIdParam ? { partner_id: partnerIdParam } : {}),
         }),
       })
 
@@ -206,7 +221,7 @@ export default function PricingPage() {
     } finally {
       setOrderLoading(false)
     }
-  }, [total, aboTotal, state.selbstaendig, state.express, state.abo, pricingRouter])
+  }, [total, aboTotal, state.selbstaendig, state.express, state.abo, pricingRouter, partnerIdParam, yearParam])
 
   const handleCancelCheckout = useCallback(() => {
     setShowCheckout(false)

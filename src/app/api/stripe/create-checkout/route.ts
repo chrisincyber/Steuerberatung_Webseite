@@ -10,7 +10,7 @@ function getStripe() {
 
 export async function POST(request: Request) {
   try {
-    const { price, year, selbstaendig, express, abo } = await request.json()
+    const { price, year, selbstaendig, express, abo, partner_id } = await request.json()
 
     if (!price || !year || typeof price !== 'number' || price <= 0) {
       return NextResponse.json({ error: 'Invalid price or year' }, { status: 400 })
@@ -64,6 +64,7 @@ export async function POST(request: Request) {
         abo: String(!!abo),
         price: String(price),
         ...(userId ? { user_id: userId } : {}),
+        ...(partner_id ? { partner_id } : {}),
       },
     }
 

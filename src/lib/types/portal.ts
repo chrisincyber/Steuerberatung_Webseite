@@ -13,7 +13,7 @@ export type TaxYearTier = 1 | 2 | 3
 
 export type DocumentStatus = 'offen' | 'in_bearbeitung' | 'vollstaendig'
 
-export type Zivilstand = 'einzelperson' | 'verheiratet'
+export type Zivilstand = 'einzelperson' | 'verheiratet' | 'konkubinat'
 
 export type Religion =
   | 'evangelisch_reformiert'
@@ -147,8 +147,31 @@ export interface TaxYear {
   p2_job_title: string | null
   admin_notes: string | null
   is_abo: boolean | null
+  archived: boolean
   created_at: string
+  partner_id: string | null
   updated_at: string
+}
+
+export interface KonkubinatPartner {
+  id: string
+  primary_user_id: string
+  first_name: string
+  last_name: string
+  birthday: string | null
+  phone: string | null
+  email: string | null
+  created_at: string
+}
+
+export interface AccountLink {
+  id: string
+  user_a_id: string
+  user_b_id: string
+  user_a_share_visible: boolean
+  user_b_share_visible: boolean
+  originated_from: 'pin' | 'claim'
+  created_at: string
 }
 
 export interface Document {
@@ -235,3 +258,22 @@ export const ACCEPTED_FILE_TYPES = [
 
 export const ACCEPTED_EXTENSIONS = '.pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx'
 export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+
+export interface PortalConversation {
+  id: string
+  client_id: string
+  status: 'open' | 'closed'
+  archived: boolean
+  last_message_at: string
+  created_at: string
+}
+
+export interface PortalMessage {
+  id: string
+  client_id: string
+  sender_id: string
+  sender_role: 'client' | 'admin'
+  body: string
+  read_at: string | null
+  created_at: string
+}

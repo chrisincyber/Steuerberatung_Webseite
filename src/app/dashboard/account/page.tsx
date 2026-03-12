@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile, Zivilstand } from '@/lib/types/portal'
+import { LinkAccountSection } from '@/components/portal/LinkAccountSection'
 import { ArrowLeft, CheckCircle, AlertCircle, Loader2, User, Mail, Lock } from 'lucide-react'
 
 const inputClass = 'w-full px-3 py-2 rounded-lg border-2 border-navy-200 text-navy-900 text-sm focus:border-navy-500 focus:ring-0 outline-none transition-colors'
@@ -27,12 +28,15 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true)
 
   const fetchProfile = useCallback(async () => {
-    const supabase = createClient()
-    if (!supabase) return
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-    if (data) setProfile(data as Profile)
+    try {
+      const res = await fetch('/api/profile')
+      if (res.ok) {
+        const data = await res.json()
+        setProfile(data as Profile)
+      }
+    } catch {
+      // Failed to fetch profile
+    }
     setLoading(false)
   }, [])
 
@@ -61,6 +65,7 @@ export default function AccountPage() {
           <PersonalInfoSection profile={profile} onSaved={(p) => setProfile(p)} />
           <EmailSection profile={profile} />
           <PasswordSection />
+          <LinkAccountSection />
         </div>
       </div>
     </div>
@@ -92,37 +97,18 @@ function PersonalInfoSection({
     setSaving(true)
     setStatus('idle')
     try {
-      const supabase = createClient()
-      if (!supabase || !profile) {
-        setStatus('error')
-        setSaving(false)
-        return
-      }
-
-      const updatePayload: Record<string, unknown> = {
-        first_name: firstName,
-        last_name: lastName,
-        birthday: birthday || null,
-        zivilstand: zivilstand || null,
-      }
-
-      let { data, error } = await supabase
-        .from('profiles')
-        .update(updatePayload)
-        .eq('id', profile.id)
-        .select()
-        .single()
-
-      // Fallback: if zivilstand column doesn't exist yet, retry without it
-      if (error && error.message?.includes('zivilstand')) {
-        const { zivilstand: _, ...fallback } = updatePayload
-        void _
-        const res = await supabase.from('profiles').update(fallback).eq('id', profile.id).select().single()
-        data = res.data
-        error = res.error
-      }
-
-      if (error) throw error
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          birthday: birthday || null,
+          zivilstand: zivilstand || null,
+        }),
+      })
+      if (!res.ok) throw new Error('Save failed')
+      const data = await res.json()
       onSaved(data as Profile)
       setStatus('success')
     } catch (err) {
@@ -161,6 +147,7 @@ function PersonalInfoSection({
               <option value="">—</option>
               <option value="einzelperson">{t.account.einzelperson}</option>
               <option value="verheiratet">{t.account.verheiratet}</option>
+              <option value="konkubinat">{t.account.konkubinat}</option>
             </select>
           </div>
         </div>

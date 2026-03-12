@@ -77,8 +77,14 @@ function useCountUp(target: number, duration = 2000) {
   const [count, setCount] = useState(0)
   const ref = useRef<HTMLSpanElement>(null)
   const hasAnimated = useRef(false)
+  const prevTarget = useRef(target)
 
   useEffect(() => {
+    if (prevTarget.current !== target) {
+      hasAnimated.current = false
+      prevTarget.current = target
+    }
+
     const el = ref.current
     if (!el) return
 
@@ -140,8 +146,21 @@ function SectionWrapper({ children, className = '' }: { children: React.ReactNod
 export default function HomePage() {
   const { t, locale } = useI18n()
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
+  const [stats, setStats] = useState({ clients: 150, declarations: 900 })
   const { displayText, prefersReducedMotion } = useTypewriter(t.hero.titleRotatingWords)
-  const declarations = useCountUp(1000)
+  const declarations = useCountUp(stats.declarations)
+  const clients = useCountUp(stats.clients)
+
+  useEffect(() => {
+    fetch('/api/stats')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.clients && data.declarations) {
+          setStats({ clients: data.clients, declarations: data.declarations })
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <>
@@ -163,8 +182,8 @@ export default function HomePage() {
           <div className="max-w-3xl">
             <div className="animate-hero-1 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 mb-8">
               <Shield className="w-4 h-4 text-white/80" />
-              <span className="text-sm font-medium dark-text-secondary">
-                {t.hero.trustBadge}
+              <span ref={clients.ref} className="text-sm font-medium dark-text-secondary">
+                {t.hero.trustBadge.replace('{count}', clients.count.toLocaleString('de-CH'))}
               </span>
             </div>
 
@@ -204,7 +223,7 @@ export default function HomePage() {
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3.5 py-2 border border-white/10 flex items-center gap-1.5">
                 <span ref={declarations.ref} className="text-sm font-semibold text-white">
-                  {declarations.count.toLocaleString('de-CH')}{declarations.count >= 1000 ? '+' : ''}
+                  {declarations.count.toLocaleString('de-CH')}+
                 </span>
                 <span className="text-sm dark-text-secondary">Steuererklärungen</span>
               </div>

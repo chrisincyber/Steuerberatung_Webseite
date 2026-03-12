@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useI18n } from '@/lib/i18n/context'
-import type { TaxYear, Profile } from '@/lib/types/portal'
+import type { TaxYear, Profile, KonkubinatPartner } from '@/lib/types/portal'
 import { STATUS_ORDER } from '@/lib/types/portal'
 import { StatusBadge } from '@/components/portal/StatusBadge'
 import { Search, Eye } from 'lucide-react'
@@ -10,13 +10,14 @@ import { Search, Eye } from 'lucide-react'
 interface ClientRow {
   profile: Profile
   taxYears: TaxYear[]
+  partner?: KonkubinatPartner
 }
 
 interface AdminClientsViewProps {
   year: number
   clients: ClientRow[]
   allTaxYears: TaxYear[]
-  onSelectClient: (profile: Profile, taxYear: TaxYear) => void
+  onSelectClient: (profile: Profile, taxYear: TaxYear, partner?: KonkubinatPartner) => void
 }
 
 export function AdminClientsView({ year, clients, allTaxYears, onSelectClient }: AdminClientsViewProps) {
@@ -33,7 +34,7 @@ export function AdminClientsView({ year, clients, allTaxYears, onSelectClient }:
     .filter((c) => userIds.has(c.profile.id))
     .map((c) => {
       const tyForYear = taxYearsForYear.find((ty) => ty.user_id === c.profile.id)!
-      return { profile: c.profile, taxYear: tyForYear, docCount: 0 }
+      return { profile: c.profile, taxYear: tyForYear, docCount: 0, partner: c.partner }
     })
 
   // Filter
@@ -91,6 +92,11 @@ export function AdminClientsView({ year, clients, allTaxYears, onSelectClient }:
                   <td className="px-4 py-3">
                     <div className="text-sm font-semibold text-navy-900">
                       {row.profile.first_name} {row.profile.last_name}
+                      {row.partner && (
+                        <span className="ml-2 text-xs font-medium text-trust-600 bg-trust-50 px-1.5 py-0.5 rounded">
+                          + Partner
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-navy-600">{row.profile.email}</td>
@@ -102,7 +108,7 @@ export function AdminClientsView({ year, clients, allTaxYears, onSelectClient }:
                   </td>
                   <td className="px-4 py-3">
                     <button
-                      onClick={() => onSelectClient(row.profile, row.taxYear)}
+                      onClick={() => onSelectClient(row.profile, row.taxYear, row.partner)}
                       className="p-1.5 rounded-lg hover:bg-navy-100 text-navy-500 hover:text-navy-700"
                     >
                       <Eye className="w-4 h-4" />

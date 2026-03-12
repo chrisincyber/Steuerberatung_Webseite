@@ -257,24 +257,35 @@ export default function Header() {
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-navy-100 py-2 z-50">
-                      {userRole === 'admin' && (
+                      {userRole === 'admin' ? (
+                        <>
+                          <Link
+                            href="/admin"
+                            className="flex items-center gap-2 px-4 py-2 text-sm text-navy-700 hover:bg-navy-50 font-medium"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            <LayoutDashboard className="w-4 h-4" />
+                            Admin Dashboard
+                          </Link>
+                          <Link
+                            href="/dashboard?view=client"
+                            className="flex items-center gap-2 px-4 py-2 text-sm text-navy-700 hover:bg-navy-50"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            <LayoutDashboard className="w-4 h-4" />
+                            {t.nav.clientDashboard}
+                          </Link>
+                        </>
+                      ) : (
                         <Link
-                          href="/admin"
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-navy-700 hover:bg-navy-50 font-medium"
+                          href="/dashboard"
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-navy-700 hover:bg-navy-50"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           <LayoutDashboard className="w-4 h-4" />
-                          Admin Dashboard
+                          {t.nav.dashboard}
                         </Link>
                       )}
-                      <Link
-                        href="/dashboard"
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-navy-700 hover:bg-navy-50"
-                        onClick={() => setUserMenuOpen(false)}
-                      >
-                        <LayoutDashboard className="w-4 h-4" />
-                        {t.nav.dashboard}
-                      </Link>
                       <Link
                         href="/dashboard/account"
                         className="flex items-center gap-2 px-4 py-2 text-sm text-navy-700 hover:bg-navy-50"

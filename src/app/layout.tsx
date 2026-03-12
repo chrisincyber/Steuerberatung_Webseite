@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
 import { Providers } from './providers'
+import { OrganizationJsonLd } from '@/components/JsonLd'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff2',
@@ -32,6 +33,12 @@ export const metadata: Metadata = {
     siteName: 'Petertil Tax',
     title: 'Steuererklärung online einreichen | Petertil Tax',
     description: 'Steuererklärung online abgeben ab CHF 89. Persönlicher Steuerexperte für alle 26 Kantone. Fixpreis, keine versteckten Kosten.',
+    url: 'https://petertiltax.ch',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Steuererklärung online einreichen | Petertil Tax',
+    description: 'Steuererklärung online abgeben ab CHF 89. Persönlicher Steuerexperte für alle 26 Kantone. Fixpreis, keine versteckten Kosten.',
   },
   icons: {
     icon: [
@@ -54,6 +61,7 @@ export default function RootLayout({
   return (
     <html lang="de" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">
+        <OrganizationJsonLd />
         <Providers>
           {children}
         </Providers>

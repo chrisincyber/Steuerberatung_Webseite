@@ -3,20 +3,23 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useI18n } from '@/lib/i18n/context'
 import { createClient } from '@/lib/supabase/client'
-import type { TaxYear, Profile, TaxYearStatus } from '@/lib/types/portal'
+import type { TaxYear, Profile, TaxYearStatus, KonkubinatPartner } from '@/lib/types/portal'
 import { AdminTaxYearsView } from '@/components/admin/AdminTaxYearsView'
 import { AdminClientsView } from '@/components/admin/AdminClientsView'
 import { AdminClientDetailView } from '@/components/admin/AdminClientDetailView'
-import { ChevronRight } from 'lucide-react'
+import { AdminMessagesView } from '@/components/admin/AdminMessagesView'
+import { ChevronRight, MessageCircle } from 'lucide-react'
 
 type AdminView =
   | { level: 'taxYears' }
   | { level: 'clients'; year: number }
-  | { level: 'clientDetail'; year: number; taxYear: TaxYear; profile: Profile }
+  | { level: 'clientDetail'; year: number; taxYear: TaxYear; profile: Profile; partner?: KonkubinatPartner }
+  | { level: 'messages' }
 
 interface ClientRow {
   profile: Profile
   taxYears: TaxYear[]
+  partner?: KonkubinatPartner
 }
 
 export default function AdminPage() {
@@ -43,12 +46,19 @@ export default function AdminPage() {
       .select('*')
       .order('year', { ascending: false })
 
+    // Fetch partners
+    const { data: partners } = await supabase
+      .from('konkubinat_partners')
+      .select('*')
+
     const typedProfiles = profiles as Profile[]
     const typedTaxYears = (taxYears || []) as TaxYear[]
+    const typedPartners = (partners || []) as KonkubinatPartner[]
 
     const clientRows: ClientRow[] = typedProfiles.map((profile) => ({
       profile,
       taxYears: typedTaxYears.filter((ty) => ty.user_id === profile.id),
+      partner: typedPartners.find((p) => p.primary_user_id === profile.id),
     }))
 
     setClients(clientRows)
@@ -68,24 +78,32 @@ export default function AdminPage() {
   }
 
   // Breadcrumb navigation
-  const breadcrumbs: { label: string; onClick?: () => void }[] = [
-    {
+  const breadcrumbs: { label: string; onClick?: () => void }[] = []
+
+  if (view.level === 'messages') {
+    breadcrumbs.push({
+      label: t.admin.drillDown.taxYearsTitle,
+      onClick: () => setView({ level: 'taxYears' }),
+    })
+    breadcrumbs.push({ label: t.admin.messaging.title })
+  } else {
+    breadcrumbs.push({
       label: t.admin.drillDown.taxYearsTitle,
       onClick: view.level !== 'taxYears' ? () => setView({ level: 'taxYears' }) : undefined,
-    },
-  ]
-
-  if (view.level === 'clients' || view.level === 'clientDetail') {
-    breadcrumbs.push({
-      label: String(view.year),
-      onClick: view.level !== 'clients' ? () => setView({ level: 'clients', year: view.year }) : undefined,
     })
-  }
 
-  if (view.level === 'clientDetail') {
-    breadcrumbs.push({
-      label: `${view.profile.first_name} ${view.profile.last_name}`,
-    })
+    if (view.level === 'clients' || view.level === 'clientDetail') {
+      breadcrumbs.push({
+        label: String(view.year),
+        onClick: view.level !== 'clients' ? () => setView({ level: 'clients', year: view.year }) : undefined,
+      })
+    }
+
+    if (view.level === 'clientDetail') {
+      breadcrumbs.push({
+        label: `${view.profile.first_name} ${view.profile.last_name}`,
+      })
+    }
   }
 
   if (loading) {
@@ -128,11 +146,29 @@ export default function AdminPage() {
 
         {/* Views */}
         {view.level === 'taxYears' && (
-          <AdminTaxYearsView
-            clients={clients}
-            allTaxYears={allTaxYears}
-            onSelectYear={(year) => setView({ level: 'clients', year })}
-          />
+          <>
+            {/* Messages tile */}
+            <div className="mb-6">
+              <button
+                onClick={() => setView({ level: 'messages' })}
+                className="card p-5 flex items-center gap-4 w-full sm:w-auto text-left hover:shadow-md hover:border-navy-200 transition-all group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-trust-100 flex items-center justify-center">
+                  <MessageCircle className="w-5 h-5 text-trust-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-navy-500">{t.admin.messaging.title}</p>
+                  <p className="font-medium text-navy-900 group-hover:text-navy-700">{t.admin.messaging.openInbox}</p>
+                </div>
+              </button>
+            </div>
+            <AdminTaxYearsView
+              clients={clients}
+              allTaxYears={allTaxYears}
+              onSelectYear={(year) => setView({ level: 'clients', year })}
+              onRefresh={fetchClients}
+            />
+          </>
         )}
 
         {view.level === 'clients' && (
@@ -140,8 +176,8 @@ export default function AdminPage() {
             year={view.year}
             clients={clients}
             allTaxYears={allTaxYears}
-            onSelectClient={(profile, taxYear) =>
-              setView({ level: 'clientDetail', year: view.year, taxYear, profile })
+            onSelectClient={(profile, taxYear, partner) =>
+              setView({ level: 'clientDetail', year: view.year, taxYear, profile, partner })
             }
           />
         )}
@@ -152,7 +188,12 @@ export default function AdminPage() {
             taxYear={view.taxYear}
             onStatusChange={handleStatusChange}
             onRefresh={fetchClients}
+            partner={view.partner}
           />
+        )}
+
+        {view.level === 'messages' && (
+          <AdminMessagesView />
         )}
       </div>
     </div>

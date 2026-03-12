@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useI18n } from '@/lib/i18n/context'
 import { createClient } from '@/lib/supabase/client'
-import type { TaxYear, Profile, Document as PortalDocument, TaxYearStatus } from '@/lib/types/portal'
+import type { TaxYear, Profile, Document as PortalDocument, TaxYearStatus, KonkubinatPartner } from '@/lib/types/portal'
 import { STATUS_ORDER } from '@/lib/types/portal'
 import { StatusBadge } from '@/components/portal/StatusBadge'
 import { StatusPipeline } from '@/components/portal/StatusPipeline'
+import { MessageThread } from '@/components/portal/MessageThread'
 import { AdminDocumentCard } from './AdminDocumentCard'
 import {
-  Send, StickyNote, Loader2, CheckCircle,
+  Send, StickyNote, Loader2, CheckCircle, CreditCard,
 } from 'lucide-react'
 
 interface AdminClientDetailViewProps {
@@ -17,9 +18,10 @@ interface AdminClientDetailViewProps {
   taxYear: TaxYear
   onStatusChange: (taxYearId: string, newStatus: TaxYearStatus) => void
   onRefresh: () => void
+  partner?: KonkubinatPartner
 }
 
-export function AdminClientDetailView({ profile, taxYear: initialTaxYear, onStatusChange, onRefresh }: AdminClientDetailViewProps) {
+export function AdminClientDetailView({ profile, taxYear: initialTaxYear, onStatusChange, onRefresh, partner }: AdminClientDetailViewProps) {
   const { t, locale } = useI18n()
   const [taxYear, setTaxYear] = useState(initialTaxYear)
   const [clientDocs, setClientDocs] = useState<PortalDocument[]>([])
@@ -29,12 +31,32 @@ export function AdminClientDetailView({ profile, taxYear: initialTaxYear, onStat
   const [offerMessage, setOfferMessage] = useState('')
   const [sendingOffer, setSendingOffer] = useState(false)
   const [offerSent, setOfferSent] = useState(false)
+  const [adminUser, setAdminUser] = useState<{ id: string; name: string } | null>(null)
 
   // Keep in sync with parent
   useEffect(() => {
     setTaxYear(initialTaxYear)
     setOfferSent(false)
   }, [initialTaxYear])
+
+  // Fetch admin user info
+  useEffect(() => {
+    const fetchAdmin = async () => {
+      const supabase = createClient()
+      if (!supabase) return
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', user.id)
+        .single()
+      if (adminProfile) {
+        setAdminUser({ id: user.id, name: `${adminProfile.first_name} ${adminProfile.last_name}` })
+      }
+    }
+    fetchAdmin()
+  }, [])
 
   const fetchDocs = useCallback(async () => {
     setLoadingDocs(true)
@@ -108,8 +130,20 @@ export function AdminClientDetailView({ profile, taxYear: initialTaxYear, onStat
               {profile.first_name} {profile.last_name}
             </h2>
             <p className="text-sm text-navy-500">{profile.email}</p>
+            {partner && (
+              <p className="text-sm text-trust-600 mt-1">
+                Konkubinat Partner: {partner.first_name} {partner.last_name}
+              </p>
+            )}
           </div>
-          <StatusBadge status={taxYear.status} />
+          <div className="flex items-center gap-2">
+            {taxYear.partner_id && (
+              <span className="text-xs font-medium text-trust-600 bg-trust-50 px-2 py-1 rounded-lg border border-trust-200">
+                Partner
+              </span>
+            )}
+            <StatusBadge status={taxYear.status} />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
@@ -152,6 +186,37 @@ export function AdminClientDetailView({ profile, taxYear: initialTaxYear, onStat
               <option key={s} value={s}>{t.dashboard.status[s]}</option>
             ))}
           </select>
+        </div>
+      </div>
+
+      {/* Payment toggle */}
+      <div className="card p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+              taxYear.status === 'preis_berechnen' ? 'bg-gold-100' : 'bg-trust-100'
+            }`}>
+              <CreditCard className={`w-5 h-5 ${
+                taxYear.status === 'preis_berechnen' ? 'text-gold-600' : 'text-trust-600'
+              }`} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-navy-900">{t.admin.clientDetail.paymentStatus}</p>
+              <p className={`text-sm ${taxYear.status === 'preis_berechnen' ? 'text-gold-600' : 'text-trust-600'}`}>
+                {taxYear.status === 'preis_berechnen' ? t.admin.clientDetail.unpaid : t.admin.clientDetail.paid}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => handleStatusChange(taxYear.status === 'preis_berechnen' ? 'dokumente_hochladen' : 'preis_berechnen')}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              taxYear.status === 'preis_berechnen'
+                ? 'bg-trust-500 text-white hover:bg-trust-600'
+                : 'bg-navy-100 text-navy-600 hover:bg-navy-200'
+            }`}
+          >
+            {taxYear.status === 'preis_berechnen' ? t.admin.clientDetail.markPaid : t.admin.clientDetail.markUnpaid}
+          </button>
         </div>
       </div>
 
@@ -221,6 +286,26 @@ export function AdminClientDetailView({ profile, taxYear: initialTaxYear, onStat
                 onUpdate={fetchDocs}
               />
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* Messages */}
+      <div className="space-y-3">
+        <h3 className="font-heading text-lg font-semibold text-navy-900">
+          {t.dashboard.messages.title}
+        </h3>
+        {adminUser ? (
+          <MessageThread
+            clientId={profile.id}
+            currentUserId={adminUser.id}
+            currentUserRole="admin"
+            currentUserName={adminUser.name}
+            otherPartyName={`${profile.first_name} ${profile.last_name}`}
+          />
+        ) : (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-5 h-5 animate-spin text-navy-400" />
           </div>
         )}
       </div>

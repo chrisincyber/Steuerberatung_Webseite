@@ -50,19 +50,37 @@ export async function POST(request: Request) {
 
       const supabase = getSupabaseAdmin()
 
+      const partnerId = metadata.partner_id || null
+
       if (userId) {
-        // Logged-in user: upsert tax_year directly (backup for dashboard callback)
-        await supabase
-          .from('tax_years')
-          .upsert({
-            user_id: userId,
-            year,
-            tier: 1,
-            price,
-            status: 'dokumente_hochladen',
-            is_abo: isAbo || null,
-            stripe_session_id: session.id,
-          }, { onConflict: 'user_id,year' })
+        if (partnerId) {
+          // Partner payment: update matching row
+          await supabase
+            .from('tax_years')
+            .update({
+              tier: 1,
+              price,
+              status: 'dokumente_hochladen',
+              is_abo: isAbo || null,
+              stripe_session_id: session.id,
+            })
+            .eq('user_id', userId)
+            .eq('year', year)
+            .eq('partner_id', partnerId)
+        } else {
+          // Logged-in user: upsert tax_year directly (backup for dashboard callback)
+          await supabase
+            .from('tax_years')
+            .upsert({
+              user_id: userId,
+              year,
+              tier: 1,
+              price,
+              status: 'dokumente_hochladen',
+              is_abo: isAbo || null,
+              stripe_session_id: session.id,
+            }, { onConflict: 'user_id,year' })
+        }
       } else {
         // Not logged in: store in pending_payments for later association
         const email = session.customer_details?.email || session.customer_email

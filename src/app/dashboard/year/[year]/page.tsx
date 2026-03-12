@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useParams } from 'next/navigation'
+import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useParams, useSearchParams } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/context'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import type { TaxYear, Profile, Document as PortalDocument } from '@/lib/types/portal'
+import type { TaxYear, Profile, Document as PortalDocument, KonkubinatPartner } from '@/lib/types/portal'
 import { isClientTurn } from '@/lib/types/portal'
 import { BasisdatenForm } from '@/components/portal/BasisdatenForm'
 import { StatusPipeline } from '@/components/portal/StatusPipeline'
@@ -13,13 +13,25 @@ import { OfferCard } from '@/components/portal/OfferCard'
 import { DocumentCard } from '@/components/portal/DocumentCard'
 import { DocumentUploadModal } from '@/components/portal/DocumentUploadModal'
 import { StatusBadge } from '@/components/portal/StatusBadge'
-import { Upload, User as UserIcon, FileText, CreditCard, Clock } from 'lucide-react'
+import { MessageThread } from '@/components/portal/MessageThread'
+import { useUnreadCount } from '@/hooks/useUnreadCount'
+import { Upload, User as UserIcon, FileText, CreditCard, Clock, MessageCircle } from 'lucide-react'
 
-type Tab = 'overview' | 'deductions' | 'documents'
+type Tab = 'overview' | 'deductions' | 'documents' | 'messages'
 
 export default function YearDetailPage() {
+  return (
+    <Suspense>
+      <YearDetailContent />
+    </Suspense>
+  )
+}
+
+function YearDetailContent() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const year = parseInt(params.year as string, 10)
+  const partnerId = searchParams.get('partner') || null
   const { t } = useI18n()
 
   const [user, setUser] = useState<User | null>(null)
@@ -29,6 +41,8 @@ export default function YearDetailPage() {
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [showUpload, setShowUpload] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [partnerInfo, setPartnerInfo] = useState<KonkubinatPartner | null>(null)
+  const unreadCount = useUnreadCount(user?.id ?? null, 'client')
 
   const fetchData = useCallback(async () => {
     const supabase = createClient()
@@ -45,12 +59,29 @@ export default function YearDetailPage() {
       .single()
     if (profileData) setProfile(profileData as Profile)
 
-    const { data: tyData } = await supabase
+    // Fetch partner info if viewing partner year
+    if (partnerId) {
+      const { data: pData } = await supabase
+        .from('konkubinat_partners')
+        .select('*')
+        .eq('id', partnerId)
+        .single()
+      if (pData) setPartnerInfo(pData as KonkubinatPartner)
+    }
+
+    let tyQuery = supabase
       .from('tax_years')
       .select('*')
       .eq('user_id', user.id)
       .eq('year', year)
-      .single()
+
+    if (partnerId) {
+      tyQuery = tyQuery.eq('partner_id', partnerId)
+    } else {
+      tyQuery = tyQuery.is('partner_id', null)
+    }
+
+    const { data: tyData } = await tyQuery.single()
     if (tyData) setTaxYear(tyData as TaxYear)
 
     if (tyData) {
@@ -63,7 +94,7 @@ export default function YearDetailPage() {
     }
 
     setLoading(false)
-  }, [year])
+  }, [year, partnerId])
 
   useEffect(() => {
     fetchData()
@@ -98,6 +129,7 @@ export default function YearDetailPage() {
             year={year}
             profile={profile}
             onConfirmed={fetchData}
+            isPartnerTaxYear={!!partnerId}
           />
         </div>
       </div>
@@ -110,6 +142,7 @@ export default function YearDetailPage() {
     { key: 'overview', label: t.yearDetail.tabs.overview, icon: FileText },
     { key: 'deductions', label: t.yearDetail.tabs.deductions, icon: CreditCard },
     { key: 'documents', label: t.yearDetail.tabs.documents, icon: FileText },
+    { key: 'messages', label: t.yearDetail.tabs.messages, icon: MessageCircle },
   ]
 
   return (
@@ -121,6 +154,11 @@ export default function YearDetailPage() {
             <h1 className="font-heading text-2xl font-bold text-navy-900">
               {t.yearDetail.title} {year}
             </h1>
+            {partnerInfo && (
+              <p className="text-sm text-navy-500 mt-0.5">
+                {t.dashboard.partner.partnerLabel}: {partnerInfo.first_name} {partnerInfo.last_name}
+              </p>
+            )}
             <StatusBadge status={taxYear.status} />
           </div>
         </div>
@@ -139,6 +177,11 @@ export default function YearDetailPage() {
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
+              {tab.key === 'messages' && unreadCount > 0 && (
+                <span className="ml-1.5 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full bg-gold-500 text-white">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -206,6 +249,17 @@ export default function YearDetailPage() {
                 </div>
               )}
             </div>
+          )}
+
+          {/* ===== Tab 4: Nachrichten ===== */}
+          {activeTab === 'messages' && user && profile && (
+            <MessageThread
+              clientId={user.id}
+              currentUserId={user.id}
+              currentUserRole="client"
+              currentUserName={`${profile.first_name} ${profile.last_name}`}
+              otherPartyName={t.yearDetail.responsibleAdmin}
+            />
           )}
 
           {/* Persistent upload button */}

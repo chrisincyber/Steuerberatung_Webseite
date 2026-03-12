@@ -12,6 +12,7 @@ interface BasisdatenFormProps {
   year: number
   profile: Profile
   onConfirmed: () => void
+  isPartnerTaxYear?: boolean
 }
 
 interface PersonFields {
@@ -24,10 +25,10 @@ interface PersonFields {
 
 const emptyPerson: PersonFields = { dob: '', religion: '', job_status: '', company: '', job_title: '' }
 
-export function BasisdatenForm({ taxYearId, year, profile, onConfirmed }: BasisdatenFormProps) {
+export function BasisdatenForm({ taxYearId, year, profile, onConfirmed, isPartnerTaxYear }: BasisdatenFormProps) {
   const { t, locale } = useI18n()
 
-  const [zivilstand, setZivilstand] = useState<Zivilstand>('einzelperson')
+  const [zivilstand, setZivilstand] = useState<Zivilstand>(isPartnerTaxYear ? 'einzelperson' : 'einzelperson')
   const [canton, setCanton] = useState(profile.address_canton || '')
   const [p1, setP1] = useState<PersonFields>({ ...emptyPerson })
   const [p2, setP2] = useState<PersonFields>({ ...emptyPerson })
@@ -173,33 +174,35 @@ export function BasisdatenForm({ taxYearId, year, profile, onConfirmed }: Basisd
         )}
 
         {/* Zivilstand */}
-        <div className="card p-6">
-          <label className="block text-sm font-semibold text-navy-900 mb-3">{t.basisdaten.zivilstand}</label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setZivilstand('einzelperson')}
-              className={`p-4 rounded-xl border-2 text-center font-medium transition-all ${
-                zivilstand === 'einzelperson'
-                  ? 'border-navy-800 bg-navy-800 text-white'
-                  : 'border-navy-200 text-navy-700 hover:border-navy-400'
-              }`}
-            >
-              {t.basisdaten.einzelperson}
-            </button>
-            <button
-              type="button"
-              onClick={() => setZivilstand('verheiratet')}
-              className={`p-4 rounded-xl border-2 text-center font-medium transition-all ${
-                zivilstand === 'verheiratet'
-                  ? 'border-navy-800 bg-navy-800 text-white'
-                  : 'border-navy-200 text-navy-700 hover:border-navy-400'
-              }`}
-            >
-              {t.basisdaten.verheiratet}
-            </button>
+        {!isPartnerTaxYear && (
+          <div className="card p-6">
+            <label className="block text-sm font-semibold text-navy-900 mb-3">{t.basisdaten.zivilstand}</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setZivilstand('einzelperson')}
+                className={`p-4 rounded-xl border-2 text-center font-medium transition-all ${
+                  zivilstand === 'einzelperson'
+                    ? 'border-navy-800 bg-navy-800 text-white'
+                    : 'border-navy-200 text-navy-700 hover:border-navy-400'
+                }`}
+              >
+                {t.basisdaten.einzelperson}
+              </button>
+              <button
+                type="button"
+                onClick={() => setZivilstand('verheiratet')}
+                className={`p-4 rounded-xl border-2 text-center font-medium transition-all ${
+                  zivilstand === 'verheiratet'
+                    ? 'border-navy-800 bg-navy-800 text-white'
+                    : 'border-navy-200 text-navy-700 hover:border-navy-400'
+                }`}
+              >
+                {t.basisdaten.verheiratet}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Canton */}
         <div className="card p-6">
@@ -222,8 +225,8 @@ export function BasisdatenForm({ taxYearId, year, profile, onConfirmed }: Basisd
         {/* Person 1 */}
         {renderPersonFields(t.basisdaten.person1, p1, setP1)}
 
-        {/* Person 2 (if married) */}
-        {zivilstand === 'verheiratet' && renderPersonFields(t.basisdaten.person2, p2, setP2)}
+        {/* Person 2 (if married, not for partner tax years) */}
+        {zivilstand === 'verheiratet' && !isPartnerTaxYear && renderPersonFields(t.basisdaten.person2, p2, setP2)}
 
         {/* Address */}
         <div className="card p-6 space-y-4">

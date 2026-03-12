@@ -6,9 +6,11 @@ import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import type { TaxYear, Profile, TaxYearStatus, TaxCalculation } from '@/lib/types/portal'
+import type { TaxYear, Profile, TaxYearStatus, TaxCalculation, KonkubinatPartner } from '@/lib/types/portal'
 import { StatusBadge } from '@/components/portal/StatusBadge'
-import { ArrowRight, Calculator, CheckCircle, Download, Trash2, Pencil, Loader2, Check, X, PiggyBank, BarChart3, CheckSquare } from 'lucide-react'
+import { AddPartnerModal } from '@/components/portal/AddPartnerModal'
+import { ClaimBanner } from '@/components/portal/ClaimBanner'
+import { ArrowRight, Calculator, CheckCircle, Download, Trash2, Pencil, Loader2, Check, X, PiggyBank, BarChart3, CheckSquare, Archive, UserPlus, UserMinus, Share2 } from 'lucide-react'
 
 export default function DashboardPage() {
   return (
@@ -28,6 +30,9 @@ function DashboardContent() {
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
   const [taxCalcs, setTaxCalcs] = useState<TaxCalculation[]>([])
+  const [partner, setPartner] = useState<KonkubinatPartner | null>(null)
+  const [showAddPartner, setShowAddPartner] = useState(false)
+  const [linkedPartner, setLinkedPartner] = useState<{ name: string; taxYears: TaxYear[] } | null>(null)
 
   const fetchData = useCallback(async () => {
     const supabase = createClient()
@@ -37,12 +42,78 @@ function DashboardContent() {
     if (!user) return
     setUser(user)
 
-    const { data: profileData } = await supabase
-      .from('profiles')
+    try {
+      const profileRes = await fetch('/api/profile')
+      if (profileRes.ok) {
+        const profileData = await profileRes.json()
+        setProfile(profileData as Profile)
+
+        // Redirect admin to /admin unless viewing client dashboard or processing Stripe callback
+        if (
+          (profileData as Profile).role === 'admin' &&
+          !searchParams.get('view') &&
+          !searchParams.get('session_id')
+        ) {
+          router.replace('/admin')
+          return
+        }
+      }
+    } catch {
+      // Profile fetch failed, continue with user metadata fallback
+    }
+
+    // Fetch partner
+    const { data: partnerData } = await supabase
+      .from('konkubinat_partners')
       .select('*')
-      .eq('id', user.id)
-      .single()
-    if (profileData) setProfile(profileData as Profile)
+      .eq('primary_user_id', user.id)
+      .maybeSingle()
+    setPartner(partnerData as KonkubinatPartner | null)
+
+    // Auto-create tax years for globally open years the client doesn't have yet
+    const { data: openYears } = await supabase
+      .from('open_tax_years')
+      .select('year')
+    const { data: existingYears } = await supabase
+      .from('tax_years')
+      .select('year, partner_id')
+      .eq('user_id', user.id)
+
+    if (openYears && existingYears) {
+      const existingSelfSet = new Set(
+        existingYears.filter((y: { year: number; partner_id: string | null }) => !y.partner_id).map((y: { year: number }) => y.year)
+      )
+      const missingSelf = openYears.filter((oy: { year: number }) => !existingSelfSet.has(oy.year))
+      if (missingSelf.length > 0) {
+        await supabase.from('tax_years').insert(
+          missingSelf.map((oy: { year: number }) => ({
+            user_id: user.id,
+            year: oy.year,
+            status: 'preis_berechnen' as TaxYearStatus,
+            archived: false,
+          }))
+        )
+      }
+
+      // Auto-create partner tax years if partner exists
+      if (partnerData) {
+        const existingPartnerSet = new Set(
+          existingYears.filter((y: { year: number; partner_id: string | null }) => y.partner_id).map((y: { year: number }) => y.year)
+        )
+        const missingPartner = openYears.filter((oy: { year: number }) => !existingPartnerSet.has(oy.year))
+        if (missingPartner.length > 0) {
+          await supabase.from('tax_years').insert(
+            missingPartner.map((oy: { year: number }) => ({
+              user_id: user.id,
+              year: oy.year,
+              partner_id: partnerData.id,
+              status: 'preis_berechnen' as TaxYearStatus,
+              archived: false,
+            }))
+          )
+        }
+      }
+    }
 
     const { data: yearsData } = await supabase
       .from('tax_years')
@@ -58,8 +129,39 @@ function DashboardContent() {
       .order('created_at', { ascending: false })
     if (calcsData) setTaxCalcs(calcsData as TaxCalculation[])
 
+    // Fetch linked partner's shared tax years
+    try {
+      const linkRes = await fetch('/api/account-links/status')
+      if (linkRes.ok) {
+        const linkData = await linkRes.json()
+        if (linkData.linked && linkData.partnerShareVisible && linkData.partner) {
+          // The RLS policy allows us to select partner's tax years if they share
+          const { data: linkedYears } = await supabase
+            .from('tax_years')
+            .select('*')
+            .eq('user_id', linkData.partner.id)
+            .is('partner_id', null)
+            .eq('archived', false)
+            .order('year', { ascending: false })
+
+          if (linkedYears && linkedYears.length > 0) {
+            setLinkedPartner({
+              name: `${linkData.partner.first_name} ${linkData.partner.last_name}`,
+              taxYears: linkedYears as TaxYear[],
+            })
+          } else {
+            setLinkedPartner(null)
+          }
+        } else {
+          setLinkedPartner(null)
+        }
+      }
+    } catch {
+      setLinkedPartner(null)
+    }
+
     setLoading(false)
-  }, [])
+  }, [searchParams, router])
 
   // Stripe payment callback (session_id)
   useEffect(() => {
@@ -82,20 +184,36 @@ function DashboardContent() {
         const year = parseInt(data.metadata.year, 10)
         const price = parseFloat(data.metadata.price)
         const isAbo = data.metadata.abo === 'true'
+        const partnerId = data.metadata.partner_id || null
 
         if (isNaN(year) || isNaN(price)) return
 
-        await supabase
-          .from('tax_years')
-          .upsert({
-            user_id: user.id,
-            year,
-            tier: 1 as const,
-            price,
-            status: 'dokumente_hochladen' as TaxYearStatus,
-            is_abo: isAbo || null,
-            stripe_session_id: sessionId,
-          }, { onConflict: 'user_id,year' })
+        if (partnerId) {
+          // Partner payment: update by matching user_id + year + partner_id
+          await supabase
+            .from('tax_years')
+            .update({
+              tier: 1 as const,
+              price,
+              status: 'dokumente_hochladen' as TaxYearStatus,
+              is_abo: isAbo || null,
+            })
+            .eq('user_id', user.id)
+            .eq('year', year)
+            .eq('partner_id', partnerId)
+        } else {
+          await supabase
+            .from('tax_years')
+            .upsert({
+              user_id: user.id,
+              year,
+              tier: 1 as const,
+              price,
+              status: 'dokumente_hochladen' as TaxYearStatus,
+              is_abo: isAbo || null,
+              stripe_session_id: sessionId,
+            }, { onConflict: 'user_id,year' })
+        }
 
         const msg = t.dashboard.paymentSuccess.replace('{year}', String(year))
         setToast(isAbo ? `${msg} ${t.dashboard.paymentSuccessAbo}` : msg)
@@ -129,15 +247,30 @@ function DashboardContent() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      await supabase
-        .from('tax_years')
-        .upsert({
-          user_id: user.id,
-          year,
-          tier: 1 as const,
-          price: 0,
-          status: 'angebot_ausstehend' as TaxYearStatus,
-        }, { onConflict: 'user_id,year' })
+      const partnerIdParam = searchParams.get('partner_id')
+
+      if (partnerIdParam) {
+        await supabase
+          .from('tax_years')
+          .update({
+            tier: 1 as const,
+            price: 0,
+            status: 'angebot_ausstehend' as TaxYearStatus,
+          })
+          .eq('user_id', user.id)
+          .eq('year', year)
+          .eq('partner_id', partnerIdParam)
+      } else {
+        await supabase
+          .from('tax_years')
+          .upsert({
+            user_id: user.id,
+            year,
+            tier: 1 as const,
+            price: 0,
+            status: 'angebot_ausstehend' as TaxYearStatus,
+          }, { onConflict: 'user_id,year' })
+      }
 
       setToast(t.dashboard.pricingCallbackTier3)
       router.replace('/dashboard')
@@ -160,9 +293,24 @@ function DashboardContent() {
 
   const userName = profile?.first_name || user?.user_metadata?.first_name || user?.email?.split('@')[0] || ''
 
-  // Ensure 2025 card exists
-  const currentYear = 2025
-  const has2025 = taxYears.some((ty) => ty.year === currentYear)
+  // Split active vs archived, then self vs partner
+  const activeYears = taxYears.filter((ty) => !ty.archived)
+  const archivedYears = taxYears.filter((ty) => ty.archived)
+  const myYears = activeYears.filter((ty) => !ty.partner_id)
+  const partnerYears = activeYears.filter((ty) => ty.partner_id)
+
+  const partnerName = partner ? `${partner.first_name} ${partner.last_name}` : ''
+
+  const handleRemovePartner = async () => {
+    if (!confirm(t.dashboard.partner.removeConfirm)) return
+    const supabase = createClient()
+    if (!supabase || !partner) return
+    await supabase.from('konkubinat_partners').delete().eq('id', partner.id)
+    await supabase.from('profiles').update({ zivilstand: 'einzelperson' }).eq('id', user!.id)
+    setPartner(null)
+    setToast(t.dashboard.partner.partnerRemoved)
+    fetchData()
+  }
 
   if (loading) {
     return (
@@ -183,6 +331,9 @@ function DashboardContent() {
           </div>
         )}
 
+        {/* Claim Banner */}
+        <ClaimBanner onClaimed={fetchData} />
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="font-heading text-3xl font-bold text-navy-900">
@@ -191,35 +342,96 @@ function DashboardContent() {
           <p className="text-navy-600 mt-1">{t.dashboard.title}</p>
         </div>
 
-        {/* Year Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {/* Existing tax years */}
-          {taxYears.map((ty) => (
-            <YearCard key={ty.id} taxYear={ty} />
-          ))}
-
-          {/* Default 2025 card if none exists */}
-          {!has2025 && (
-            <div className="card p-6 flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-heading text-xl font-bold text-navy-900">
-                  {t.dashboard.taxYear} {currentYear}
-                </h2>
-                <StatusBadge status="preis_berechnen" />
-              </div>
-
-              <div className="flex-1" />
-
-              <Link
-                href="/pricing"
-                className="btn-primary w-full !py-3 mt-4 flex items-center justify-center gap-2"
-              >
-                <Calculator className="w-5 h-5" />
-                {t.dashboard.calculatePrice}
-              </Link>
-            </div>
+        {/* My Year Cards */}
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="font-heading text-xl font-bold text-navy-900">
+            {t.dashboard.taxYear}e
+          </h2>
+          {!partner && (
+            <button
+              onClick={() => setShowAddPartner(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-navy-600 hover:bg-navy-50 border border-navy-200 transition-colors"
+            >
+              <UserPlus className="w-4 h-4" />
+              {t.dashboard.partner.addPartner}
+            </button>
           )}
         </div>
+        {myYears.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {myYears.map((ty) => (
+              <YearCard key={ty.id} taxYear={ty} />
+            ))}
+          </div>
+        ) : (
+          <div className="card p-8 text-center">
+            <p className="text-navy-500">{t.dashboard.noActiveYears}</p>
+          </div>
+        )}
+
+        {/* Partner Year Cards */}
+        {partner && (
+          <div className="mt-10">
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="font-heading text-xl font-bold text-navy-900">
+                {t.dashboard.partner.partnerSection.replace('{name}', partnerName)}
+              </h2>
+              <button
+                onClick={handleRemovePartner}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 border border-red-200 transition-colors"
+              >
+                <UserMinus className="w-4 h-4" />
+                {t.dashboard.partner.removePartner}
+              </button>
+            </div>
+            {partnerYears.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {partnerYears.map((ty) => (
+                  <YearCard key={ty.id} taxYear={ty} partnerName={partnerName} partnerId={partner.id} />
+                ))}
+              </div>
+            ) : (
+              <div className="card p-8 text-center">
+                <p className="text-navy-500">{t.dashboard.noActiveYears}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Linked Partner's Shared Tax Years */}
+        {linkedPartner && linkedPartner.taxYears.length > 0 && (
+          <div className="mt-10">
+            <div className="mb-2 flex items-center gap-2">
+              <Share2 className="w-4 h-4 text-trust-500" />
+              <h2 className="font-heading text-xl font-bold text-navy-900">
+                {t.dashboard.partner.linkedPartnerSection.replace('{name}', linkedPartner.name)}
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {linkedPartner.taxYears.map((ty) => (
+                <LinkedYearCard key={ty.id} taxYear={ty} partnerName={linkedPartner.name} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Past Years */}
+        {archivedYears.length > 0 && (
+          <PastYearsSection taxYears={archivedYears} />
+        )}
+
+        {/* Add Partner Modal */}
+        {showAddPartner && user && (
+          <AddPartnerModal
+            userId={user.id}
+            onClose={() => setShowAddPartner(false)}
+            onAdded={() => {
+              setShowAddPartner(false)
+              setToast(t.dashboard.partner.partnerAdded)
+              fetchData()
+            }}
+          />
+        )}
 
         {/* Saved Tax Calculations */}
         {taxCalcs.length > 0 && (
@@ -445,17 +657,30 @@ function TaxCalcCard({
   )
 }
 
-function YearCard({ taxYear }: { taxYear: TaxYear }) {
+function YearCard({ taxYear, partnerName, partnerId }: { taxYear: TaxYear; partnerName?: string; partnerId?: string }) {
   const { t } = useI18n()
 
   const showPrice = taxYear.price && taxYear.status !== 'preis_berechnen'
+  const pricingHref = partnerId
+    ? `/pricing?partner_id=${partnerId}&year=${taxYear.year}`
+    : '/pricing'
+  const yearDetailHref = partnerId
+    ? `/dashboard/year/${taxYear.year}?partner=${partnerId}`
+    : `/dashboard/year/${taxYear.year}`
 
   return (
     <div className="card p-6 flex flex-col">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-heading text-xl font-bold text-navy-900">
-          {t.dashboard.taxYear} {taxYear.year}
-        </h2>
+        <div>
+          <h2 className="font-heading text-xl font-bold text-navy-900">
+            {t.dashboard.taxYear} {taxYear.year}
+          </h2>
+          {partnerName && (
+            <p className="text-xs text-navy-500 mt-0.5">
+              {t.dashboard.partner.partnerLabel}: {partnerName}
+            </p>
+          )}
+        </div>
         <StatusBadge status={taxYear.status} />
       </div>
 
@@ -469,7 +694,7 @@ function YearCard({ taxYear }: { taxYear: TaxYear }) {
 
       {taxYear.status === 'preis_berechnen' ? (
         <Link
-          href="/pricing"
+          href={pricingHref}
           className="btn-primary w-full !py-3 mt-4 flex items-center justify-center gap-2"
         >
           <Calculator className="w-5 h-5" />
@@ -477,12 +702,87 @@ function YearCard({ taxYear }: { taxYear: TaxYear }) {
         </Link>
       ) : (
         <Link
-          href={`/dashboard/year/${taxYear.year}`}
+          href={yearDetailHref}
           className="btn-primary w-full !py-3 mt-4 flex items-center justify-center gap-2"
         >
           {t.dashboard.openYear}
           <ArrowRight className="w-5 h-5" />
         </Link>
+      )}
+    </div>
+  )
+}
+
+function LinkedYearCard({ taxYear, partnerName }: { taxYear: TaxYear; partnerName: string }) {
+  const { t } = useI18n()
+
+  return (
+    <div className="card p-6 flex flex-col border-trust-200 bg-trust-50/30">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="font-heading text-xl font-bold text-navy-900">
+            {t.dashboard.taxYear} {taxYear.year}
+          </h2>
+          <p className="text-xs text-trust-600 mt-0.5">
+            {t.dashboard.partner.sharedLabel} — {partnerName}
+          </p>
+        </div>
+        <StatusBadge status={taxYear.status} />
+      </div>
+
+      {taxYear.price && taxYear.status !== 'preis_berechnen' && (
+        <p className="text-sm text-navy-600 mb-2">
+          CHF {taxYear.price.toLocaleString('de-CH')}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function PastYearsSection({ taxYears }: { taxYears: TaxYear[] }) {
+  const { t } = useI18n()
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div className="mt-10">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2 text-sm font-medium text-navy-500 hover:text-navy-800 transition-colors mb-4"
+      >
+        <Archive className="w-4 h-4" />
+        {t.dashboard.pastYears} ({taxYears.length})
+      </button>
+      {expanded && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {taxYears.map((ty) => (
+            <div key={ty.id} className="card p-6 flex flex-col opacity-75">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-heading text-xl font-bold text-navy-700">
+                  {t.dashboard.taxYear} {ty.year}
+                </h2>
+                <div className="flex items-center gap-2">
+                  <StatusBadge status={ty.status} />
+                </div>
+              </div>
+
+              {ty.price && (
+                <p className="text-sm text-navy-500 mb-2">
+                  CHF {ty.price.toLocaleString('de-CH')}
+                </p>
+              )}
+
+              <div className="flex-1" />
+
+              <Link
+                href={`/dashboard/year/${ty.year}`}
+                className="w-full !py-3 mt-4 flex items-center justify-center gap-2 rounded-xl border-2 border-navy-200 text-navy-600 hover:bg-navy-50 font-medium text-sm transition-colors"
+              >
+                {t.dashboard.viewPastYear}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )
