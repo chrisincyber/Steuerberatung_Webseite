@@ -7,7 +7,7 @@ import { ArrowRight, Sparkles } from 'lucide-react'
 import { ContactModal } from '@/components/ContactModal'
 
 interface InlineToolCtaProps {
-  toolKey: 'pillar3a' | 'quellensteuer' | 'checkliste' | 'steuervergleich' | 'steuerkarte' | 'abzugsrechner' | 'steuertipps'
+  toolKey: 'pillar3a' | 'quellensteuer' | 'checkliste' | 'steuervergleich' | 'steuerkarte' | 'abzugsrechner' | 'steuertipps' | 'pkEinkauf'
 }
 
 export function InlineToolCta({ toolKey }: InlineToolCtaProps) {

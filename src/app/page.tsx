@@ -24,6 +24,7 @@ import {
   Check,
   Quote,
   Server,
+  Landmark,
 } from 'lucide-react'
 
 function useTypewriter(words: readonly string[], typingSpeed = 80, deletingSpeed = 40, pauseDuration = 2000) {
@@ -146,7 +147,7 @@ function SectionWrapper({ children, className = '' }: { children: React.ReactNod
 export default function HomePage() {
   const { t, locale } = useI18n()
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
-  const [stats, setStats] = useState({ clients: 150, declarations: 900 })
+  const [stats, setStats] = useState({ clients: 151, declarations: 901 })
   const { displayText, prefersReducedMotion } = useTypewriter(t.hero.titleRotatingWords)
   const declarations = useCountUp(stats.declarations)
   const clients = useCountUp(stats.clients)
@@ -223,9 +224,9 @@ export default function HomePage() {
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3.5 py-2 border border-white/10 flex items-center gap-1.5">
                 <span ref={declarations.ref} className="text-sm font-semibold text-white">
-                  {declarations.count.toLocaleString('de-CH')}+
+                  {declarations.count.toLocaleString('de-CH')}
                 </span>
-                <span className="text-sm dark-text-secondary">Steuererklärungen</span>
+                <span className="text-sm dark-text-secondary">{t.about.trust.declarationsLabel}</span>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3.5 py-2 border border-white/10">
                 <span className="text-sm font-semibold text-white">Schweizer Datenschutz</span>
@@ -339,6 +340,7 @@ export default function HomePage() {
                 { href: '/steuervergleich', title: locale === 'de' ? 'Steuervergleich' : 'Tax Comparison', description: locale === 'de' ? 'Vergleichen Sie die Steuerlast in allen 26 Kantonen.' : 'Compare tax burden across all 26 cantons.', icon: MapPin },
                 { href: '/quellensteuer', title: locale === 'de' ? 'Quellensteuer' : 'Withholding Tax', description: locale === 'de' ? 'Lohnt sich eine Steuererklärung für Sie?' : 'Is filing a tax return worthwhile for you?', icon: User },
                 { href: '/checkliste', title: locale === 'de' ? 'Steuer-Checkliste' : 'Tax Checklist', description: locale === 'de' ? 'Welche Unterlagen brauchen Sie? Interaktive Checkliste.' : 'What documents do you need? Interactive checklist.', icon: FileCheck },
+                { href: '/pk-einkauf', title: locale === 'de' ? 'PK-Einkaufsrechner' : 'PK Buy-In Calculator', description: locale === 'de' ? 'Berechnen Sie die Steuerersparnis bei einem Pensionskassen-Einkauf.' : 'Calculate your tax savings from a pension fund buy-in.', icon: Landmark },
               ].map((tool, i) => (
                 <Link
                   key={i}

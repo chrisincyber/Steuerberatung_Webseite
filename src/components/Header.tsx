@@ -84,10 +84,11 @@ export default function Header() {
     { href: '/steuerkarte', label: t.nav.taxMap },
     { href: '/steuervergleich', label: t.nav.taxCompare },
     { href: '/tax-calculator', label: t.nav.taxCalculator },
+    { href: '/pk-einkauf', label: t.nav.pkEinkauf },
   ]
 
   // Pages with a dark hero background where we need white text/logo
-  const darkHeroPages = ['/', '/about', '/pricing', '/faq', '/tax-calculator', '/deadlines', '/impressum', '/privacy', '/agb', '/kanton', '/abzugsrechner', '/3a-rechner', '/quellensteuer', '/steuervergleich', '/steuerkarte', '/checkliste', '/steuertipps']
+  const darkHeroPages = ['/', '/about', '/pricing', '/faq', '/tax-calculator', '/deadlines', '/impressum', '/privacy', '/agb', '/kanton', '/abzugsrechner', '/3a-rechner', '/quellensteuer', '/steuervergleich', '/steuerkarte', '/checkliste', '/steuertipps', '/pk-einkauf']
   const hasDarkHero = darkHeroPages.some(p => p === '/' ? pathname === '/' : pathname.startsWith(p))
   const useDarkStyle = scrolled || !hasDarkHero
 
