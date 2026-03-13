@@ -62,6 +62,7 @@ export default function Header() {
 
   const [resourcesOpen, setResourcesOpen] = useState(false)
   const [toolsOpen, setToolsOpen] = useState(false)
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false)
 
   const navLinks = [
     { href: '/', label: t.nav.home },
@@ -340,66 +341,59 @@ export default function Header() {
         {mobileMenuOpen && (
           <div className="lg:hidden bg-white border-t border-navy-100 pb-4 animate-in slide-in-from-top-2">
             <div className="flex flex-col gap-1 pt-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    isActive(link.href)
-                      ? 'text-navy-900 bg-navy-100'
-                      : 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              {/* Tools group */}
-              <div className="px-4 pt-3 pb-1 text-xs font-semibold text-navy-400 uppercase">
+              {/* Configurator (Pricing) */}
+              <Link
+                href="/pricing"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  isActive('/pricing')
+                    ? 'text-navy-900 bg-navy-100'
+                    : 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
+                }`}
+              >
+                {t.nav.pricing}
+              </Link>
+
+              {/* Steuertools dropdown */}
+              <button
+                onClick={() => setMobileToolsOpen(!mobileToolsOpen)}
+                className={`flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  isToolActive
+                    ? 'text-navy-900 bg-navy-100'
+                    : 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
+                }`}
+              >
                 {t.nav.tools}
-              </div>
-              {toolLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    isActive(link.href)
-                      ? 'text-navy-900 bg-navy-100'
-                      : 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              {/* Resources group */}
-              <div className="px-4 pt-3 pb-1 text-xs font-semibold text-navy-400 uppercase">
-                {t.nav.resources}
-              </div>
-              {resourceLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    isActive(link.href)
-                      ? 'text-navy-900 bg-navy-100'
-                      : 'text-navy-600 hover:text-navy-900 hover:bg-navy-50'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              {!user && (
-                <div className="flex flex-col gap-2 mt-4 px-4">
-                  <Link
-                    href="/auth/login"
-                    className="btn-secondary !text-sm text-center"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {t.nav.login}
-                  </Link>
+                <ChevronDown className={`w-4 h-4 transition-transform ${mobileToolsOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {mobileToolsOpen && (
+                <div className="flex flex-col gap-1 pl-4">
+                  {toolLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`px-4 py-2.5 rounded-lg text-sm transition-colors ${
+                        isActive(link.href)
+                          ? 'text-navy-900 bg-navy-100 font-medium'
+                          : 'text-navy-500 hover:text-navy-900 hover:bg-navy-50'
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
                 </div>
+              )}
+
+              {/* Login */}
+              {!user && (
+                <Link
+                  href="/auth/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-4 py-3 rounded-lg text-sm font-medium text-navy-600 hover:text-navy-900 hover:bg-navy-50 transition-colors"
+                >
+                  {t.nav.login}
+                </Link>
               )}
             </div>
           </div>

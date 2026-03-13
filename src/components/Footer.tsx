@@ -10,10 +10,7 @@ const popularCantons = [
   { slug: 'bern', de: 'Bern', en: 'Bern' },
   { slug: 'luzern', de: 'Luzern', en: 'Lucerne' },
   { slug: 'aargau', de: 'Aargau', en: 'Aargau' },
-  { slug: 'st-gallen', de: 'St. Gallen', en: 'St. Gallen' },
   { slug: 'basel-stadt', de: 'Basel-Stadt', en: 'Basel-Stadt' },
-  { slug: 'zug', de: 'Zug', en: 'Zug' },
-  { slug: 'schwyz', de: 'Schwyz', en: 'Schwyz' },
 ]
 
 export default function Footer() {
@@ -22,8 +19,8 @@ export default function Footer() {
 
   return (
     <footer className="bg-navy-950 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
@@ -86,7 +83,7 @@ export default function Footer() {
             <h3 className="font-heading font-semibold text-sm uppercase tracking-wider dark-text-muted mb-4">
               {locale === 'de' ? 'Kantone' : 'Cantons'}
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               {popularCantons.map((c) => (
                 <li key={c.slug}>
                   <Link
@@ -97,6 +94,14 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  href="/kanton"
+                  className="text-navy-400 hover:text-white transition-colors text-sm"
+                >
+                  {locale === 'de' ? 'Alle Kantone →' : 'All cantons →'}
+                </Link>
+              </li>
             </ul>
           </div>
 
