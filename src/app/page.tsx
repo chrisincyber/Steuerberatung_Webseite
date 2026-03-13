@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
+import { TestimonialsColumns } from '@/components/ui/testimonials-columns'
 import {
   ArrowRight,
   Upload,
@@ -22,7 +23,6 @@ import {
   ChevronDown,
   X,
   Check,
-  Quote,
   Server,
   Landmark,
 } from 'lucide-react'
@@ -411,7 +411,7 @@ export default function HomePage() {
               {/* Pain points */}
               <div className="space-y-3">
                 <div className="text-xs font-semibold text-navy-400 uppercase tracking-wider mb-4 text-center lg:text-left">
-                  {locale === 'de' ? 'Ohne Petertil' : 'Without Petertil'}
+                  {locale === 'de' ? 'Ohne Ihren Steuerberater' : 'Without your tax advisor'}
                 </div>
                 {t.problem.items.map((item, i) => (
                   <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-gold-50/60 border border-gold-200/50">
@@ -424,7 +424,7 @@ export default function HomePage() {
               {/* Solutions */}
               <div className="space-y-3">
                 <div className="text-xs font-semibold text-navy-400 uppercase tracking-wider mb-4 text-center lg:text-left">
-                  {locale === 'de' ? 'Mit Petertil' : 'With Petertil'}
+                  {locale === 'de' ? 'Mit Ihrem Steuerberater' : 'With your tax advisor'}
                 </div>
                 {(t.problem as unknown as { solutions: readonly string[] }).solutions.map((item, i) => (
                   <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-trust-50/60 border border-trust-200/50">
@@ -587,42 +587,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-              {t.testimonials.items.map((review, i) => (
-                <div key={i} className="review-card relative">
-                  {/* Decorative quote */}
-                  <Quote className="absolute top-6 right-6 w-8 h-8 text-navy-100" />
-
-                  {/* Stars */}
-                  <div className="flex items-center gap-1.5 mb-4">
-                    {[...Array(5)].map((_, j) => (
-                      <Star key={j} className="w-5 h-5 fill-gold-400 text-gold-400" />
-                    ))}
-                    <span className="text-sm font-semibold text-navy-700 ml-2">5.0</span>
-                  </div>
-
-                  {/* Review text */}
-                  <p className="text-navy-800 text-base leading-relaxed mb-4 relative z-10">
-                    &ldquo;{review.text}&rdquo;
-                  </p>
-
-                  {/* Divider */}
-                  <div className="border-t border-navy-100 pt-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-navy-700 to-navy-900 flex items-center justify-center shrink-0">
-                        <span className="text-sm font-bold text-white">
-                          {review.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="text-sm font-semibold text-navy-900">{review.name}</div>
-                        <div className="text-xs text-navy-500">{review.location} &middot; {review.context}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <TestimonialsColumns testimonials={t.testimonials.items} />
 
             <div className="text-center mt-8">
               <Link href="/pricing" className="btn-primary !px-8 !py-4 group">
