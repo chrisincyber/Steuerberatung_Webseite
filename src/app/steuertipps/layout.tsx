@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
-const title = 'Steuertipps Schweiz 2025 | Steuern sparen'
-const description = 'Praktische Steuertipps für die Schweiz: Abzüge maximieren, Fristen einhalten und häufige Fehler vermeiden. Von Steuerexperten zusammengestellt.'
+const title = 'Steuertipps Schweiz | 20+ Tipps zum Steuern sparen'
+const description = 'Die besten Steuertipps für die Schweiz 2025: Säule 3a, Homeoffice, Wertschriften, Krankheitskosten, Spenden und mehr. Von Steuerexperten geprüft — jetzt Steuern sparen.'
 
 export const metadata: Metadata = {
   title,

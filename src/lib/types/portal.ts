@@ -151,6 +151,8 @@ export interface TaxYear {
   created_at: string
   partner_id: string | null
   updated_at: string
+  express: boolean
+  express_confirmed_at: string | null
 }
 
 export interface KonkubinatPartner {
@@ -258,6 +260,33 @@ export const ACCEPTED_FILE_TYPES = [
 
 export const ACCEPTED_EXTENSIONS = '.pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx'
 export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+
+// ============ CHECKLIST TYPES ============
+
+export interface ChecklistSection {
+  groupKey: string
+  categories: string[]
+  done: boolean
+}
+
+export interface Checklist {
+  id: string
+  tax_year_id: string
+  user_id: string
+  sections: ChecklistSection[]
+  created_at: string
+  updated_at: string
+}
+
+export interface ChecklistVorlage {
+  id: string
+  user_id: string
+  name: string
+  sections: Omit<ChecklistSection, 'done'>[]
+  created_at: string
+}
+
+// ============ MESSAGING TYPES ============
 
 export interface PortalConversation {
   id: string

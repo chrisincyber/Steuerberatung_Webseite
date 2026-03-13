@@ -8,13 +8,15 @@ import { AdminTaxYearsView } from '@/components/admin/AdminTaxYearsView'
 import { AdminClientsView } from '@/components/admin/AdminClientsView'
 import { AdminClientDetailView } from '@/components/admin/AdminClientDetailView'
 import { AdminMessagesView } from '@/components/admin/AdminMessagesView'
-import { ChevronRight, MessageCircle } from 'lucide-react'
+import { AdminExpressView } from '@/components/admin/AdminExpressView'
+import { ChevronRight, MessageCircle, Zap } from 'lucide-react'
 
 type AdminView =
   | { level: 'taxYears' }
   | { level: 'clients'; year: number }
   | { level: 'clientDetail'; year: number; taxYear: TaxYear; profile: Profile; partner?: KonkubinatPartner }
   | { level: 'messages' }
+  | { level: 'express' }
 
 interface ClientRow {
   profile: Profile
@@ -86,6 +88,12 @@ export default function AdminPage() {
       onClick: () => setView({ level: 'taxYears' }),
     })
     breadcrumbs.push({ label: t.admin.messaging.title })
+  } else if (view.level === 'express') {
+    breadcrumbs.push({
+      label: t.admin.drillDown.taxYearsTitle,
+      onClick: () => setView({ level: 'taxYears' }),
+    })
+    breadcrumbs.push({ label: t.admin.express.title })
   } else {
     breadcrumbs.push({
       label: t.admin.drillDown.taxYearsTitle,
@@ -147,8 +155,8 @@ export default function AdminPage() {
         {/* Views */}
         {view.level === 'taxYears' && (
           <>
-            {/* Messages tile */}
-            <div className="mb-6">
+            {/* Quick action tiles */}
+            <div className="flex flex-wrap gap-4 mb-6">
               <button
                 onClick={() => setView({ level: 'messages' })}
                 className="card p-5 flex items-center gap-4 w-full sm:w-auto text-left hover:shadow-md hover:border-navy-200 transition-all group"
@@ -160,6 +168,24 @@ export default function AdminPage() {
                   <p className="text-sm text-navy-500">{t.admin.messaging.title}</p>
                   <p className="font-medium text-navy-900 group-hover:text-navy-700">{t.admin.messaging.openInbox}</p>
                 </div>
+              </button>
+
+              <button
+                onClick={() => setView({ level: 'express' })}
+                className="card p-5 flex items-center gap-4 w-full sm:w-auto text-left hover:shadow-md hover:border-red-200 transition-all group relative"
+              >
+                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-navy-500">{t.admin.express.title}</p>
+                  <p className="font-medium text-navy-900 group-hover:text-navy-700">
+                    {allTaxYears.filter((ty) => ty.express).length} {t.admin.express.title.toLowerCase()}
+                  </p>
+                </div>
+                {allTaxYears.some((ty) => ty.express && ty.express_confirmed_at) && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 animate-pulse" />
+                )}
               </button>
             </div>
             <AdminTaxYearsView
@@ -194,6 +220,17 @@ export default function AdminPage() {
 
         {view.level === 'messages' && (
           <AdminMessagesView />
+        )}
+
+        {view.level === 'express' && (
+          <AdminExpressView
+            clients={clients}
+            allTaxYears={allTaxYears}
+            onSelectClient={(profile, taxYear) => {
+              const partner = clients.find((c) => c.profile.id === profile.id)?.partner
+              setView({ level: 'clientDetail', year: taxYear.year, taxYear, profile, partner })
+            }}
+          />
         )}
       </div>
     </div>

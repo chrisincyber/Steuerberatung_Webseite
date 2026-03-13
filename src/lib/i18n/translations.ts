@@ -934,6 +934,32 @@ export const translations = {
           closed: 'Geschlossen',
         },
       },
+      express: {
+        title: 'Express-Aufträge',
+        badge: 'EXPRESS',
+        noExpressOrders: 'Keine Express-Aufträge vorhanden',
+        waitingForClient: 'Wartet auf Kunde',
+        clientConfirmed: 'Kunde hat bestätigt',
+        countdown: 'Countdown',
+        daysRemaining: '{days} Tage {hours} Std. verbleibend',
+        hoursRemaining: '{hours} Std. {minutes} Min. verbleibend',
+        expired: 'Frist abgelaufen',
+        deadline: 'Frist: {date}',
+        confirmedAt: 'Bestätigt am {date}',
+        expressDeadlineDays: 5,
+      },
+    },
+
+    // Express (client-side)
+    express: {
+      markComplete: 'Alle Dokumente hochgeladen',
+      markCompleteDesc: 'Hiermit bestätige ich, dass alle relevanten Dokumente hochgeladen wurden. Der Express-Countdown startet nach der Bestätigung.',
+      confirmButton: 'Upload abschliessen & Express starten',
+      confirmed: 'Express-Bearbeitung läuft',
+      countdown: 'Verbleibende Zeit',
+      daysRemaining: '{days} Tage {hours} Std.',
+      hoursRemaining: '{hours} Std. {minutes} Min.',
+      expired: 'Frist abgelaufen — wir melden uns!',
     },
 
     // Footer
@@ -2592,6 +2618,32 @@ export const translations = {
           closed: 'Closed',
         },
       },
+      express: {
+        title: 'Express Orders',
+        badge: 'EXPRESS',
+        noExpressOrders: 'No express orders',
+        waitingForClient: 'Waiting for client',
+        clientConfirmed: 'Client confirmed',
+        countdown: 'Countdown',
+        daysRemaining: '{days} days {hours} hrs remaining',
+        hoursRemaining: '{hours} hrs {minutes} min remaining',
+        expired: 'Deadline expired',
+        deadline: 'Deadline: {date}',
+        confirmedAt: 'Confirmed on {date}',
+        expressDeadlineDays: 5,
+      },
+    },
+
+    // Express (client-side)
+    express: {
+      markComplete: 'All documents uploaded',
+      markCompleteDesc: 'I confirm that all relevant documents have been uploaded. The express countdown starts after confirmation.',
+      confirmButton: 'Complete upload & start express',
+      confirmed: 'Express processing active',
+      countdown: 'Time remaining',
+      daysRemaining: '{days} days {hours} hrs',
+      hoursRemaining: '{hours} hrs {minutes} min',
+      expired: 'Deadline expired — we\'ll be in touch!',
     },
 
     footer: {

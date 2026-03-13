@@ -122,6 +122,58 @@ function buildOrderConfirmationEmail(opts: {
 </html>`
 }
 
+function buildAdminExpressNotificationEmail(opts: {
+  year: number
+  price: number
+  customerName: string
+  customerEmail: string
+  isAbo: boolean
+  appUrl: string
+}) {
+  const { year, price, customerName, customerEmail, isAbo, appUrl } = opts
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; background-color: #f0f4f8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 24px 16px;">
+    <div style="background: #b91c1c; border-radius: 16px 16px 0 0; padding: 32px 24px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700;">Express-Auftrag eingegangen</h1>
+      <p style="color: #fecaca; margin: 8px 0 0; font-size: 14px;">Priorisierte Bearbeitung erforderlich</p>
+    </div>
+    <div style="background: #ffffff; padding: 32px 24px; border-radius: 0 0 16px 16px;">
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+        <tr>
+          <td style="padding: 10px 0; color: #627d98; font-size: 14px; border-bottom: 1px solid #f0f4f8;">Kunde</td>
+          <td style="padding: 10px 0; color: #243b53; font-size: 14px; font-weight: 600; text-align: right; border-bottom: 1px solid #f0f4f8;">${customerName}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; color: #627d98; font-size: 14px; border-bottom: 1px solid #f0f4f8;">E-Mail</td>
+          <td style="padding: 10px 0; color: #243b53; font-size: 14px; font-weight: 600; text-align: right; border-bottom: 1px solid #f0f4f8;">${customerEmail}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; color: #627d98; font-size: 14px; border-bottom: 1px solid #f0f4f8;">Steuerjahr</td>
+          <td style="padding: 10px 0; color: #243b53; font-size: 14px; font-weight: 600; text-align: right; border-bottom: 1px solid #f0f4f8;">${year}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; color: #627d98; font-size: 14px; border-bottom: 1px solid #f0f4f8;">Betrag</td>
+          <td style="padding: 10px 0; color: #243b53; font-size: 14px; font-weight: 600; text-align: right; border-bottom: 1px solid #f0f4f8;">CHF ${price.toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; color: #627d98; font-size: 14px; border-bottom: 1px solid #f0f4f8;">Bearbeitung</td>
+          <td style="padding: 10px 0; color: #dc2626; font-size: 14px; font-weight: 700; text-align: right; border-bottom: 1px solid #f0f4f8;">EXPRESS</td>
+        </tr>
+        ${isAbo ? `<tr><td style="padding: 10px 0; color: #627d98; font-size: 14px;">Abo</td><td style="padding: 10px 0; color: #218048; font-size: 14px; font-weight: 600; text-align: right;">Ja (10% Rabatt)</td></tr>` : ''}
+      </table>
+      <div style="text-align: center;">
+        <a href="${appUrl}/admin" style="display: inline-block; background: #102a43; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 14px; font-weight: 600;">Im Admin-Dashboard öffnen</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.text()
@@ -170,6 +222,7 @@ export async function POST(request: Request) {
               price,
               status: 'dokumente_hochladen',
               is_abo: isAbo || null,
+              express,
               stripe_session_id: session.id,
             })
             .eq('user_id', userId)
@@ -186,6 +239,7 @@ export async function POST(request: Request) {
               price,
               status: 'dokumente_hochladen',
               is_abo: isAbo || null,
+              express,
               stripe_session_id: session.id,
             }, { onConflict: 'user_id,year' })
         }
@@ -239,9 +293,73 @@ export async function POST(request: Request) {
               appUrl,
             }),
           })
+
+          // Send admin notification email for express orders
+          if (express) {
+            const adminEmail = process.env.ADMIN_EMAIL || 'christian@petertiltax.ch'
+            const customerName = session.customer_details?.name || customerEmail
+            await resend.emails.send({
+              from: 'Petertil Tax <noreply@petertiltax.ch>',
+              to: [adminEmail],
+              subject: `🚀 Express-Auftrag: Steuererklärung ${year} – ${customerName}`,
+              html: buildAdminExpressNotificationEmail({
+                year,
+                price,
+                customerName,
+                customerEmail,
+                isAbo,
+                appUrl,
+              }),
+            })
+          }
         } catch (emailError) {
           // Log but don't fail the webhook
           console.error('Failed to send order confirmation email:', emailError)
+        }
+      }
+
+      // Send portal message to admin for express orders
+      if (express && userId) {
+        try {
+          const customerName = session.customer_details?.name || customerEmail || 'Kunde'
+
+          // Find admin user
+          const { data: adminProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('role', 'admin')
+            .limit(1)
+            .single()
+
+          if (adminProfile) {
+            // Ensure conversation exists
+            const { data: existingConvo } = await supabase
+              .from('portal_conversations')
+              .select('id')
+              .eq('client_id', userId)
+              .single()
+
+            let convoId = existingConvo?.id
+            if (!convoId) {
+              const { data: newConvo } = await supabase
+                .from('portal_conversations')
+                .insert({ client_id: userId, status: 'open' })
+                .select('id')
+                .single()
+              convoId = newConvo?.id
+            }
+
+            if (convoId) {
+              await supabase.from('portal_messages').insert({
+                client_id: userId,
+                sender_id: adminProfile.id,
+                sender_role: 'admin',
+                body: `Neuer Express-Auftrag eingegangen! Kunde: ${customerName}, Steuererklärung ${year}, CHF ${price.toFixed(2)}. Bitte priorisiert bearbeiten.`,
+              })
+            }
+          }
+        } catch (msgError) {
+          console.error('Failed to create admin portal message:', msgError)
         }
       }
     }

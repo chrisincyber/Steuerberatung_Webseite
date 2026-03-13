@@ -184,6 +184,7 @@ function DashboardContent() {
         const year = parseInt(data.metadata.year, 10)
         const price = parseFloat(data.metadata.price)
         const isAbo = data.metadata.abo === 'true'
+        const expressFlag = data.metadata.express === 'true'
         const partnerId = data.metadata.partner_id || null
 
         if (isNaN(year) || isNaN(price)) return
@@ -197,6 +198,7 @@ function DashboardContent() {
               price,
               status: 'dokumente_hochladen' as TaxYearStatus,
               is_abo: isAbo || null,
+              express: expressFlag,
             })
             .eq('user_id', user.id)
             .eq('year', year)
@@ -211,6 +213,7 @@ function DashboardContent() {
               price,
               status: 'dokumente_hochladen' as TaxYearStatus,
               is_abo: isAbo || null,
+              express: expressFlag,
               stripe_session_id: sessionId,
             }, { onConflict: 'user_id,year' })
         }

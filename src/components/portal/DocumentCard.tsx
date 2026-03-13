@@ -5,7 +5,8 @@ import { useI18n } from '@/lib/i18n/context'
 import { createClient } from '@/lib/supabase/client'
 import type { Document as PortalDocument, DocumentStatus } from '@/lib/types/portal'
 import { DocStatusBadge } from './StatusBadge'
-import { FileText, Image as ImageIcon, Trash2, Pencil, Check, X } from 'lucide-react'
+import { DocumentPreview } from './DocumentPreview'
+import { FileText, Image as ImageIcon, Trash2, Pencil, Check, X, Eye } from 'lucide-react'
 
 interface DocumentCardProps {
   doc: PortalDocument
@@ -20,6 +21,7 @@ export function DocumentCard({ doc, onUpdate, isAdmin }: DocumentCardProps) {
   const [fileName, setFileName] = useState(doc.file_name)
   const [remarks, setRemarks] = useState(doc.remarks || '')
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
 
   const isImage = doc.file_type.startsWith('image/')
 
@@ -147,8 +149,11 @@ export function DocumentCard({ doc, onUpdate, isAdmin }: DocumentCardProps) {
         </div>
       )}
 
-      {/* Delete */}
-      <div className="flex justify-end">
+      {/* Actions */}
+      <div className="flex justify-end gap-2">
+        <button onClick={() => setShowPreview(true)} className="text-navy-400 hover:text-navy-600 transition-colors">
+          <Eye className="w-4 h-4" />
+        </button>
         {confirmDelete ? (
           <div className="flex items-center gap-2 text-xs">
             <span className="text-red-600">{t.dashboard.documents.deleteConfirm}</span>
@@ -161,6 +166,8 @@ export function DocumentCard({ doc, onUpdate, isAdmin }: DocumentCardProps) {
           </button>
         )}
       </div>
+
+      {showPreview && <DocumentPreview doc={doc} onClose={() => setShowPreview(false)} />}
     </div>
   )
 }
