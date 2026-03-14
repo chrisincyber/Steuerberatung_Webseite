@@ -26,7 +26,7 @@ export async function GET() {
       console.error('Profile GET error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
-    return NextResponse.json(data)
+    return NextResponse.json({ ...data, email: user.email })
   } catch (err) {
     console.error('Profile GET catch:', err)
     return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 })

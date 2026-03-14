@@ -52,6 +52,7 @@ CREATE POLICY "Admins can update all profiles"
   );
 
 -- Auto-create profile on signup
+-- Handles both email/password (first_name/last_name) and Google OAuth (given_name/family_name)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -59,8 +60,8 @@ BEGIN
   VALUES (
     NEW.id,
     NEW.email,
-    NEW.raw_user_meta_data->>'first_name',
-    NEW.raw_user_meta_data->>'last_name',
+    COALESCE(NEW.raw_user_meta_data->>'first_name', NEW.raw_user_meta_data->>'given_name'),
+    COALESCE(NEW.raw_user_meta_data->>'last_name', NEW.raw_user_meta_data->>'family_name'),
     NEW.raw_user_meta_data->>'phone'
   );
   RETURN NEW;
